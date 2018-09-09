@@ -23,7 +23,7 @@ Plugin 'jiangmiao/auto-pairs'
 Plugin 'nvie/vim-flake8'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdtree'
-Plugin 'vim-scripts/vim-auto-save'
+Plugin 'sjl/vitality.vim'
 Plugin 'vim-syntastic/syntastic'
 
 " All of your Plugins must be added before the following line
@@ -77,11 +77,11 @@ set laststatus=2
 " hide mode
 set noshowmode
 
-" show vertical column at 80th character
-set colorcolumn=80
+" show vertical column at 80th character for ['*.py']
+au BufReadPost,BufNewFile *.py set colorcolumn=80
 
 " set vertical column color to black
-highlight ColorColumn ctermbg=0
+highlight ColorColumn ctermbg=darkgray
 
 " set spell check language
 set spelllang=en_us
@@ -98,6 +98,12 @@ autocmd BufWritePre * %s/\s\+$//e
 
 " enable normal backspace behavior
 set backspace=indent,eol,start
+
+" set pmenu (pop-up menu) color
+highlight Pmenu ctermfg=gray ctermbg=darkgray
+
+" auto save all files when focus is lost or when switching buffers
+autocmd FocusLost,BufLeave * :wa
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Vim remap configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -116,9 +122,12 @@ set rtp+=/usr/local/opt/fzf"
 
 " this is the default extra key bindings
 let g:fzf_action = {
-  \ 'ctrl-t': 'tab split',
-  \ 'ctrl-s': 'split',
-  \ 'ctrl-v': 'vsplit' }
+      \ 'ctrl-t': 'tab split',
+      \ 'ctrl-s': 'split',
+      \ 'ctrl-v': 'vsplit' }
+
+" map :FZF to ^Ctrl + o
+map <C-o> :FZF<CR>
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Powerline configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,6 +135,7 @@ let g:fzf_action = {
 " python from powerline.vim import setup as powerline_setup
 " python powerline_setup()
 " python del powerline_setup
+
 
 " ~~~~~~~~~~~~~~~~~~~~~ Start vim-autoformat configuration ~~~~~~~~~~~~~~~~~~~~
 
@@ -142,6 +152,7 @@ let g:ycm_autoclose_preview_window_after_completion=1
 
 " map GoToDefinitionElseDeclaration to <leader>('\') + g
 map <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,15 +173,6 @@ let NERDTreeShowHidden=1
 
 " ignore specifc files
 let NERDTreeIgnore=['\.pyc$', '\~$']
-
-
-" ~~~~~~~~~~~~~~~~~~~~~ Start vim-auto-save configuration ~~~~~~~~~~~~~~~~~~~~~
-
-" enable AutoSave on Vim startup
-let g:auto_save=1
-
-" disable AutoSave in insert mode
-let g:auto_save_in_insert_mode = 0
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start syntastic configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -199,5 +201,4 @@ autocmd BufNewFile,BufRead *.py:
 
 " set encoding
 set encoding=utf-8
-
 
