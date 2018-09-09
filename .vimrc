@@ -105,6 +105,13 @@ highlight Pmenu ctermfg=gray ctermbg=darkgray
 " auto save all files when focus is lost or when switching buffers
 autocmd FocusLost,BufLeave * :wa
 
+" reduce timeout when entering or leaving INSERT mode
+augroup FastEscape
+    autocmd!
+    au InsertEnter * set timeoutlen=0
+    au InsertLeave * set timeoutlen=0
+augroup END
+
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Vim remap configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
