@@ -155,6 +155,9 @@ python3.latest() {
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
+# ignore files specified in .gitignore
+export FZF_DEFAULT_COMMAND='ag -g ""'
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~
 

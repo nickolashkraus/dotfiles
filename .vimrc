@@ -137,6 +137,9 @@ let g:fzf_action = {
 " map :FZF to ^Ctrl + o
 map <C-o> :FZF<CR>
 
+" ignore files specified in .gitignore
+let $FZF_DEFAULT_COMMAND = 'ag -g ""'
+
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Powerline configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -160,6 +163,11 @@ let g:ycm_autoclose_preview_window_after_completion=1
 
 " map GoToDefinitionElseDeclaration to <leader>('\') + g
 map <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
+
+" disable YouCompleteMe for file types: ['gitcommit']
+let g:ycm_filetype_specific_completion_to_disable = {
+      \ 'gitcommit': 1
+      \}
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
