@@ -1,0 +1,15 @@
+# personal
+Host github
+    HostName github.com
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/id_rsa
+
+# workiva
+Host workiva
+    HostName github.com
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/id_rsa_workiva
+
+Host *.labs.overthewire.org
+  SendEnv WECHALLTOKEN
+  SendEnv WECHALLUSER
