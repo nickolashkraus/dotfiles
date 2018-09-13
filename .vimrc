@@ -25,6 +25,7 @@ Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sjl/vitality.vim'
 Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-surround'
 Plugin 'vim-syntastic/syntastic'
 
 " All of your Plugins must be added before the following line
@@ -109,10 +110,12 @@ autocmd FocusLost,BufLeave * :wa
 " reduce timeout when entering or leaving INSERT mode
 augroup FastEscape
     autocmd!
-    au InsertEnter * set timeoutlen=0
-    au InsertLeave * set timeoutlen=0
+    au InsertEnter * set timeoutlen=100
+    au InsertLeave * set timeoutlen=1000
 augroup END
 
+" set 'set paste' toggle
+set pastetoggle=<F10>
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Vim remap configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,7 +165,7 @@ autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
 let g:ycm_autoclose_preview_window_after_completion=1
 
 " map GoToDefinitionElseDeclaration to <leader>('\') + g
-map <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
+map <leader>g :YcmCompleter GoToDefinitionCR>
 
 " disable YouCompleteMe for file types: ['gitcommit']
 let g:ycm_filetype_specific_completion_to_disable = {
