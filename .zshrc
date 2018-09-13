@@ -158,6 +158,9 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 # ignore files specified in .gitignore
 export FZF_DEFAULT_COMMAND='ag -g ""'
 
+# apply 'FZF_DEFAULT_COMMAND' to ^Ctrl + t
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -177,10 +180,13 @@ export DARTIUM_EXPIRATION_TIME=1577836800;
 alias clean='deactivate; cd ~; clear; workon dev;'
 
 # osx
-alias show-hidden-on="defaults write com.apple.finder AppleShowAllFiles YES"
-alias show-hidden-off="defaults write com.apple.finder AppleShowAllFiles NO"
+alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
+alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
+
+# docker
+alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -q)'
 
 # dart
 alias ddev='pub run dart_dev'
-alias pub-nuke='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
+alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 
