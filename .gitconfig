@@ -2,3 +2,6 @@
 	editor = /usr/bin/vim
 [merge]
 	tool = vimdiff
+[user]
+	name = NickolasHKraus
+	email = NickHKraus@gmail.com
