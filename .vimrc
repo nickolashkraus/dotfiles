@@ -117,13 +117,27 @@ augroup END
 " set 'set paste' toggle
 set pastetoggle=<F10>
 
+
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Vim remap configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
-" remap pane selection to ^Ctrl + [JKLH]
+" remap pane selection to ^Ctrl + [jklh]
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
+
+" remap leader key ('\') to '<Space>'
+nnoremap <Space> <Nop>
+let mapleader = "\<Space>"
+
+" remap CTRL + I (go to newer entry in jump list) to <leader> + I
+nnoremap <leader>i <C-I>
+
+" remap CTRL + O (go to older entry in jump list) to <leader> + O
+nnoremap <leader>o <C-O>
+
+" substitute all occurrences of the word under the cursor
+nnoremap <Leader>s :%s/\<<C-r><C-w>\>/
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,7 +152,7 @@ let g:fzf_action = {
       \ 'ctrl-v': 'vsplit' }
 
 " map :FZF to ^Ctrl + o
-map <C-o> :FZF<CR>
+map <C-O> :FZF<CR>
 
 " ignore files specified in .gitignore
 let $FZF_DEFAULT_COMMAND = 'ag -g ""'
@@ -164,8 +178,8 @@ autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
 " close preview window after completion
 let g:ycm_autoclose_preview_window_after_completion=1
 
-" map GoToDefinitionElseDeclaration to <leader>('\') + g
-map <leader>g :YcmCompleter GoToDefinitionCR>
+" map GoToDefinitionElseDeclaration to <leader> + g
+map <leader>g :YcmCompleter GoToDefinition<CR>
 
 " disable YouCompleteMe for file types: ['gitcommit']
 let g:ycm_filetype_specific_completion_to_disable = {
@@ -178,20 +192,17 @@ let g:ycm_filetype_specific_completion_to_disable = {
 let anyfold_activate=1
 set foldlevel=99
 
-" remap code block folding/unfolding to <space>
-nnoremap <space> za
-
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~ Start nerdtree configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
 " map toggle NERDTree to ^Ctrl + n
-map <C-n> :NERDTreeToggle<CR>
+map <C-N> :NERDTreeToggle<CR>
 
 " show hidden files by default
 let NERDTreeShowHidden=1
 
 " ignore specifc files
-let NERDTreeIgnore=['\.pyc$', '\~$']
+let NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$']
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start syntastic configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -204,6 +215,10 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+
+" configure Python and Python3 checkers
+let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']
+let g:syntastic_python_flake8_exe = 'python3 -m flake8'
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~ Start Python configuration ~~~~~~~~~~~~~~~~~~~~~~~~
