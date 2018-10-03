@@ -139,12 +139,12 @@ python2.7.8() {
 }
 
 python2.latest() {
-  pyenv shell 2.7.14
+  pyenv shell 2.7.15
   pyenv virtualenvwrapper
 }
 
 python3.latest() {
-  pyenv shell 3.6.3
+  pyenv shell 3.7.0
   pyenv virtualenvwrapper
 }
 
