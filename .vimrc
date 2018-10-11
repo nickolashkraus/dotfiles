@@ -178,8 +178,8 @@ autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
 " close preview window after completion
 let g:ycm_autoclose_preview_window_after_completion=1
 
-" map GoToDefinitionElseDeclaration to <leader> + g
-map <leader>g :YcmCompleter GoToDefinition<CR>
+" map GoToDeclaration subcommand to <leader> + g
+map <leader>g :YcmCompleter GoToDeclaration<CR>
 
 " disable YouCompleteMe for file types: ['gitcommit']
 let g:ycm_filetype_specific_completion_to_disable = {
