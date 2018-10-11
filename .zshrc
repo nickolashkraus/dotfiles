@@ -190,3 +190,5 @@ alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) &
 alias ddev='pub run dart_dev'
 alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 
+# git
+alias gcp='git log -1 --pretty=%B | pbcopy'
