@@ -17,6 +17,7 @@ Plugin 'Valloric/YouCompleteMe'
 Plugin 'Vimjas/vim-python-pep8-indent'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
+Plugin 'altercation/vim-colors-solarized'
 Plugin 'dart-lang/dart-vim-plugin'
 Plugin 'itchyny/lightline.vim'
 Plugin 'jiangmiao/auto-pairs'
@@ -46,11 +47,8 @@ filetype plugin indent on    " required
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Vim configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-" set color scheme
-colorscheme slate
-
 " enable syntax highlighting
-syntax on
+syntax enable
 
 " vertical split (:split, :sp) below current pane
 set splitbelow
@@ -165,12 +163,26 @@ let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 " python del powerline_setup
 
 
+" ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
+
+let anyfold_activate=1
+set foldlevel=99
+
+
 " ~~~~~~~~~~~~~~~~~~~~~ Start vim-autoformat configuration ~~~~~~~~~~~~~~~~~~~~
 
 " disable autoformat fallback behavior for file types: ['gitcommit']
 autocmd FileType gitcommit let b:autoformat_autoindent=0
 autocmd FileType gitcommit let g:autoformat_retab = 0
 autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
+
+
+" ~~~~~~~~~~~~~~~~~~ Start vim-colors-solarized configuration ~~~~~~~~~~~~~~~~~
+
+" set solarized colorscheme
+let g:solarized_termcolors=256
+set background=dark
+colorscheme solarized
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start YouCompleteMe configuration ~~~~~~~~~~~~~~~~~~~~
@@ -185,12 +197,6 @@ map <leader>g :YcmCompleter GoToDeclaration<CR>
 let g:ycm_filetype_specific_completion_to_disable = {
       \ 'gitcommit': 1
       \}
-
-
-" ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
-
-let anyfold_activate=1
-set foldlevel=99
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~ Start nerdtree configuration ~~~~~~~~~~~~~~~~~~~~~~~
