@@ -164,7 +164,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~
 
-# default to Python 2.7.14
+# default to Python 2.7.15
 python2.latest
 
 # default to 'dev' virtualenv
