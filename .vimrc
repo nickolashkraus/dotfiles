@@ -217,12 +217,17 @@ set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
+highlight SyntasticErrorSign ctermfg=darkred
+highlight SyntasticWarningSign ctermfg=darkyellow
+
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
 " configure Python and Python3 checkers
+" available checkers: Bandit, flake8, Frosted, mypy, Prospector, py3kwarn,
+" pycodestyle, pydocstyle, Pyflakes, Pylama, Pylint, python
 let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']
 let g:syntastic_python_flake8_exe = 'python3 -m flake8'
 
