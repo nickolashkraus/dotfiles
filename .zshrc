@@ -134,11 +134,6 @@ source /usr/local/bin/virtualenvwrapper.sh
 # set up pyenv
 eval "$(pyenv init -)"
 
-python2.7.8() {
-  pyenv shell 2.7.8
-  pyenv virtualenvwrapper
-}
-
 python2.latest() {
   pyenv shell 2.7.15
   pyenv virtualenvwrapper
