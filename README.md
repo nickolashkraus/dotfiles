@@ -15,14 +15,20 @@ From *Essential System Administration* by Æleen Frisch
 ### Chrome
 
 ```bash
-https://www.google.com/chrome/browser/desktop/index.html
+https://www.google.com/chrome/
+```
+
+### Git
+
+```bash
+xcode-select --install
 ```
 
 ### iTerm2
 
 ```bash
-curl -LOk https://iterm2.com/downloads/stable/iTerm2-3_1_4.zip
-unzip iTerm2-3_1_4.zip
+curl -LOk https://iterm2.com/downloads/stable/iTerm2-3_2_3.zip
+unzip iTerm2-3_2_3.zip
 ```
 
 ### zsh
@@ -31,16 +37,10 @@ unzip iTerm2-3_1_4.zip
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 ```
 
-### Homebrew
+### Powerline
 
 ```bash
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-### tmux
-
-```bash
-brew install tmux
+pip install --user powerline-status
 ```
 
 ### Powerline fonts
@@ -51,6 +51,18 @@ cd fonts
 ./install.sh
 cd ..
 rm -rf fonts
+```
+
+### Homebrew
+
+```eash
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+### tmux
+
+```bash
+brew install tmux
 ```
 
 ### Vim
