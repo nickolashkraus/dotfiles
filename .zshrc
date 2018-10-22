@@ -152,7 +152,7 @@ python3.latest() {
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
 # ignore files specified in .gitignore
-export FZF_DEFAULT_COMMAND='ag -g ""'
+export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 
 # apply 'FZF_DEFAULT_COMMAND' to ^Ctrl + t
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"

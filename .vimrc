@@ -21,6 +21,7 @@ Plugin 'altercation/vim-colors-solarized'
 Plugin 'dart-lang/dart-vim-plugin'
 Plugin 'itchyny/lightline.vim'
 Plugin 'jiangmiao/auto-pairs'
+Plugin 'mileszs/ack.vim'
 Plugin 'nvie/vim-flake8'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdtree'
@@ -153,7 +154,7 @@ let g:fzf_action = {
 map <C-O> :FZF<CR>
 
 " ignore files specified in .gitignore
-let $FZF_DEFAULT_COMMAND = 'ag -g ""'
+let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Powerline configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,6 +162,12 @@ let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 " python from powerline.vim import setup as powerline_setup
 " python powerline_setup()
 " python del powerline_setup
+
+
+" ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start ack configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+" use Ag with ack.vim
+let g:ackprg = 'ag --nogroup --nocolor --column'
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
