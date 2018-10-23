@@ -78,8 +78,8 @@ set laststatus=2
 " hide mode
 set noshowmode
 
-" show vertical column at 80th character for ['*.py']
-au BufReadPost,BufNewFile *.py set colorcolumn=80
+" show vertical column at 80th character
+au BufReadPost,BufNewFile * set colorcolumn=80
 
 " set vertical column color to black
 highlight ColorColumn ctermbg=darkgray
@@ -137,6 +137,12 @@ nnoremap <leader>o <C-O>
 
 " substitute all occurrences of the word under the cursor
 nnoremap <Leader>s :%s/\<<C-r><C-w>\>/
+
+" set <leader>y to copy to the * register (system clipboard)
+noremap <leader>y "*y
+
+" set <leader>p to paste from the * register (system clipboard)
+noremap <leader>p "*p
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
