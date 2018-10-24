@@ -138,10 +138,10 @@ nnoremap <leader>o <C-O>
 " substitute all occurrences of the word under the cursor
 nnoremap <Leader>s :%s/\<<C-r><C-w>\>/
 
-" set <leader>y to copy to the * register (system clipboard)
+" set <leader>y to copy to the "* register (system clipboard)
 noremap <leader>y "*y
 
-" set <leader>p to paste from the * register (system clipboard)
+" set <leader>p to paste from the "* register (system clipboard)
 noremap <leader>p "*p
 
 
@@ -163,17 +163,23 @@ map <C-O> :FZF<CR>
 let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
 
 
-" ~~~~~~~~~~~~~~~~~~~~~~~ Start Powerline configuration ~~~~~~~~~~~~~~~~~~~~~~~
-
-" python from powerline.vim import setup as powerline_setup
-" python powerline_setup()
-" python del powerline_setup
-
-
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start ack configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 " use Ag with ack.vim
 let g:ackprg = 'ag --nogroup --nocolor --column'
+
+
+" ~~~~~~~~~~~~~~~~~~~~~~~ Start lightline configuration ~~~~~~~~~~~~~~~~~~~~~~~
+let g:lightline = {
+      \ 'colorscheme': 'default',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
+      \ },
+      \ 'component_function': {
+      \   'gitbranch': 'fugitive#head'
+      \ },
+      \ }
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
