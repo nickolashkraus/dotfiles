@@ -18,11 +18,9 @@ Plugin 'Vimjas/vim-python-pep8-indent'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
-Plugin 'dart-lang/dart-vim-plugin'
 Plugin 'itchyny/lightline.vim'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'mileszs/ack.vim'
-Plugin 'nvie/vim-flake8'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdtree'
 Plugin 'sjl/vitality.vim'
@@ -108,13 +106,16 @@ autocmd FocusLost,BufLeave * :wa
 
 " reduce timeout when entering or leaving INSERT mode
 augroup FastEscape
-    autocmd!
-    au InsertEnter * set timeoutlen=100
-    au InsertLeave * set timeoutlen=1000
+  autocmd!
+  au InsertEnter * set timeoutlen=100
+  au InsertLeave * set timeoutlen=1000
 augroup END
 
-" set 'set paste' toggle
+" set 'set paste' toggle to <F10>
 set pastetoggle=<F10>
+
+" set updatetime to 100 ms
+set updatetime=100
 
 
 " ~~~~~~~~~~~~~~~~~~~~~~~ Start Vim remap configuration ~~~~~~~~~~~~~~~~~~~~~~~
@@ -189,6 +190,9 @@ set foldlevel=99
 
 
 " ~~~~~~~~~~~~~~~~~~~~~ Start vim-autoformat configuration ~~~~~~~~~~~~~~~~~~~~
+
+" set :Autoformat command to <F3>
+noremap <F3> :Autoformat<CR>
 
 " disable autoformat fallback behavior for file types: ['gitcommit']
 autocmd FileType gitcommit let b:autoformat_autoindent=0

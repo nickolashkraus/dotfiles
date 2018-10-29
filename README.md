@@ -1,5 +1,9 @@
 # dotfiles
 
+For a comprehensive walk though of my local development setup and the Vim plugins that I use, consult the following aptly named blog posts:
+* [My Local Development Setup](https://nickolaskraus.org/articles/my-local-development-setup/)
+* [Vim Plugins That I Use](https://nickolaskraus.org/articles/vim-plugins-that-i-use/)
+
 ## Installation
 
 ```bash
