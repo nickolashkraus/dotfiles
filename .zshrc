@@ -1,7 +1,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Zsh configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$GOPATH/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
@@ -121,6 +121,14 @@ export GOOGLE_CLOUD_SDK=/Users/nickolaskraus/.local/google-cloud-sdk
 
 # set App Engine SDK environment variable
 export APP_ENGINE_SDK=/Users/nickolaskraus/.local/google-cloud-sdk/platform/google_appengine
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~ Start Kubernetes configuration ~~~~~~~~~~~~~~~~~~~~~
+export KUBECONFIG=$HOME/.kube/config:$HOME/Workspace/EKS/kubeconfigs.yaml
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Go configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
+export GOPATH=$HOME/go
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ Start virtualenv configuration ~~~~~~~~~~~~~~~~~~~~~
