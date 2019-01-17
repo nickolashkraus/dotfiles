@@ -180,19 +180,22 @@ export DARTIUM_EXPIRATION_TIME=1577836800;
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~
 
+# dart
+alias ddev='pub run dart_dev'
+alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
+
+# docker
+alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -q)'
+
 # general
 alias clean='deactivate; cd ~; clear; workon dev;'
+
+# git
+alias gcp='git log -1 --pretty=%B | pbcopy'
 
 # osx
 alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
 alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
 
-# docker
-alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -q)'
-
-# dart
-alias ddev='pub run dart_dev'
-alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
-
-# git
-alias gcp='git log -1 --pretty=%B | pbcopy'
+# workiva
+alias aws-credentials='$HOME/Workspace/pss/scripts/get-aws-keys.sh'
