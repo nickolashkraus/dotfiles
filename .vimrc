@@ -185,7 +185,7 @@ let g:lightline = {
 
 " ~~~~~~~~~~~~~~~~~~~~~~ Start vim-anyfold configuration ~~~~~~~~~~~~~~~~~~~~~~
 
-let anyfold_activate=1
+autocmd Filetype * AnyFoldActivate
 set foldlevel=99
 
 
