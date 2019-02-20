@@ -148,7 +148,7 @@ python2.latest() {
 }
 
 python3.latest() {
-  pyenv shell 3.7.0
+  pyenv shell 3.7.2
   pyenv virtualenvwrapper
 }
 

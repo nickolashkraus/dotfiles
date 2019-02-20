@@ -1,5 +1,4 @@
 # dotfiles
-
 For a comprehensive walk though of my local development setup and the Vim plugins that I use, consult the following aptly named blog posts:
 * [My Local Development Setup](https://nickolaskraus.org/articles/my-local-development-setup/)
 * [Vim Plugins That I Use](https://nickolaskraus.org/articles/vim-plugins-that-i-use/)
@@ -23,16 +22,25 @@ xcode-select --install
 ### iTerm2
 
 ```bash
-curl -LOk https://iterm2.com/downloads/stable/iTerm2-3_2_3.zip
-unzip -q iTerm2-3_2_3.zip
+curl -LOk https://iterm2.com/downloads/stable/iTerm2-3_2_7.zip
+unzip -q iTerm2-3_2_7.zip
 mv iTerm.app /Applications
-rm iTerm2-3_2_3.zip
+rm iTerm2-3_2_7.zip
 ```
 
 ### Zsh
 
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+```
+
+Or use:
+
+```bash
+cd ~
+git clone https://github.com/NickolasHKraus/oh-my-zsh .oh-my-zsh
+cd .oh-my-zsh
+git remote add upstream git@github.com:robbyrussell/oh-my-zsh.git
 ```
 
 ### Powerline
@@ -53,7 +61,7 @@ rm -rf fonts
 
 ### Homebrew
 
-```eash
+```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
@@ -66,7 +74,7 @@ brew install tmux
 ### Vim
 
 ```bash
-brew install vim --with-override-system-vi
+brew install vim
 ```
 
 ### Vundle
