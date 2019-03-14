@@ -23,6 +23,7 @@ Plugin 'jiangmiao/auto-pairs'
 Plugin 'mileszs/ack.vim'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdtree'
+Plugin 'sheerun/vim-polyglot'
 Plugin 'sjl/vitality.vim'
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
@@ -248,7 +249,7 @@ let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
-" configure Python and Python3 checkers
+" configure Python and Python3 syntax checkers
 " available checkers: Bandit, flake8, Frosted, mypy, Prospector, py3kwarn,
 " pycodestyle, pydocstyle, Pyflakes, Pylama, Pylint, python
 let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']

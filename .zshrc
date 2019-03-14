@@ -187,6 +187,11 @@ alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 # docker
 alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -q)'
 
+# dwolla
+alias aws-default='export AWS_PROFILE=default'
+alias aws-sandbox='export AWS_PROFILE=sandbox'
+alias aws-prod='export AWS_PROFILE=prod'
+
 # general
 alias clean='deactivate; cd ~; clear; workon dev;'
 
