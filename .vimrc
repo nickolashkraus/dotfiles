@@ -18,6 +18,7 @@ Plugin 'Vimjas/vim-python-pep8-indent'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
+Plugin 'fatih/vim-go'
 Plugin 'itchyny/lightline.vim'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'mileszs/ack.vim'
@@ -248,6 +249,11 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+
+" configure Go syntax checkers
+" available checkers: go, gofmt, GolangCI-Lint, Golint, Go Meta Linter, gotype,
+" vet
+let g:syntastic_go_checkers = ['go', 'gofmt', 'vet']
 
 " configure Python and Python3 syntax checkers
 " available checkers: Bandit, flake8, Frosted, mypy, Prospector, py3kwarn,

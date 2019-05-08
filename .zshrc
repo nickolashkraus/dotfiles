@@ -1,4 +1,4 @@
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Zsh configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Zsh configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:/usr/local/bin:$GOPATH/bin:$PATH
@@ -102,13 +102,13 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start AWS configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start AWS configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # enable AWS CLI command completion
 source /Users/$USER/.virtualenvs/dev/bin/aws_zsh_completer.sh
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Google configuration ~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~ Start Google configuration ~~~~~~~~~~~~~~~~~~~~~~~~
 
 # the next line updates PATH for the Google Cloud SDK
 if [ -f "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc" ]; then source "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc"; fi
@@ -123,15 +123,15 @@ export GOOGLE_CLOUD_SDK=/Users/nickolaskraus/.local/google-cloud-sdk
 export APP_ENGINE_SDK=/Users/nickolaskraus/.local/google-cloud-sdk/platform/google_appengine
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~ Start Kubernetes configuration ~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~ Start Kubernetes configuration ~~~~~~~~~~~~~~~~~~~~~~
 export KUBECONFIG=$HOME/.kube/config:$HOME/Workspace/EKS/kubeconfigs.yaml
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Go configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Go configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 export GOPATH=$HOME/go
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~ Start virtualenv configuration ~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~ Start virtualenv configuration ~~~~~~~~~~~~~~~~~~~~~~
 
 # configure virtualenv and virtualenvwrapper
 export WORKON_HOME=$HOME/.virtualenvs
@@ -153,7 +153,16 @@ python3.latest() {
 }
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start jenv configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# configure jenv
+export PATH="$HOME/.jenv/bin:$PATH"
+
+# set up jenv
+eval "$(jenv init -)"
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # configure fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -166,7 +175,7 @@ export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # default to Python 2.7.15
 python2.latest
@@ -178,14 +187,21 @@ workon dev
 export DARTIUM_EXPIRATION_TIME=1577836800;
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~ Start SDKMAN! configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+
+# configure SDKMAN!
+export SDKMAN_DIR="/Users/nkraus/.sdkman"
+[[ -s "/Users/nkraus/.sdkman/bin/sdkman-init.sh" ]] && source "/Users/nkraus/.sdkman/bin/sdkman-init.sh"
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # dart
 alias ddev='pub run dart_dev'
 alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 
 # docker
-alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -q)'
+alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi --force $(docker images -q)'
 
 # dwolla
 alias aws-default='export AWS_PROFILE=default'
@@ -201,6 +217,9 @@ alias gcp='git log -1 --pretty=%B | pbcopy'
 # osx
 alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
 alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
+
+# tmux
+alias tmux-new='tmux new -s $(basename $(pwd))'
 
 # workiva
 alias aws-credentials='$HOME/Workspace/pss/scripts/get-aws-keys.sh'
