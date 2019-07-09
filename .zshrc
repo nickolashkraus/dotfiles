@@ -194,6 +194,13 @@ export SDKMAN_DIR="/Users/nkraus/.sdkman"
 [[ -s "/Users/nkraus/.sdkman/bin/sdkman-init.sh" ]] && source "/Users/nkraus/.sdkman/bin/sdkman-init.sh"
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start nvm configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# configure nvm
+export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
+source $(brew --prefix nvm)/nvm.sh
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # dart
