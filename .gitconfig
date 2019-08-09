@@ -1,5 +1,6 @@
 [core]
 	editor = /usr/local/bin/vim
+	excludesfile = /Users/nkraus/.gitignore
 [merge]
 	tool = vimdiff
 [user]

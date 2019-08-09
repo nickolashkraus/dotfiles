@@ -208,7 +208,10 @@ alias ddev='pub run dart_dev'
 alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 
 # docker
-alias docker-purge='docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi --force $(docker images -q)'
+alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
+alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
+alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
+alias docker-purge='docker-stop; docker-rm; docker-rmi;'
 
 # dwolla
 alias aws-default='export AWS_PROFILE=default'
