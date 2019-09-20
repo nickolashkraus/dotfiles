@@ -201,6 +201,13 @@ export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
 source $(brew --prefix nvm)/nvm.sh
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~ Start Serverless configuration ~~~~~~~~~~~~~~~~~~~~~~
+
+# enable `serverless` command completion
+[[ -f "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh" ]] && \
+  . "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh"
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # dart
