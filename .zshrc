@@ -162,6 +162,10 @@ export PATH="$HOME/.jenv/bin:$PATH"
 eval "$(jenv init -)"
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start rbenv configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+eval "$(rbenv init -)"
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # configure fzf
@@ -231,12 +235,21 @@ alias clean='deactivate; cd ~; clear; workon dev;'
 # git
 alias gcp='git log -1 --pretty=%B | pbcopy'
 
+# go
+alias go-work='$HOME/go/src/github.com/NickolasHKraus'
+
 # osx
 alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
 alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
+
+# python
+alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
 
 # tmux
 alias tmux-new='tmux new -s $(basename $(pwd))'
 
 # workiva
 alias aws-credentials='$HOME/Workspace/pss/scripts/get-aws-keys.sh'
+
+# added by travis gem
+[ -f /Users/nkraus/.travis/travis.sh ] && source /Users/nkraus/.travis/travis.sh
