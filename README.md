@@ -1,6 +1,6 @@
 # Dotfiles
 
-[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/NickolasHKraus/dotfiles/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/github/license/NickolasHKraus/dotfiles?color=blue)](https://github.com/NickolasHKraus/dotfiles/blob/master/LICENSE)
 
 For a comprehensive walk though of my local development setup and the Vim plugins that I use, consult the following aptly named blog posts:
 * [My Local Development Setup](https://nickolaskraus.org/articles/my-local-development-setup/)
