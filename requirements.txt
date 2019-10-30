@@ -1,0 +1,11 @@
+awscli
+bumpversion
+cookiecutter
+flake8
+isort
+pip
+powerline-status
+pycodestyle
+pydocstyle
+pyflakes
+yapf

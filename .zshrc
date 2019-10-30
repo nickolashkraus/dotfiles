@@ -105,7 +105,7 @@ source $ZSH/oh-my-zsh.sh
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start AWS configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # enable AWS CLI command completion
-source /Users/$USER/.virtualenvs/dev/bin/aws_zsh_completer.sh
+source /Users/$USER/.virtualenvs/dev3/bin/aws_zsh_completer.sh
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~ Start Google configuration ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,12 +143,12 @@ source /usr/local/bin/virtualenvwrapper.sh
 eval "$(pyenv init -)"
 
 python2.latest() {
-  pyenv shell 2.7.15
+  pyenv shell 2.7.16
   pyenv virtualenvwrapper
 }
 
 python3.latest() {
-  pyenv shell 3.7.2
+  pyenv shell 3.7.4
   pyenv virtualenvwrapper
 }
 
@@ -184,8 +184,8 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # default to Python 2.7.15
 python2.latest
 
-# default to 'dev' virtualenv
-workon dev
+# default to 'dev3' virtualenv
+workon dev3
 
 # set Dartium expiration to January 2020
 export DARTIUM_EXPIRATION_TIME=1577836800;
@@ -230,7 +230,7 @@ alias aws-sandbox='export AWS_PROFILE=sandbox'
 alias aws-prod='export AWS_PROFILE=prod'
 
 # general
-alias clean='deactivate; cd ~; clear; workon dev;'
+alias clean='deactivate; cd ~; clear; workon dev3;'
 
 # git
 alias gcp='git log -1 --pretty=%B | pbcopy'
