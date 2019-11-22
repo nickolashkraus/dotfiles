@@ -1,4 +1,7 @@
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Zsh configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# vim: fdm=marker
+
+# Zsh                                                                      {{{1
+# -----------------------------------------------------------------------------
 
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:/usr/local/bin:$GOPATH/bin:$PATH
@@ -78,14 +81,14 @@ source $ZSH/oh-my-zsh.sh
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='vim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -102,41 +105,118 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start AWS configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Utilities                                                                {{{1
+# -----------------------------------------------------------------------------
+
+# AWS                                                                      {{{2
+# -----------------------------------------------------------------------------
 
 # enable AWS CLI command completion
 source /Users/$USER/.virtualenvs/dev3/bin/aws_zsh_completer.sh
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~ Start Google configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+# Google                                                                   {{{2
+# -----------------------------------------------------------------------------
 
 # the next line updates PATH for the Google Cloud SDK
-if [ -f "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc" ]; then source "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc"; fi
+if [ -f "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc" ]; then
+  source "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc";
+fi
 
 # the next line enables shell command completion for gcloud
-if [ -f "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc" ]; then source "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc"; fi
+if [ -f "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc" ]; then
+  source "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc";
+fi
 
 # set Google Cloud SDK environment variable
-export GOOGLE_CLOUD_SDK=/Users/nickolaskraus/.local/google-cloud-sdk
+export GOOGLE_CLOUD_SDK=/Users/$USER/.local/google-cloud-sdk
 
 # set App Engine SDK environment variable
-export APP_ENGINE_SDK=/Users/nickolaskraus/.local/google-cloud-sdk/platform/google_appengine
+export APP_ENGINE_SDK=/Users/$USER/.local/google-cloud-sdk/platform/google_appengine
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~ Start Kubernetes configuration ~~~~~~~~~~~~~~~~~~~~~~
+# Kubernetes                                                               {{{2
+# -----------------------------------------------------------------------------
+
 export KUBECONFIG=$HOME/.kube/config:$HOME/Workspace/EKS/kubeconfigs.yaml
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Start Go configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SDKMAN!                                                                  {{{2
+# -----------------------------------------------------------------------------
+
+# configure SDKMAN!
+export SDKMAN_DIR="/Users/nkraus/.sdkman"
+[[ -s "/Users/nkraus/.sdkman/bin/sdkman-init.sh" ]] && \
+  source "/Users/nkraus/.sdkman/bin/sdkman-init.sh"
+
+
+# Serverless                                                               {{{2
+# -----------------------------------------------------------------------------
+
+# enable `serverless` command completion
+[[ -f "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh" ]] && \
+  . "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh"
+
+
+# Travis CI                                                                {{{2
+# -----------------------------------------------------------------------------
+
+# added by travis gem
+[ -f /Users/nkraus/.travis/travis.sh ] && \
+  source /Users/nkraus/.travis/travis.sh
+
+
+# fzf                                                                      {{{2
+# -----------------------------------------------------------------------------
+
+# configure fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+
+# ignore files specified in .gitignore
+export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
+
+# apply 'FZF_DEFAULT_COMMAND' to CTRL + t
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+
+# nvm                                                                      {{{2
+# -----------------------------------------------------------------------------
+
+# configure nvm
+export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
+source $(brew --prefix nvm)/nvm.sh
+
+
+# Languages                                                                {{{1
+# -----------------------------------------------------------------------------
+
+# Go                                                                       {{{2
+# -----------------------------------------------------------------------------
+
 export GOPATH=$HOME/go
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~ Start virtualenv configuration ~~~~~~~~~~~~~~~~~~~~~~
+# Virtual Environments                                                     {{{1
+# -----------------------------------------------------------------------------
+
+# jenv                                                                     {{{2
+# -----------------------------------------------------------------------------
+
+# configure jenv
+export PATH="$HOME/.jenv/bin:$PATH"
+
+# set up jenv
+eval "$(jenv init -)"
+
+
+# pyenv                                                                    {{{2
+# -----------------------------------------------------------------------------
 
 # configure virtualenv and virtualenvwrapper
 export WORKON_HOME=$HOME/.virtualenvs
-export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python2
-export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+export VIRTUALENVWRAPPER_PYTHON=$HOME/.pyenv/shims/python
+export VIRTUALENVWRAPPER_VIRTUALENV=$HOME/.pyenv/shims/virtualenv
 source /usr/local/bin/virtualenvwrapper.sh
 
 # set up pyenv
@@ -153,103 +233,87 @@ python3.latest() {
 }
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start jenv configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# configure jenv
-export PATH="$HOME/.jenv/bin:$PATH"
-
-# set up jenv
-eval "$(jenv init -)"
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start rbenv configuration ~~~~~~~~~~~~~~~~~~~~~~~~
+# rbenv                                                                    {{{2
+# -----------------------------------------------------------------------------
 eval "$(rbenv init -)"
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start fzf configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Aliases                                                                  {{{1
+# -----------------------------------------------------------------------------
 
-# configure fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+# Dart                                                                     {{{2
+# -----------------------------------------------------------------------------
 
-# ignore files specified in .gitignore
-export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
-
-# apply 'FZF_DEFAULT_COMMAND' to ^Ctrl + t
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start user configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# default to Python 2.7.15
-python2.latest
-
-# default to 'dev3' virtualenv
-workon dev3
-
-# set Dartium expiration to January 2020
-export DARTIUM_EXPIRATION_TIME=1577836800;
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~ Start SDKMAN! configuration ~~~~~~~~~~~~~~~~~~~~~~~~
-
-# configure SDKMAN!
-export SDKMAN_DIR="/Users/nkraus/.sdkman"
-[[ -s "/Users/nkraus/.sdkman/bin/sdkman-init.sh" ]] && source "/Users/nkraus/.sdkman/bin/sdkman-init.sh"
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~ Start nvm configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# configure nvm
-export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
-source $(brew --prefix nvm)/nvm.sh
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~ Start Serverless configuration ~~~~~~~~~~~~~~~~~~~~~~
-
-# enable `serverless` command completion
-[[ -f "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh" ]] && \
-  . "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh"
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~ Start alias configuration ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# dart
 alias ddev='pub run dart_dev'
 alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 
-# docker
+
+# Docker                                                                   {{{2
+# -----------------------------------------------------------------------------
+
 alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
 alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
 alias docker-purge='docker-stop; docker-rm; docker-rmi;'
 
-# dwolla
+
+# Dwolla                                                                   {{{2
+# -----------------------------------------------------------------------------
+
 alias aws-default='export AWS_PROFILE=default'
 alias aws-sandbox='export AWS_PROFILE=sandbox'
 alias aws-prod='export AWS_PROFILE=prod'
 
-# general
-alias clean='deactivate; cd ~; clear; workon dev3;'
 
-# git
+# General                                                                  {{{2
+# -----------------------------------------------------------------------------
+
+alias clean='deactivate; $HOME; clear; workon dev3;'
+
+
+# Git                                                                      {{{2
+# -----------------------------------------------------------------------------
+
 alias gcp='git log -1 --pretty=%B | pbcopy'
 
-# go
+
+# Go                                                                       {{{2
+# -----------------------------------------------------------------------------
+
 alias go-work='$HOME/go/src/github.com/NickolasHKraus'
 
-# osx
+
+# OS X                                                                     {{{2
+# -----------------------------------------------------------------------------
+
 alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
 alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
 
-# python
+
+# Python                                                                   {{{2
+# -----------------------------------------------------------------------------
+
 alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
 
-# tmux
+
+# tmux                                                                     {{{2
+# -----------------------------------------------------------------------------
+
+alias tmux-kill='tmux kill-server'
 alias tmux-new='tmux new -s $(basename $(pwd))'
 
-# workiva
-alias aws-credentials='$HOME/Workspace/pss/scripts/get-aws-keys.sh'
 
-# added by travis gem
-[ -f /Users/nkraus/.travis/travis.sh ] && source /Users/nkraus/.travis/travis.sh
+# Vim                                                                      {{{2
+# -----------------------------------------------------------------------------
+
+alias vim-work='$HOME/.vim/bundle'
+
+
+# Default                                                                  {{{1
+# -----------------------------------------------------------------------------
+
+# default to Python 3
+python3.latest
+
+# default to 'dev3' virtualenv
+workon dev3

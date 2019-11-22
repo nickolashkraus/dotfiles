@@ -3,11 +3,20 @@
 rm ~/.agignore
 ln -s ~/Workspace/dotfiles/.agignore ~/.agignore
 
+rm ~/.cobra.yaml
+ln -s ~/Workspace/dotfiles/.cobra.yaml ~/.cobra.yaml
+
+rm ~/.vim/.en.utf-8.add
+ln -s ~/Workspace/dotfiles/.en.utf-8.add ~/.vim/.en.utf-8.add
+
 rm ~/.gitconfig
 ln -s ~/Workspace/dotfiles/.gitconfig ~/.gitconfig
 
 rm ~/.gitignore
 ln -s ~/Workspace/dotfiles/.gitignore ~/.gitignore
+
+rm ~/.powerline.conf
+ln -s ~/Workspace/dotfiles/.powerline.conf ~/.powerline.conf
 
 rm ~/.ssh/config
 ln -s ~/Workspace/dotfiles/.ssh_config ~/.ssh/config
