@@ -16,9 +16,9 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'Chiel92/vim-autoformat'
+Plugin 'NickolasHKraus/nerdtree-git-plugin'
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'Vimjas/vim-python-pep8-indent'
-Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'fatih/vim-go'
@@ -111,26 +111,64 @@ set pastetoggle=<F10>
 " set updatetime to 100 ms
 set updatetime=100
 
+" degrade colorscheme to set compatible with 256 terminal palette
+let g:solarized_termcolors=256
+
+" set background color
+set background=dark
+
+" load the solarized colorscheme
+colorscheme solarized
+
+" set automatic formatting options
+set formatoptions+=r
+
 
 " Autocommands                                                             {{{1
 " -----------------------------------------------------------------------------
 
-" show vertical column at 80th character
-autocmd  BufReadPost,BufNewFile * set colorcolumn=80
+" `:autocmd` adds to the list of autocommands regardless of whether they are
+" already present. When your .vimrc file is sourced twice, the autocommands
+" will appear twice. To avoid this, define your autocommands in a group, so
+" that you can easily clear them:
+"
+" 	augroup vimrc
+" 	  " Remove all vimrc autocommands
+" 	  autocmd!
+" 	  au BufNewFile,BufRead *.html so <sfile>:h/html.vim
+" 	augroup END
+"
+" If you don't want to remove all autocommands, you can instead use a variable
+" to ensure that Vim includes the autocommands only once:
+"
+" 	:if !exists("autocommands_loaded")
+" 	:  let autocommands_loaded = 1
+" 	:  au ...
+" 	:endif
 
-" enable spellcheck for ['gitcommit', 'markdown']
-autocmd FileType gitcommit setlocal spell
-autocmd FileType markdown setlocal spell
+if !exists("autocommands_loaded")
+  let autocommands_loaded = 1
 
-" auto save all files when focus is lost or when switching buffers
-autocmd FocusLost,BufLeave * :wa
+  " show vertical column at 80th character
+  autocmd BufReadPost,BufNewFile * set colorcolumn=80
 
-" reduce timeout when entering or leaving INSERT mode
-augroup FastEscape
-  autocmd!
-  au InsertEnter * set timeoutlen=100
-  au InsertLeave * set timeoutlen=1000
-augroup END
+  " enable spellcheck for ['gitcommit', 'markdown']
+  autocmd FileType gitcommit setlocal spell
+  autocmd FileType markdown setlocal spell
+
+  " auto save all files when focus is lost or when switching buffers
+  autocmd FocusLost,BufLeave * :wa
+
+  " reduce timeout when entering or leaving INSERT mode
+  augroup FastEscape
+    autocmd InsertEnter * set timeoutlen=100
+    autocmd InsertLeave * set timeoutlen=1000
+  augroup END
+
+  " open packages in readonly, nomodifiable mode
+  autocmd BufReadPre,BufNewFile /usr/local/Cellar/* setlocal readonly nomodifiable
+  autocmd! BufReadPre,BufNewFile /usr/local/Cellar/* setlocal readonly nomodifiable
+endif
 
 
 " Remap                                                                    {{{1
@@ -179,7 +217,7 @@ noremap Q @q
 let g:ycm_autoclose_preview_window_after_completion=1
 
 " map GoToDeclaration subcommand to <leader> + g
-map <leader>g :YcmCompleter GoToDeclaration<CR>
+map <leader>g :YcmCompleter GoTo<CR>
 
 " disable YouCompleteMe for file types: ['gitcommit']
 let g:ycm_filetype_specific_completion_to_disable = {
@@ -194,6 +232,9 @@ let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
 
 " use Ag with ack.vim
 let g:ackprg = 'ag --nogroup --nocolor --column'
+
+" do not open files in NERDTree
+nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
 
 
 " fzf                                                                      {{{2
@@ -251,6 +292,9 @@ let g:NERDTreeShowHidden=1
 " ignore specifc files
 let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$']
 
+" set sorting of nodes to be case-sensitive
+let g:NERDTreeCaseSensitiveSort=1
+
 
 " syntastic                                                                {{{2
 " -----------------------------------------------------------------------------
@@ -259,8 +303,8 @@ set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
-highlight SyntasticErrorSign ctermfg=darkred
-highlight SyntasticWarningSign ctermfg=darkyellow
+highlight SyntasticErrorSign ctermfg=darkred ctermbg=235
+highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=235
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -278,11 +322,6 @@ let g:syntastic_go_checkers = ['go', 'gofmt', 'gotype', 'vet']
 " Pyflakes, Pylama, Pylint, python
 let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']
 let g:syntastic_python_flake8_exe = 'python3 -m flake8'
-
-" configure Scala syntax checkers
-" available checkers:
-" fsc, scalac, Scalastyle
-let g:syntastic_scala_checkers = ["fsc", "scalac", "Scalastyle"]
 
 " configure Vim syntax checkers
 " available checkers:
@@ -307,15 +346,6 @@ noremap <F3> :Autoformat<CR>
 autocmd FileType gitcommit let b:autoformat_autoindent=0
 autocmd FileType gitcommit let g:autoformat_retab = 0
 autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
-
-
-" vim-colors-solarized                                                     {{{2
-" -----------------------------------------------------------------------------
-
-" set solarized colorscheme
-let g:solarized_termcolors=256
-set background=dark
-colorscheme solarized
 
 
 " vim-terraform                                                            {{{2
@@ -351,8 +381,15 @@ autocmd BufNewFile,BufRead *.py:
       \ set textwidth=79
 
 
-" Scala                                                                    {{{2
+" Vim                                                                      {{{2
 " -----------------------------------------------------------------------------
 
-" enable the Scaladoc indentation standard
-let g:scala_scaladoc_indent = 1
+" set Vimscript indentation
+autocmd BufNewFile,BufRead *.vim:
+      \ set autoindent
+      \ set expandtab
+      \ set fileformat=unix
+      \ set shiftwidth=4
+      \ set softtabstop=4
+      \ set tabstop=4
+      \ set textwidth=79

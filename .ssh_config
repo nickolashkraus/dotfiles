@@ -4,6 +4,18 @@ Host github
     PreferredAuthentications publickey
     IdentityFile ~/.ssh/id_rsa
 
+# Personal - Operations
+Host git-codecommit.*.amazonaws.com
+  User APKA2RG3TE57JWOJIIJD
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/aws_rsa
+
+# Dwolla - Operations
+Host git-codecommit.*.amazonaws.com
+  User APKA3UKFRUVNG4WAD76B
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/codecommit_rsa
+
 Host *.labs.overthewire.org
   SendEnv WECHALLTOKEN
   SendEnv WECHALLUSER

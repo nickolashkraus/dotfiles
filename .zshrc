@@ -15,6 +15,9 @@ export ZSH=$HOME/.oh-my-zsh
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="nhk"
 
+# prevent aws plugin from modifying RPROMPT
+SHOW_AWS_PROMPT=false
+
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
@@ -68,6 +71,7 @@ ZSH_THEME="nhk"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
+  aws
   git
   kubectl
   vi-mode
@@ -113,6 +117,9 @@ fi
 
 # enable AWS CLI command completion
 source /Users/$USER/.virtualenvs/dev3/bin/aws_zsh_completer.sh
+
+# set profile
+export AWS_PROFILE=master
 
 
 # Google                                                                   {{{2
@@ -241,6 +248,17 @@ eval "$(rbenv init -)"
 # Aliases                                                                  {{{1
 # -----------------------------------------------------------------------------
 
+# AWS                                                                      {{{2
+# -----------------------------------------------------------------------------
+
+alias aws-default='export AWS_PROFILE=default'
+alias aws-ops='export AWS_PROFILE=ops'
+alias aws-prod='export AWS_PROFILE=prod'
+alias aws-dev='export AWS_PROFILE=dev'
+alias aws-dwolla-prod='export AWS_PROFILE=dwolla-prod'
+alias aws-dwolla-sand='export AWS_PROFILE=dwolla-sand'
+
+
 # Dart                                                                     {{{2
 # -----------------------------------------------------------------------------
 
@@ -255,14 +273,6 @@ alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No runn
 alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
 alias docker-purge='docker-stop; docker-rm; docker-rmi;'
-
-
-# Dwolla                                                                   {{{2
-# -----------------------------------------------------------------------------
-
-alias aws-default='export AWS_PROFILE=default'
-alias aws-sandbox='export AWS_PROFILE=sandbox'
-alias aws-prod='export AWS_PROFILE=prod'
 
 
 # General                                                                  {{{2
@@ -280,7 +290,8 @@ alias gcp='git log -1 --pretty=%B | pbcopy'
 # Go                                                                       {{{2
 # -----------------------------------------------------------------------------
 
-alias go-work='$HOME/go/src/github.com/NickolasHKraus'
+alias go-infrable='$HOME/go/src/github.com/infrable-io'
+alias go-personal='$HOME/go/src/github.com/NickolasHKraus'
 
 
 # OS X                                                                     {{{2
@@ -296,6 +307,12 @@ alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
 alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
 
 
+# Terraform                                                                {{{2
+# -----------------------------------------------------------------------------
+
+alias tf='terraform'
+
+
 # tmux                                                                     {{{2
 # -----------------------------------------------------------------------------
 
@@ -306,7 +323,14 @@ alias tmux-new='tmux new -s $(basename $(pwd))'
 # Vim                                                                      {{{2
 # -----------------------------------------------------------------------------
 
+alias vim-config='vim ~/.vimrc'
 alias vim-work='$HOME/.vim/bundle'
+
+
+# Zsh                                                                      {{{2
+# -----------------------------------------------------------------------------
+
+alias zsh-config='vim ~/.zshrc'
 
 
 # Default                                                                  {{{1
