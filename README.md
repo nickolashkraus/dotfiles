@@ -5,12 +5,12 @@
 For a comprehensive walk though of my local development setup and the Vim plugins that I use, consult the following aptly named blog posts:
 
 **2019**
-* [My Local Development Setup](https://nickolaskraus.org/articles/my-local-development-setup-2019/)
-* [Vim Plugins That I Use](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2019/)
+* [My Local Development Setup - 2019](https://nickolaskraus.org/articles/my-local-development-setup-2019/)
+* [Vim Plugins That I Use - 2019](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2019/)
 
 **2018**
-* [My Local Development Setup](https://nickolaskraus.org/articles/my-local-development-setup-2018/)
-* [Vim Plugins That I Use](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2018/)
+* [My Local Development Setup - 2018](https://nickolaskraus.org/articles/my-local-development-setup-2018/)
+* [Vim Plugins That I Use - 2018](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2018/)
 
 ## Installation
 
