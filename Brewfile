@@ -1,4 +1,3 @@
-tap "caskroom/versions"
 tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "homebrew/core"
@@ -11,6 +10,7 @@ brew "httpie"
 brew "hugo"
 brew "jenv"
 brew "jq"
+brew "mas"
 brew "mpv"
 brew "nginx"
 brew "nmap"
@@ -28,3 +28,7 @@ brew "tmux"
 brew "tree"
 brew "vim"
 brew "youtube-dl"
+
+# mas "Bear", id: 1091189122
+# mas "Gifox", id: 1082624744
+# mas "Trello", id: 1278508951
