@@ -216,7 +216,7 @@ noremap Q @q
 " close preview window after completion
 let g:ycm_autoclose_preview_window_after_completion=1
 
-" map GoToDeclaration subcommand to <leader> + g
+" map GoTo subcommand to <leader> + g
 map <leader>g :YcmCompleter GoTo<CR>
 
 " disable YouCompleteMe for file types: ['gitcommit']
