@@ -224,18 +224,17 @@ eval "$(jenv init -)"
 export WORKON_HOME=$HOME/.virtualenvs
 export VIRTUALENVWRAPPER_PYTHON=$HOME/.pyenv/shims/python
 export VIRTUALENVWRAPPER_VIRTUALENV=$HOME/.pyenv/shims/virtualenv
-source /usr/local/bin/virtualenvwrapper.sh
 
 # set up pyenv
 eval "$(pyenv init -)"
 
 python2.latest() {
-  pyenv shell 2.7.16
+  pyenv shell 2.7.17
   pyenv virtualenvwrapper
 }
 
 python3.latest() {
-  pyenv shell 3.7.4
+  pyenv shell 3.8.1
   pyenv virtualenvwrapper
 }
 

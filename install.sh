@@ -1,82 +1,86 @@
 # vim: fdm=marker
 #!/usr/bin/env bash
 
-# ~                                                                        {{{1
+# $HOME                                                                    {{{1
 # -----------------------------------------------------------------------------
 
-rm ~/.agignore
-ln -s ~/Workspace/dotfiles/.agignore ~/.agignore
+WORKSPACE=NickolasHKraus
 
-rm ~/.cobra.yaml
-ln -s ~/Workspace/dotfiles/.cobra.yaml ~/.cobra.yaml
+rm $HOME/.agignore
+ln -s "$HOME/$WORKSPACE/dotfiles/.agignore" $HOME/.agignore
 
-rm ~/.gitconfig
-ln -s ~/Workspace/dotfiles/.gitconfig ~/.gitconfig
+rm $HOME/.cobra.yaml
+ln -s "$HOME/$WORKSPACE/dotfiles/.cobra.yaml" $HOME/.cobra.yaml
 
-rm ~/.gitignore
-ln -s ~/Workspace/dotfiles/.gitignore ~/.gitignore
+rm $HOME/.gitconfig
+ln -s "$HOME/$WORKSPACE/dotfiles/.gitconfig" $HOME/.gitconfig
 
-rm ~/.powerline.conf
-ln -s ~/Workspace/dotfiles/.powerline.conf ~/.powerline.conf
+rm $HOME/.gitignore
+ln -s "$HOME/$WORKSPACE/dotfiles/.gitignore" $HOME/.gitignore
 
-rm ~/.tmux.conf
-ln -s ~/Workspace/dotfiles/.tmux.conf ~/.tmux.conf
+rm $HOME/.powerline.conf
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline.conf" $HOME/.powerline.conf
 
-rm ~/.vimrc
-ln -s ~/Workspace/dotfiles/.vimrc ~/.vimrc
+rm $HOME/.tmux.conf
+ln -s "$HOME/$WORKSPACE/dotfiles/.tmux.conf" $HOME/.tmux.conf
 
-rm ~/.zshrc
-ln -s ~/Workspace/dotfiles/.zshrc ~/.zshrc
+rm $HOME/.vimrc
+ln -s "$HOME/$WORKSPACE/dotfiles/.vimrc" $HOME/.vimrc
+
+rm $HOME/.zshrc
+ln -s "$HOME/$WORKSPACE/dotfiles/.zshrc" $HOME/.zshrc
 
 
-# ~/.config                                                                {{{1
+# $HOME/.config                                                            {{{1
 # -----------------------------------------------------------------------------
 
-rm -rf ~/.config/mpv
-mkdir -p ~/.config/mpv
-ln -s ~/Workspace/dotfiles/.mpv/mpv.conf ~/.config/mpv/mvp.conf
+rm -rf $HOME/.config/mpv
+mkdir -p $HOME/.config/mpv
+ln -s "$HOME/$WORKSPACE/dotfiles/.mpv/mpv.conf" $HOME/.config/mpv/mvp.conf
 
-rm -rf ~/.config/powerline
-mkdir -p ~/.config/powerline
-mkdir -p ~/.config/powerline/colorschemes/tmux
-mkdir -p ~/.config/powerline/themes/tmux
+rm -rf $HOME/.config/powerline
+mkdir -p $HOME/.config/powerline
+mkdir -p $HOME/.config/powerline/colorschemes/tmux
+mkdir -p $HOME/.config/powerline/themes/tmux
 
-ln -s ~/Workspace/dotfiles/.powerline/colorschemes/tmux/default.json \
-  ~/.config/powerline/colorschemes/tmux/default.json
-ln -s ~/Workspace/dotfiles/.powerline/colorschemes/tmux/solarized.json \
-  ~/.config/powerline/colorschemes/tmux/solarized.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/colorschemes/tmux/default.json" \
+  $HOME/.config/powerline/colorschemes/tmux/default.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/colorschemes/tmux/solarized.json" \
+  $HOME/.config/powerline/colorschemes/tmux/solarized.json
 
-ln -s ~/Workspace/dotfiles/.powerline/colorschemes/default.json \
-  ~/.config/powerline/colorschemes/default.json
-ln -s ~/Workspace/dotfiles/.powerline/colorschemes/solarized.json \
-  ~/.config/powerline/colorschemes/solarized.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/colorschemes/default.json" \
+  $HOME/.config/powerline/colorschemes/default.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/colorschemes/solarized.json" \
+  $HOME/.config/powerline/colorschemes/solarized.json
 
-ln -s ~/Workspace/dotfiles/.powerline/themes/tmux/default.json \
-  ~/.config/powerline/themes/tmux/default.json
-ln -s ~/Workspace/dotfiles/.powerline/themes/powerline_terminus.json \
-  ~/.config/powerline/themes/powerline_terminus.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/themes/tmux/default.json" \
+  $HOME/.config/powerline/themes/tmux/default.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/themes/powerline_terminus.json" \
+  $HOME/.config/powerline/themes/powerline_terminus.json
 
-ln -s ~/Workspace/dotfiles/.powerline/colors.json ~/.config/powerline/colors.json
-ln -s ~/Workspace/dotfiles/.powerline/config.json ~/.config/powerline/config.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/colors.json" \
+  $HOME/.config/powerline/colors.json
+ln -s "$HOME/$WORKSPACE/dotfiles/.powerline/config.json" \
+  $HOME/.config/powerline/config.json
 
 
-# ~/.ssh                                                                   {{{1
+# $HOME/.ssh                                                               {{{1
 # -----------------------------------------------------------------------------
 
-rm ~/.ssh/config
-ln -s ~/Workspace/dotfiles/.ssh_config ~/.ssh/config
+rm $HOME/.ssh/config
+ln -s "$HOME/$WORKSPACE/dotfiles/.ssh_config" $HOME/.ssh/config
 
 
-# ~/.vim                                                                   {{{1
+# $HOME/.vim                                                               {{{1
 # -----------------------------------------------------------------------------
 
-rm ~/.vim/.en.utf-8.add
-ln -s ~/Workspace/dotfiles/.en.utf-8.add ~/.vim/.en.utf-8.add
+rm $HOME/.vim/.en.utf-8.add
+ln -s "$HOME/$WORKSPACE/dotfiles/.en.utf-8.add" $HOME/.vim/.en.utf-8.add
 
 
-# ~/Library                                                                {{{1
+# $HOME/Library                                                            {{{1
 # -----------------------------------------------------------------------------
 
-rm ~/Library/Application\ Support/Spectacle/Shortcuts.json
-ln -s ~/Workspace/dotfiles/Shortcuts.json \
-  ~/Library/Application\ Support/Spectacle/Shortcuts.json
+rm $HOME/Library/Application\ Support/Spectacle/Shortcuts.json
+ln -s "$HOME/$WORKSPACE/dotfiles/Shortcuts.json" \
+  $HOME/Library/Application\ Support/Spectacle/Shortcuts.json
