@@ -97,11 +97,12 @@ k9s:
       portForwardAddress: localhost
     cluster.ca.lite.granular.ag:
       namespace:
-        active: default
+        active: ""
         favorites:
+        - all
         - default
       view:
-        active: pod
+        active: nodes
       featureGates:
         nodeShell: false
       shellPod:
@@ -161,11 +162,12 @@ k9s:
       portForwardAddress: localhost
     cluster.us.dev.lite.granular.ag:
       namespace:
-        active: default
+        active: ""
         favorites:
+        - all
         - default
       view:
-        active: pod
+        active: pods
       featureGates:
         nodeShell: false
       shellPod:
