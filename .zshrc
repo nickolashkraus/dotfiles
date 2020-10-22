@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$GOPATH/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
@@ -32,7 +32,7 @@ SHOW_AWS_PROMPT=false
 # HYPHEN_INSENSITIVE="true"
 
 # Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+DISABLE_AUTO_UPDATE="true"
 
 # Uncomment the following line to change how often to auto-update (in days).
 # export UPDATE_ZSH_DAYS=13
@@ -74,6 +74,7 @@ plugins=(
   aws
   git
   kubectl
+  poetry
   vi-mode
   virtualenv
 )
@@ -119,7 +120,7 @@ fi
 source /Users/$USER/.virtualenvs/dev3/bin/aws_zsh_completer.sh
 
 # set profile
-export AWS_PROFILE=master
+export AWS_PROFILE=master.root
 
 
 # Google                                                                   {{{2
@@ -145,7 +146,7 @@ export APP_ENGINE_SDK=/Users/$USER/.local/google-cloud-sdk/platform/google_appen
 # Kubernetes                                                               {{{2
 # -----------------------------------------------------------------------------
 
-export KUBECONFIG=$HOME/.kube/config:$HOME/Workspace/EKS/kubeconfigs.yaml
+export KUBECONFIG=$HOME/.kube/config:$HOME/.kube/granular.yaml
 
 
 # SDKMAN!                                                                  {{{2
@@ -176,9 +177,9 @@ export SDKMAN_DIR="/Users/nkraus/.sdkman"
 # fzf                                                                      {{{2
 # -----------------------------------------------------------------------------
 
-# configure fzf
+# configure fzf layout
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+export FZF_DEFAULT_OPTS='--preview-window down --height 40% --layout=reverse --border'
 
 # ignore files specified in .gitignore
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
@@ -202,6 +203,7 @@ source $(brew --prefix nvm)/nvm.sh
 # -----------------------------------------------------------------------------
 
 export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
 
 
 # Virtual Environments                                                     {{{1
@@ -229,14 +231,19 @@ export VIRTUALENVWRAPPER_VIRTUALENV=$HOME/.pyenv/shims/virtualenv
 eval "$(pyenv init -)"
 
 python2.latest() {
-  pyenv shell 2.7.17
+  pyenv shell 2.7.18
   pyenv virtualenvwrapper
 }
 
 python3.latest() {
-  pyenv shell 3.8.1
+  pyenv shell 3.8.5
   pyenv virtualenvwrapper
 }
+
+
+# Poetry                                                                   {{{2
+# -----------------------------------------------------------------------------
+export PATH=$PATH:$HOME/.poetry/bin
 
 
 # rbenv                                                                    {{{2
@@ -271,7 +278,8 @@ alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
 alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
 alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
-alias docker-purge='docker-stop; docker-rm; docker-rmi;'
+alias docker-rmv='docker volume rm --force $(docker volume ls -q) >/dev/null 2>&1 || echo "No volumes to remove."'
+alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv;'
 
 
 # General                                                                  {{{2
@@ -291,6 +299,25 @@ alias gcp='git log -1 --pretty=%B | pbcopy'
 
 alias go-infrable='$HOME/go/src/github.com/infrable-io'
 alias go-personal='$HOME/go/src/github.com/NickolasHKraus'
+
+
+# Granular                                                                 {{{2
+# -----------------------------------------------------------------------------
+
+alias encsharedprod='onelogin-aws-login --profile encsharedprod'
+alias encsharedtest='onelogin-aws-login --profile encsharedtest'
+alias encappproduction='onelogin-aws-login --profile encappproduction'
+alias encappuat='onelogin-aws-login --profile encappuat'
+alias encappdevelopment='onelogin-aws-login --profile encappdevelopment'
+alias granappproduction='onelogin-aws-login --profile granappproduction'
+alias granapptest='onelogin-aws-login --profile granapptest'
+alias granappdevelopment='onelogin-aws-login --profile granappdevelopment'
+
+
+# Kubernetes                                                               {{{2
+# -----------------------------------------------------------------------------
+
+alias k='kubectl'
 
 
 # OS X                                                                     {{{2
@@ -330,6 +357,31 @@ alias vim-work='$HOME/.vim/bundle'
 # -----------------------------------------------------------------------------
 
 alias zsh-config='vim ~/.zshrc'
+
+
+# Functions                                                                {{{1
+# -----------------------------------------------------------------------------
+
+python_clean() {
+  # remove build artifacts
+  find . -name '*.egg' -exec rm -fr {} +
+  find . -name '*.egg-info' -exec rm -fr {} +
+  rm -fr .eggs/
+  rm -fr build/
+  rm -fr dist/
+  # remove Python artifacts
+  find . -name '*.pyc' -exec rm -f {} +
+  find . -name '*.pyo' -exec rm -f {} +
+  find . -name '*~' -exec rm -f {} +
+  find . -name '__pycache__' -exec rm -fr {} +
+  # remove test and coverage artifacts
+  find . -name '*,cover' -exec rm -f {} +
+  find . -name '.coverage' -exec rm -f {} +
+  find . -name '.pytest_cache' -exec rm -fr {} +
+  find . -name 'cover' -exec rm -fr {} +
+  find . -name 'coverage.xml' -exec rm -f {} +
+  find . -name 'htmlcov' -exec rm -fr {} +
+}
 
 
 # Default                                                                  {{{1
