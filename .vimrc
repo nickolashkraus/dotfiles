@@ -16,9 +16,9 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'Chiel92/vim-autoformat'
-Plugin 'NickolasHKraus/nerdtree-git-plugin'
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'Vimjas/vim-python-pep8-indent'
+Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'fatih/vim-go'
@@ -87,7 +87,7 @@ set laststatus=2
 " hide mode
 set noshowmode
 
-" set vertical column color to black
+" set vertical column color
 highlight ColorColumn ctermbg=darkgray
 
 " set spell check language
@@ -122,6 +122,9 @@ colorscheme solarized
 
 " set automatic formatting options
 set formatoptions+=r
+
+" set SignColumn color
+highlight SignColumn ctermbg=black
 
 
 " Autocommands                                                             {{{1
@@ -213,6 +216,33 @@ noremap Q @q
 " YouCompleteMe                                                            {{{2
 " -----------------------------------------------------------------------------
 
+" defines the max size (in Kb) for a file to be considered for completion. If
+" this option is set to 0 then no check is made on the size of the file you're
+" opening. Default: 1000
+let g:ycm_disable_for_files_larger_than_kb = 512
+
+" toggle YCM with <F2>
+noremap <F2> :call ToggleYcm()<CR>
+
+"Function: ToggleYcm()
+"Sets b:ycm_largefile directly, thereby enabling or disabling YCM.
+"
+"  let threshold = g:ycm_disable_for_files_larger_than_kb * 1024
+"  let b:ycm_largefile =
+"        \ threshold > 0 && getfsize( expand( a:buffer ) ) > threshold
+"
+"Args: None
+"Returns: None
+function! ToggleYcm()
+  if b:ycm_largefile == 0
+    let b:ycm_largefile = 1
+    echo 'YCM has been disabled.'
+  else
+    let b:ycm_largefile = 0
+    echo 'YCM has been enabled.'
+  endif
+endfunction
+
 " close preview window after completion
 let g:ycm_autoclose_preview_window_after_completion=1
 
@@ -225,6 +255,12 @@ let g:ycm_filetype_specific_completion_to_disable = {
       \}
 
 let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
+
+" disable documentation popup
+let g:ycm_auto_hover=""
+
+" manually trigger documentation
+nmap <leader>D <plug>(YCMHover)
 
 
 " ack                                                                      {{{2
@@ -248,6 +284,9 @@ let g:fzf_action = {
       \ 'ctrl-t': 'tab split',
       \ 'ctrl-s': 'split',
       \ 'ctrl-v': 'vsplit' }
+
+" configure layout
+let g:fzf_layout = {'down': '40%'}
 
 " map :FZF to CTRL + o
 map <C-O> :FZF<CR>
@@ -299,12 +338,15 @@ let g:NERDTreeCaseSensitiveSort=1
 " syntastic                                                                {{{2
 " -----------------------------------------------------------------------------
 
+" set :SyntasticToggleMode command to <F3>
+noremap <F3> :SyntasticToggleMode <CR>
+
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
-highlight SyntasticErrorSign ctermfg=darkred ctermbg=235
-highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=235
+highlight SyntasticErrorSign ctermfg=darkred ctermbg=black
+highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=black
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -339,8 +381,8 @@ set foldlevel=99
 " vim-autoformat                                                           {{{2
 " -----------------------------------------------------------------------------
 
-" set :Autoformat command to <F3>
-noremap <F3> :Autoformat<CR>
+" set :Autoformat command to <F4>
+noremap <F4> :Autoformat<CR>
 
 " disable autoformat fallback behavior for file types: ['gitcommit']
 autocmd FileType gitcommit let b:autoformat_autoindent=0
@@ -379,6 +421,12 @@ autocmd BufNewFile,BufRead *.py:
       \ set softtabstop=4
       \ set tabstop=4
       \ set textwidth=79
+
+
+" Shell                                                                    {{{2
+" -----------------------------------------------------------------------------
+" set global default shell type
+let g:is_bash=1
 
 
 " Vim                                                                      {{{2
