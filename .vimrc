@@ -126,6 +126,9 @@ set formatoptions+=r
 " set SignColumn color
 highlight SignColumn ctermbg=black
 
+" set IncSearch color
+highlight IncSearch ctermfg=234 ctermbg=166
+
 
 " Autocommands                                                             {{{1
 " -----------------------------------------------------------------------------

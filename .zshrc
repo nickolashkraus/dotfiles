@@ -285,7 +285,7 @@ alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv;'
 # General                                                                  {{{2
 # -----------------------------------------------------------------------------
 
-alias clean='deactivate; $HOME; clear; workon dev3;'
+alias clean='deactivate; $HOME; clear; workon dev3; asp master.root'
 
 
 # Git                                                                      {{{2
