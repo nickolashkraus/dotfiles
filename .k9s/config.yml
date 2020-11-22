@@ -13,8 +13,8 @@ k9s:
     fullScreenLogs: false
     textWrap: false
     showTime: false
-  currentContext: cluster.us.dev.lite.granular.ag
-  currentCluster: cluster.us.dev.lite.granular.ag
+  currentContext: cluster.us.test.lite.granular.ag
+  currentCluster: cluster.us.test.lite.granular.ag
   clusters:
     cluster.au.lite.granular.ag:
       namespace:
@@ -210,7 +210,7 @@ k9s:
         - all
         - default
       view:
-        active: pod
+        active: ctx
       featureGates:
         nodeShell: false
       shellPod:
