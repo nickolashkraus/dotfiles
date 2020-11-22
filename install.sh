@@ -47,11 +47,15 @@ ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/tmux/default.json" 
   "${HOME}/.config/powerline/colorschemes/tmux/default.json"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/tmux/solarized.json" \
   "${HOME}/.config/powerline/colorschemes/tmux/solarized.json"
+ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/tmux/gruvbox.json" \
+  "${HOME}/.config/powerline/colorschemes/tmux/gruvbox.json"
 
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/default.json" \
   "${HOME}/.config/powerline/colorschemes/default.json"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/solarized.json" \
   "${HOME}/.config/powerline/colorschemes/solarized.json"
+ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/colorschemes/gruvbox.json" \
+  "${HOME}/.config/powerline/colorschemes/gruvbox.json"
 
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/themes/tmux/default.json" \
   "${HOME}/.config/powerline/themes/tmux/default.json"
