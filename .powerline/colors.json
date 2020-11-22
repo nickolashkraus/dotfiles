@@ -1,9 +1,7 @@
 {
 	"colors": {
-		"black": 0,
+		"black": 16,
 		"white": 231,
-
-    "background": 8,
 
 		"green": 2,
 		"darkestgreen": 22,
