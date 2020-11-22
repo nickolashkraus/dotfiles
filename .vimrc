@@ -23,9 +23,9 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'fatih/vim-go'
 Plugin 'hashivim/vim-terraform'
-Plugin 'itchyny/lightline.vim'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'mileszs/ack.vim'
+Plugin 'morhetz/gruvbox'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'scrooloose/nerdtree'
@@ -33,6 +33,8 @@ Plugin 'sheerun/vim-polyglot'
 Plugin 'sjl/vitality.vim'
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
 Plugin 'vim-syntastic/syntastic'
 
 " All of your Plugins must be added before the following line
@@ -117,17 +119,18 @@ let g:solarized_termcolors=256
 " set background color
 set background=dark
 
-" load the solarized colorscheme
-colorscheme solarized
+" load the gruvbox colorscheme
+colorscheme gruvbox
 
 " set automatic formatting options
 set formatoptions+=r
 
 " set SignColumn color
-highlight SignColumn ctermbg=black
+highlight SignColumn ctermbg=235
 
 " set IncSearch color
-highlight IncSearch ctermfg=234 ctermbg=166
+" 166 = orange
+highlight IncSearch ctermfg=235 ctermbg=166
 
 
 " Autocommands                                                             {{{1
@@ -301,20 +304,6 @@ let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
 
 
-" lightline                                                                {{{2
-" -----------------------------------------------------------------------------
-let g:lightline = {
-      \ 'colorscheme': 'default',
-      \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
-      \ },
-      \ 'component_function': {
-      \   'gitbranch': 'fugitive#head'
-      \ },
-      \ }
-
-
 " nerdcommenter                                                            {{{2
 " -----------------------------------------------------------------------------
 
@@ -338,6 +327,13 @@ let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$']
 let g:NERDTreeCaseSensitiveSort=1
 
 
+" vim-gitgutter                                                            {{{2
+" -----------------------------------------------------------------------------
+highlight GitGutterAdd ctermfg=darkgreen ctermbg=235
+highlight GitGutterChange ctermfg=darkyellow ctermbg=235
+highlight GitGutterDelete ctermfg=darkred ctermbg=235
+
+
 " syntastic                                                                {{{2
 " -----------------------------------------------------------------------------
 
@@ -348,8 +344,8 @@ set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
-highlight SyntasticErrorSign ctermfg=darkred ctermbg=black
-highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=black
+highlight SyntasticErrorSign ctermfg=darkred ctermbg=235
+highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=235
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
