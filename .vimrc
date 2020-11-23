@@ -113,9 +113,6 @@ set pastetoggle=<F10>
 " set updatetime to 100 ms
 set updatetime=100
 
-" degrade colorscheme to set compatible with 256 terminal palette
-let g:solarized_termcolors=256
-
 " set background color
 set background=dark
 

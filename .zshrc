@@ -143,6 +143,15 @@ export GOOGLE_CLOUD_SDK=/Users/$USER/.local/google-cloud-sdk
 export APP_ENGINE_SDK=/Users/$USER/.local/google-cloud-sdk/platform/google_appengine
 
 
+# Gruvbox                                                                  {{{2
+# -----------------------------------------------------------------------------
+
+# Script to override the system default 256-color palette with the precise
+# Gruvbox color palette.
+# See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
+source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
+
+
 # Kubernetes                                                               {{{2
 # -----------------------------------------------------------------------------
 
@@ -342,6 +351,7 @@ alias tf='terraform'
 # tmux                                                                     {{{2
 # -----------------------------------------------------------------------------
 
+alias tmux-config='vim ~/.tmux.conf'
 alias tmux-kill='tmux kill-server'
 alias tmux-new='tmux new -s $(basename $(pwd))'
 

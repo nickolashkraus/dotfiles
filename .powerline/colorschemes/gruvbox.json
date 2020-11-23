@@ -8,7 +8,7 @@
     "warning:regular":            { "fg": "white", "bg": "brightred", "attrs": ["bold"] },
     "critical:failure":           { "fg": "white", "bg": "darkestred", "attrs": [] },
     "critical:success":           { "fg": "white", "bg": "darkestgreen", "attrs": [] },
-    "background":                 { "fg": "white", "bg": "gray", "attrs": [] },
+    "background":                 { "fg": "white", "bg": "gruvbox:dark0", "attrs": [] },
     "background:divider":         { "fg": "gray5", "bg": "gruvbox:dark0_hard", "attrs": [] },
     "session":                    { "fg": "black", "bg": "gray10", "attrs": ["bold"] },
     "date":                       { "fg": "gray8", "bg": "gruvbox:dark0_hard", "attrs": [] },
