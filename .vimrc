@@ -129,6 +129,10 @@ highlight SignColumn ctermbg=235
 " 166 = orange
 highlight IncSearch ctermfg=235 ctermbg=166
 
+" set Error color
+" 167 = bright red
+highlight Error ctermfg=235 ctermbg=167
+
 
 " Autocommands                                                             {{{1
 " -----------------------------------------------------------------------------
@@ -328,6 +332,7 @@ let g:NERDTreeCaseSensitiveSort=1
 " -----------------------------------------------------------------------------
 highlight GitGutterAdd ctermfg=darkgreen ctermbg=235
 highlight GitGutterChange ctermfg=darkyellow ctermbg=235
+highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
 highlight GitGutterDelete ctermfg=darkred ctermbg=235
 
 
