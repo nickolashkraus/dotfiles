@@ -274,7 +274,10 @@ nmap <leader>D <plug>(YCMHover)
 " -----------------------------------------------------------------------------
 
 " use Ag with ack.vim
-let g:ackprg = 'ag --nogroup --nocolor --column'
+"   --column: Print column numbers in results.
+"   --nogroup: Place the filename at the start of each match line.
+"   --hidden: Search hidden files. This option obeys ignored files.
+let g:ackprg = 'ag --column --nogroup --hidden'
 
 " do not open files in NERDTree
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
