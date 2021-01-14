@@ -341,6 +341,9 @@ alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
 
 alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
 
+# SSH                                                                      {{{2
+# -----------------------------------------------------------------------------
+alias ssh-ip='IP=$(pbpaste); ssh nickolaskraus@${IP}'
 
 # Terraform                                                                {{{2
 # -----------------------------------------------------------------------------
