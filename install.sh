@@ -1,7 +1,7 @@
-# vim: fdm=marker
 #!/usr/bin/env bash
+# vim: fdm=marker
 
-# ${HOME}                                                                    {{{1
+# ${HOME}                                                                  {{{1
 # -----------------------------------------------------------------------------
 
 WORKSPACE=NickolasHKraus
@@ -31,7 +31,7 @@ rm "${HOME}/.zshrc"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.zshrc" "${HOME}/.zshrc"
 
 
-# ${HOME}/.config                                                            {{{1
+# ${HOME}/.config                                                          {{{1
 # -----------------------------------------------------------------------------
 
 rm -rf "${HOME}/.config/mpv"
@@ -68,28 +68,28 @@ ln -s "${HOME}/${WORKSPACE}/dotfiles/.powerline/config.json" \
   "${HOME}/.config/powerline/config.json"
 
 
-# ${HOME}/.k9s                                                               {{{1
+# ${HOME}/.k9s                                                             {{{1
 # -----------------------------------------------------------------------------
 
 rm "${HOME}"/.k9s/*
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.k9s/config.yml" "${HOME}/.k9s/config.yml"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.k9s/skin.yml" "${HOME}/.k9s/skin.yml"
 
-# ${HOME}/.ssh                                                               {{{1
+# ${HOME}/.ssh                                                             {{{1
 # -----------------------------------------------------------------------------
 
 rm "${HOME}/.ssh/config"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.ssh/config" "${HOME}/.ssh/config"
 
 
-# ${HOME}/.vim                                                               {{{1
+# ${HOME}/.vim                                                             {{{1
 # -----------------------------------------------------------------------------
 
 rm "${HOME}/.vim/.en.utf-8.add"
 ln -s "${HOME}/${WORKSPACE}/dotfiles/.en.utf-8.add" "${HOME}/.vim/.en.utf-8.add"
 
 
-# ${HOME}/Library                                                            {{{1
+# ${HOME}/Library                                                          {{{1
 # -----------------------------------------------------------------------------
 
 rm "${HOME}"/Library/Application\ Support/Spectacle/Shortcuts.json
