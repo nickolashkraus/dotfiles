@@ -1,8 +1,8 @@
 [core]
-	editor = /usr/local/bin/vim
-	excludesfile = ~/.gitignore
+    editor = /usr/local/bin/vim
+    excludesfile = ~/.gitignore
 [merge]
-	tool = vimdiff
+    tool = vimdiff
 [user]
-	name = NickolasHKraus
-	email = NickHKraus@gmail.com
+    name = NickolasHKraus
+    email = NickHKraus@gmail.com
