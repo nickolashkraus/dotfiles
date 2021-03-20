@@ -4,9 +4,9 @@
 
 For a comprehensive walk though of my local development setup and the Vim plugins that I use, consult the following blog posts:
 
-**2020**
-* 🚧 [My Local Development Setup - 2020](https://nickolaskraus.org/articles/my-local-development-setup-2020/)
-* 🚧 [Vim Plugins That I Use - 2020](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2020/)
+**2021**
+* [My Local Development Setup - 2021](https://nickolaskraus.org/articles/my-local-development-setup-2020/)
+* [Vim Plugins That I Use - 2021](https://nickolaskraus.org/articles/vim-plugins-that-i-use-2020/)
 
 **2018**
 * [My Local Development Setup - 2018](https://nickolaskraus.org/articles/my-local-development-setup-2018/)
@@ -15,7 +15,7 @@ For a comprehensive walk though of my local development setup and the Vim plugin
 ## Installation
 
 ```bash
-./install.sh
+./install
 ```
 
 From *Essential System Administration* by Æleen Frisch
