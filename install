@@ -91,7 +91,8 @@ ln -s "${DOTFILES}/.powerline/config.json" \
 # ${HOME}/.k9s                                                             {{{1
 # -----------------------------------------------------------------------------
 
-rm "${HOME}"/.k9s/*
+rm -rf "${HOME}/.k9s"
+mkdir -p "${HOME}/.k9s"
 ln -s "${DOTFILES}/.k9s/config.yml" "${HOME}/.k9s/config.yml"
 ln -s "${DOTFILES}/.k9s/skin.yml" "${HOME}/.k9s/skin.yml"
 
