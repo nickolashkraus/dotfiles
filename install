@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 #
 # USAGE
 #
@@ -109,11 +109,3 @@ ln -s "${DOTFILES}/.ssh/config" "${HOME}/.ssh/config"
 
 rm "${HOME}/.vim/.en.utf-8.add"
 ln -s "${DOTFILES}/.en.utf-8.add" "${HOME}/.vim/.en.utf-8.add"
-
-
-# ${HOME}/Library                                                          {{{1
-# -----------------------------------------------------------------------------
-
-rm "${HOME}"/Library/Application\ Support/Spectacle/Shortcuts.json
-ln -s "${DOTFILES}/Shortcuts.json" \
-  "${HOME}"/Library/Application\ Support/Spectacle/Shortcuts.json
