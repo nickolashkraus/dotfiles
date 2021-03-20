@@ -142,19 +142,19 @@ highlight Error ctermfg=235 ctermbg=167
 " will appear twice. To avoid this, define your autocommands in a group, so
 " that you can easily clear them:
 "
-" 	augroup vimrc
-" 	  " Remove all vimrc autocommands
-" 	  autocmd!
-" 	  au BufNewFile,BufRead *.html so <sfile>:h/html.vim
-" 	augroup END
+"   augroup vimrc
+"     " Remove all vimrc autocommands
+"     autocmd!
+"     au BufNewFile,BufRead *.html so <sfile>:h/html.vim
+"   augroup END
 "
 " If you don't want to remove all autocommands, you can instead use a variable
 " to ensure that Vim includes the autocommands only once:
 "
-" 	:if !exists("autocommands_loaded")
-" 	:  let autocommands_loaded = 1
-" 	:  au ...
-" 	:endif
+"   :if !exists("autocommands_loaded")
+"   :  let autocommands_loaded = 1
+"   :  au ...
+"   :endif
 
 if !exists("autocommands_loaded")
   let autocommands_loaded = 1
