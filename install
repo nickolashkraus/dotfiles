@@ -14,7 +14,7 @@
 # Determine location of 'dotfiles' directory
 DOTFILES=$(find "${HOME}" -type d -name "*dotfiles*")
 
-echo "'dotfiles' was found at the following location: ${DOTFILES}."
+echo "'dotfiles' was found at the following location: ${DOTFILES}"
 read -rp "Do you wish to proceed? [Y/n]: " proceed
 
 if [[ ! "${proceed}" =~ [Y|y|YES|yes] ]]; then
