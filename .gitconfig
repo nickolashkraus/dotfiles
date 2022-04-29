@@ -1,8 +1,16 @@
+# Git Configuration
+#
+# See the documentation:
+#   * https://git-scm.com/docs/git-config
 [core]
     editor = /usr/local/bin/vim
     excludesfile = ~/.gitignore
+[init]
+    defaultBranch = master
 [merge]
     tool = vimdiff
+[pull]
+    rebase = true
 [user]
     name = NickolasHKraus
     email = NickHKraus@gmail.com
