@@ -1,4 +1,4 @@
-# The Silver Searcher (ag)
+# The Silver Searcher (ag) agignore File
 #
 # IGNORING FILES
 #
@@ -8,5 +8,5 @@
 # $HOME/.agignore for ignore patterns.
 #
 # See the documentation:
-#   * https://github.com/ggreer/the_silver_searcher
+#   * https://github.com/ggreer/the_silver_searcher/blob/master/doc/ag.1.md#ignoring-files
 .git/
