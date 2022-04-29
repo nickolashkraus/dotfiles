@@ -1,1 +1,12 @@
+# The Silver Searcher (ag)
+#
+# IGNORING FILES
+#
+# By default, ag will ignore files whose names match patterns in .gitignore,
+# .hgignore, or .ignore. These files can be anywhere in the directories being
+# searched. Binary files are ignored by default as well. Finally, ag looks in
+# $HOME/.agignore for ignore patterns.
+#
+# See the documentation:
+#   * https://github.com/ggreer/the_silver_searcher
 .git/
