@@ -37302,7 +37302,7 @@
 			<key>Rows</key>
 			<integer>32</integer>
 			<key>Screen</key>
-			<integer>-1</integer>
+			<integer>1</integer>
 			<key>Scrollback Lines</key>
 			<integer>1000</integer>
 			<key>Selected Text Color</key>
@@ -37364,7 +37364,7 @@
 			<key>Visual Bell</key>
 			<true/>
 			<key>Window Type</key>
-			<integer>1</integer>
+			<integer>0</integer>
 			<key>Working Directory</key>
 			<string>/Users/nickolaskraus</string>
 		</dict>
@@ -37406,8 +37406,6 @@
 			<string>kNextWindowPointerAction</string>
 		</dict>
 	</dict>
-	<key>PreventEscapeSequenceFromClearingHistory</key>
-	<true/>
 	<key>Print In Black And White</key>
 	<true/>
 	<key>PromptOnQuit</key>
