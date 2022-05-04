@@ -137,6 +137,10 @@ export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 # Apply 'FZF_DEFAULT_COMMAND' to CTRL + t
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
+# k9s                                                                      {{{1
+# -----------------------------------------------------------------------------
+export XDG_CONFIG_HOME=$HOME/.config
+
 # nvm                                                                      {{{1
 # -----------------------------------------------------------------------------
 export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
