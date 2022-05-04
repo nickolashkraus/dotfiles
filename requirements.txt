@@ -1,6 +1,13 @@
+# Python Packages
+#
+# INSTALLATION
+#
+#   pip install -r ~/path/to/requirements.txt
 awscli
+black
 bumpversion
 cookiecutter
+credstash
 flake8
 isort
 pip
