@@ -12,15 +12,15 @@ export ZSH=$HOME/.oh-my-zsh
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="nhk"
 
-# prevent aws plugin from modifying RPROMPT
+# Prevent aws plugin from modifying RPROMPT.
 SHOW_AWS_PROMPT=false
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
+# a theme from this variable instead of looking in $ZSH/themes/
 # If set to an empty array, this variable will have no effect.
 # ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
@@ -31,11 +31,16 @@ SHOW_AWS_PROMPT=false
 # Case-sensitive completion must be off. _ and - will be interchangeable.
 # HYPHEN_INSENSITIVE="true"
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-DISABLE_AUTO_UPDATE="true"
+# Uncomment one of the following lines to change the auto-update behavior
+# zstyle ':omz:update' mode disabled  # disable automatic updates
+# zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
 # Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+# zstyle ':omz:update' frequency 13
+
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS="true"
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -47,6 +52,9 @@ DISABLE_AUTO_UPDATE="true"
 # ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
+# You can also set it to another string to have that shown instead of the default red dots.
+# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
 # COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to disable marking untracked files
@@ -66,8 +74,8 @@ DISABLE_AUTO_UPDATE="true"
 # ZSH_CUSTOM=/path/to/new-custom-folder
 
 # Which plugins would you like to load?
-# Standard plugins can be found in ~/.oh-my-zsh/plugins/*
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
@@ -98,9 +106,6 @@ fi
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
-# ssh
-# export SSH_KEY_PATH="~/.ssh/rsa_id"
-
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
@@ -110,284 +115,119 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Utilities                                                                {{{1
-# -----------------------------------------------------------------------------
-
-# AWS                                                                      {{{2
-# -----------------------------------------------------------------------------
-
-# enable AWS CLI command completion
-source /Users/$USER/.virtualenvs/dev3/bin/aws_zsh_completer.sh
-
-# set profile
-export AWS_PROFILE=master.root
-
-
-# Google                                                                   {{{2
-# -----------------------------------------------------------------------------
-
-# the next line updates PATH for the Google Cloud SDK
-if [ -f "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc" ]; then
-  source "/Users/$USER/.local/google-cloud-sdk/path.zsh.inc";
-fi
-
-# the next line enables shell command completion for gcloud
-if [ -f "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc" ]; then
-  source "/Users/$USER/.local/google-cloud-sdk/completion.zsh.inc";
-fi
-
-# set Google Cloud SDK environment variable
-export GOOGLE_CLOUD_SDK=/Users/$USER/.local/google-cloud-sdk
-
-# set App Engine SDK environment variable
-export APP_ENGINE_SDK=/Users/$USER/.local/google-cloud-sdk/platform/google_appengine
-
-
-# Gruvbox                                                                  {{{2
+# Gruvbox                                                                  {{{1
 # -----------------------------------------------------------------------------
 
 # Script to override the system default 256-color palette with the precise
 # Gruvbox color palette.
+#
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
 source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
 
-
-# Kubernetes                                                               {{{2
+# fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
 
-export KUBECONFIG=$HOME/.kube/config:$HOME/.kube/granular.yaml
-
-
-# SDKMAN!                                                                  {{{2
-# -----------------------------------------------------------------------------
-
-# configure SDKMAN!
-export SDKMAN_DIR="/Users/nkraus/.sdkman"
-[[ -s "/Users/nkraus/.sdkman/bin/sdkman-init.sh" ]] && \
-  source "/Users/nkraus/.sdkman/bin/sdkman-init.sh"
-
-
-# Serverless                                                               {{{2
-# -----------------------------------------------------------------------------
-
-# enable `serverless` command completion
-[[ -f "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh" ]] && \
-  . "/usr/local/lib/node_modules/serverless/node_modules/tabtab/.completions/serverless.zsh"
-
-
-# Travis CI                                                                {{{2
-# -----------------------------------------------------------------------------
-
-# added by travis gem
-[ -f /Users/nkraus/.travis/travis.sh ] && \
-  source /Users/nkraus/.travis/travis.sh
-
-
-# fzf                                                                      {{{2
-# -----------------------------------------------------------------------------
-
-# configure fzf layout
+# Configure fzf layout
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_OPTS='--preview-window down --height 40% --layout=reverse --border'
 
-# ignore files specified in .gitignore
+# Ignore files specified in .gitignore
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 
-# apply 'FZF_DEFAULT_COMMAND' to CTRL + t
+# Apply 'FZF_DEFAULT_COMMAND' to CTRL + t
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-
-# nvm                                                                      {{{2
+# nvm                                                                      {{{1
 # -----------------------------------------------------------------------------
-
-# configure nvm
 export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
 source $(brew --prefix nvm)/nvm.sh
-
 
 # Languages                                                                {{{1
 # -----------------------------------------------------------------------------
 
 # Go                                                                       {{{2
 # -----------------------------------------------------------------------------
-
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
-
 
 # Virtual Environments                                                     {{{1
 # -----------------------------------------------------------------------------
 
 # jenv                                                                     {{{2
 # -----------------------------------------------------------------------------
-
-# configure jenv
 export PATH="$HOME/.jenv/bin:$PATH"
-
-# set up jenv
 eval "$(jenv init -)"
-
 
 # pyenv                                                                    {{{2
 # -----------------------------------------------------------------------------
 
-# configure virtualenv and virtualenvwrapper
-export WORKON_HOME=$HOME/.virtualenvs
-export VIRTUALENVWRAPPER_PYTHON=$HOME/.pyenv/shims/python
-export VIRTUALENVWRAPPER_VIRTUALENV=$HOME/.pyenv/shims/virtualenv
+# See https://github.com/pyenv/pyenv/issues/1737 for details.
+#
+# For compilers to find bzip2 you may need to set:
+export LDFLAGS="-L/usr/local/opt/bzip2/lib"
+export CPPFLAGS="-I/usr/local/opt/bzip2/include"
 
-# set up pyenv
+# For compilers to find zlib you may need to set:
+export LDFLAGS="-L/usr/local/opt/zlib/lib"
+export CPPFLAGS="-I/usr/local/opt/zlib/include"
+
+export WORKON_HOME="${HOME}/.virtualenvs"
+export VIRTUALENVWRAPPER_PYTHON="${HOME}/.pyenv/shims/python"
+export VIRTUALENVWRAPPER_VIRTUALENV="${HOME}/.pyenv/shims/virtualenv"
+
+export PYENV_ROOT="${HOME}/.pyenv"
+export PATH="${PYENV_ROOT}/bin:${PATH}"
+eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 
-python2.latest() {
-  pyenv shell 2.7.18
-  pyenv virtualenvwrapper
-}
-
 python3.latest() {
-  pyenv shell 3.8.5
+  pyenv shell 3.10.3
   pyenv virtualenvwrapper
 }
-
-
-# Poetry                                                                   {{{2
-# -----------------------------------------------------------------------------
-export PATH=$PATH:$HOME/.poetry/bin
-
 
 # rbenv                                                                    {{{2
 # -----------------------------------------------------------------------------
 eval "$(rbenv init -)"
 
-
 # Aliases                                                                  {{{1
 # -----------------------------------------------------------------------------
-
-# AWS                                                                      {{{2
-# -----------------------------------------------------------------------------
-
-alias aws-default='export AWS_PROFILE=default'
-alias aws-ops='export AWS_PROFILE=ops'
-alias aws-prod='export AWS_PROFILE=prod'
-alias aws-dev='export AWS_PROFILE=dev'
-alias aws-dwolla-prod='export AWS_PROFILE=dwolla-prod'
-alias aws-dwolla-sand='export AWS_PROFILE=dwolla-sand'
-
-
-# Dart                                                                     {{{2
-# -----------------------------------------------------------------------------
-
-alias ddev='pub run dart_dev'
-alias pub-purge='rm -rf .pub .packages && find . -name packages | xargs rm -rf'
-
-
-# Docker                                                                   {{{2
-# -----------------------------------------------------------------------------
-
-alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
+alias clean='deactivate; $HOME; clear; workon default; asp master.root'
+alias credstash='credstash --log-file /dev/null'
+alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv;'
 alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
 alias docker-rmv='docker volume rm --force $(docker volume ls -q) >/dev/null 2>&1 || echo "No volumes to remove."'
-alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv;'
-
-
-# General                                                                  {{{2
-# -----------------------------------------------------------------------------
-
-alias clean='deactivate; $HOME; clear; workon dev3; asp master.root'
-
-
-# Git                                                                      {{{2
-# -----------------------------------------------------------------------------
-
+alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
 alias gcp='git log -1 --pretty=%B | pbcopy'
-
-
-# Go                                                                       {{{2
-# -----------------------------------------------------------------------------
-
-alias go-infrable='$HOME/go/src/github.com/infrable-io'
-alias go-personal='$HOME/go/src/github.com/NickolasHKraus'
-
-
-# Granular                                                                 {{{2
-# -----------------------------------------------------------------------------
-
-alias encsharedprod='onelogin-aws-login --profile encsharedprod'
-alias encsharedtest='onelogin-aws-login --profile encsharedtest'
-alias encappproduction='onelogin-aws-login --profile encappproduction'
-alias encappuat='onelogin-aws-login --profile encappuat'
-alias encappdevelopment='onelogin-aws-login --profile encappdevelopment'
-alias granappproduction='onelogin-aws-login --profile granappproduction'
-alias granapptest='onelogin-aws-login --profile granapptest'
-alias granappdevelopment='onelogin-aws-login --profile granappdevelopment'
-
-
-# Kubernetes                                                               {{{2
-# -----------------------------------------------------------------------------
-
+alias go-infrable-io='$HOME/go/src/github.com/infrable-io'
+alias go-nickolashkraus='$HOME/go/src/github.com/NickolasHKraus'
 alias k='kubectl'
-
-
-# OS X                                                                     {{{2
-# -----------------------------------------------------------------------------
-
-alias show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
-alias show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
-
-
-# Python                                                                   {{{2
-# -----------------------------------------------------------------------------
-
+alias osx-show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
+alias osx-show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
 alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
-
-# SSH                                                                      {{{2
-# -----------------------------------------------------------------------------
-alias ssh-ip='IP=$(pbpaste); ssh nickolaskraus@${IP}'
-
-# Terraform                                                                {{{2
-# -----------------------------------------------------------------------------
-
+alias ssh-ip='ip=$(pbpaste); ssh nickolaskraus@${ip}'
 alias tf='terraform'
-
-
-# tmux                                                                     {{{2
-# -----------------------------------------------------------------------------
-
 alias tmux-config='vim ~/.tmux.conf'
 alias tmux-kill='tmux kill-server'
 alias tmux-new='tmux new -s $(basename $(pwd))'
-
-
-# Vim                                                                      {{{2
-# -----------------------------------------------------------------------------
-
 alias vim-config='vim ~/.vimrc'
-alias vim-work='$HOME/.vim/bundle'
-
-
-# Zsh                                                                      {{{2
-# -----------------------------------------------------------------------------
-
 alias zsh-config='vim ~/.zshrc'
 
-
-# Functions                                                                {{{1
+# Bash Functions                                                           {{{1
 # -----------------------------------------------------------------------------
-
 python_clean() {
-  # remove build artifacts
+  # Remove build artifacts
   find . -name '*.egg' -exec rm -fr {} +
   find . -name '*.egg-info' -exec rm -fr {} +
   rm -fr .eggs/
   rm -fr build/
   rm -fr dist/
-  # remove Python artifacts
+  # Remove Python artifacts
   find . -name '*.pyc' -exec rm -f {} +
   find . -name '*.pyo' -exec rm -f {} +
   find . -name '*~' -exec rm -f {} +
   find . -name '__pycache__' -exec rm -fr {} +
-  # remove test and coverage artifacts
+  # Remove test and coverage artifacts
   find . -name '*,cover' -exec rm -f {} +
   find . -name '.coverage' -exec rm -f {} +
   find . -name '.pytest_cache' -exec rm -fr {} +
@@ -396,12 +236,30 @@ python_clean() {
   find . -name 'htmlcov' -exec rm -fr {} +
 }
 
+remove_whitespace() {
+  find . -type f \
+  -name "*" \
+  -not -name "*.png" \
+  -not -path "./.git/*" \
+  -exec gsed -i 's/[[:space:]]\+$//' {} \;
+}
+
+add_newline_eof() {
+  find . -type f \
+  -name "*" \
+  -not -name "*.png" \
+  -not -path "./.git/*" \
+  -exec gsed -i '$a\' {} \;
+}
 
 # Default                                                                  {{{1
 # -----------------------------------------------------------------------------
 
-# default to Python 3
+# Set default AWS profile
+export AWS_PROFILE=master.root
+
+# Default to latest version of Python 3
 python3.latest
 
-# default to 'dev3' virtualenv
-workon dev3
+# Default to 'default' virtualenv
+workon default
