@@ -5,10 +5,10 @@
         "revision": "5381c8228d295d95cad1deda93b6bafa3891cc1c"
       },
       "homebrew/cask": {
-        "revision": "abd4948978e956aafa91511c085c7e65e5a9b786"
+        "revision": "868c2dd0232c975b3e80e22f13b9c5dd9316c09a"
       },
       "homebrew/core": {
-        "revision": "3fd9c486db62788190c71588694e3f4223491223"
+        "revision": "6eb635ca3b8c4f2b98ff7c9e4466d1d1de570a5a"
       }
     },
     "brew": {
@@ -1707,7 +1707,7 @@
       "big_sur": {
         "HOMEBREW_VERSION": "3.4.10-38-g7e1f348",
         "HOMEBREW_PREFIX": "/usr/local",
-        "Homebrew/homebrew-core": "3fd9c486db62788190c71588694e3f4223491223",
+        "Homebrew/homebrew-core": "6eb635ca3b8c4f2b98ff7c9e4466d1d1de570a5a",
         "CLT": "13.2.0.0.1.1638488800",
         "Xcode": "13.2.1",
         "macOS": "11.6.5"
