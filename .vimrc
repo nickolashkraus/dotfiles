@@ -52,7 +52,6 @@ filetype plugin indent on    " required
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
 
-
 " Basic                                                                    {{{1
 " -----------------------------------------------------------------------------
 
@@ -133,7 +132,6 @@ highlight IncSearch ctermfg=235 ctermbg=166
 " 167 = bright red
 highlight Error ctermfg=235 ctermbg=167
 
-
 " Autocommands                                                             {{{1
 " -----------------------------------------------------------------------------
 
@@ -180,7 +178,6 @@ if !exists("autocommands_loaded")
   autocmd! BufReadPre,BufNewFile /usr/local/Cellar/* setlocal readonly nomodifiable
 endif
 
-
 " Remap                                                                    {{{1
 " -----------------------------------------------------------------------------
 
@@ -216,7 +213,6 @@ noremap <leader>p "*p
 " set 'Q' to playback the recording put into the q register
 noremap Q @q
 
-
 " Plugins                                                                  {{{1
 " -----------------------------------------------------------------------------
 
@@ -231,15 +227,15 @@ let g:ycm_disable_for_files_larger_than_kb = 512
 " toggle YCM with <F2>
 noremap <F2> :call ToggleYcm()<CR>
 
-"Function: ToggleYcm()
-"Sets b:ycm_largefile directly, thereby enabling or disabling YCM.
+" Function: ToggleYcm()
+" Sets b:ycm_largefile directly, thereby enabling or disabling YCM.
 "
-"  let threshold = g:ycm_disable_for_files_larger_than_kb * 1024
-"  let b:ycm_largefile =
-"        \ threshold > 0 && getfsize( expand( a:buffer ) ) > threshold
+"   let threshold = g:ycm_disable_for_files_larger_than_kb * 1024
+"   let b:ycm_largefile =
+"         \ threshold > 0 && getfsize( expand( a:buffer ) ) > threshold
 "
-"Args: None
-"Returns: None
+" Args: None
+" Returns: None
 function! ToggleYcm()
   if b:ycm_largefile == 0
     let b:ycm_largefile = 1
@@ -269,7 +265,6 @@ let g:ycm_auto_hover=""
 " manually trigger documentation
 nmap <leader>D <plug>(YCMHover)
 
-
 " ack                                                                      {{{2
 " -----------------------------------------------------------------------------
 
@@ -281,7 +276,6 @@ let g:ackprg = 'ag --column --nogroup --hidden'
 
 " do not open files in NERDTree
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
-
 
 " fzf                                                                      {{{2
 " -----------------------------------------------------------------------------
@@ -307,13 +301,11 @@ let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
 " do not open files in NERDTree
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
 
-
 " nerdcommenter                                                            {{{2
 " -----------------------------------------------------------------------------
 
-"add spaces after comment delimiters by default
+" add spaces after comment delimiters by default
 let g:NERDSpaceDelims = 1
-
 
 " nerdtree                                                                 {{{2
 " -----------------------------------------------------------------------------
@@ -330,14 +322,12 @@ let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$']
 " set sorting of nodes to be case-sensitive
 let g:NERDTreeCaseSensitiveSort=1
 
-
 " vim-gitgutter                                                            {{{2
 " -----------------------------------------------------------------------------
 highlight GitGutterAdd ctermfg=darkgreen ctermbg=235
 highlight GitGutterChange ctermfg=darkyellow ctermbg=235
 highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
 highlight GitGutterDelete ctermfg=darkred ctermbg=235
-
 
 " syntastic                                                                {{{2
 " -----------------------------------------------------------------------------
@@ -374,13 +364,14 @@ let g:syntastic_python_flake8_exe = 'python3 -m flake8'
 " vimlint, vint
 let g:syntastic_vim_checkers = ['vimlint', 'vint']
 
-
 " vim-anyfold                                                              {{{2
 " -----------------------------------------------------------------------------
 
+" activate for all filetypes
 autocmd Filetype * AnyFoldActivate
-set foldlevel=99
 
+" open all folds
+set foldlevel=99
 
 " vim-autoformat                                                           {{{2
 " -----------------------------------------------------------------------------
@@ -392,7 +383,6 @@ noremap <F4> :Autoformat<CR>
 autocmd FileType gitcommit let b:autoformat_autoindent=0
 autocmd FileType gitcommit let g:autoformat_retab = 0
 autocmd FileType gitcommit let g:autoformat_remove_trailing_spaces = 0
-
 
 " vim-terraform                                                            {{{2
 " -----------------------------------------------------------------------------
@@ -408,7 +398,6 @@ let g:terraform_fold_sections=1
 " `terraform fmt`. You can also do this manually with the :TerraformFmt
 " command.
 let g:terraform_fmt_on_save=1
-
 
 " Languages                                                                {{{1
 " -----------------------------------------------------------------------------
@@ -426,12 +415,10 @@ autocmd BufNewFile,BufRead *.py:
       \ set tabstop=4
       \ set textwidth=79
 
-
 " Shell                                                                    {{{2
 " -----------------------------------------------------------------------------
 " set global default shell type
 let g:is_bash=1
-
 
 " Vim                                                                      {{{2
 " -----------------------------------------------------------------------------
