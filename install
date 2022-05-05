@@ -12,7 +12,9 @@
 # vim: fdm=marker
 
 # Determine location of 'dotfiles' directory
-DOTFILES=$(find "${HOME}" -type d -name "*dotfiles*")
+# DOTFILES=$(find "${HOME}" -type d -name "*dotfiles*")
+
+DOTFILES="${HOME}/NickolasHKraus/dotfiles"
 
 echo "'dotfiles' was found at the following location: ${DOTFILES}"
 read -rp "Do you wish to proceed? [Y/n]: " proceed
@@ -22,10 +24,11 @@ if [[ ! "${proceed}" =~ [Y|y|YES|yes] ]]; then
   exit
 fi
 
+mkdir -p "${HOME}/.config"
 
-# ${HOME}                                                                  {{{1
 # -----------------------------------------------------------------------------
-
+# ${HOME}
+# -----------------------------------------------------------------------------
 rm "${HOME}/.agignore"
 ln -s "${DOTFILES}/.agignore" "${HOME}/.agignore"
 
@@ -41,23 +44,55 @@ ln -s "${DOTFILES}/.gitignore" "${HOME}/.gitignore"
 rm "${HOME}/.powerline.conf"
 ln -s "${DOTFILES}/.powerline.conf" "${HOME}/.powerline.conf"
 
+rm "${HOME}/.skhdrc"
+ln -s "${DOTFILES}/.skhdrc" "${HOME}/.skhdrc"
+
 rm "${HOME}/.tmux.conf"
 ln -s "${DOTFILES}/.tmux.conf" "${HOME}/.tmux.conf"
 
 rm "${HOME}/.vimrc"
 ln -s "${DOTFILES}/.vimrc" "${HOME}/.vimrc"
 
+rm "${HOME}/.yabairc"
+ln -s "${DOTFILES}/.yabairc" "${HOME}/.yabairc"
+
 rm "${HOME}/.zshrc"
 ln -s "${DOTFILES}/.zshrc" "${HOME}/.zshrc"
 
-
-# ${HOME}/.config                                                          {{{1
 # -----------------------------------------------------------------------------
+# ${HOME}/.aws
+# -----------------------------------------------------------------------------
+mkdir -p "${HOME}/.aws"
+rm "${HOME}/.aws/config"
+ln -s "${DOTFILES}/.aws/config" "${HOME}/.aws/config"
 
+# -----------------------------------------------------------------------------
+# ${HOME}/.kube
+# -----------------------------------------------------------------------------
+mkdir -p "${HOME}/.kube"
+rm -rf "${HOME}/.kube/granular.yaml"
+ln -s "${DOTFILES}/.kube/granular.yaml" "${HOME}/.kube/granular.yaml"
+
+# -----------------------------------------------------------------------------
+# ${HOME}/.config/k9s
+# -----------------------------------------------------------------------------
+rm -rf "${HOME}/.config/k9s"
+mkdir -p "${HOME}/.config/k9s"
+ln -s "${DOTFILES}/.k9s/config.yml" \
+  "${HOME}/.config/k9s/config.yml"
+ln -s "${DOTFILES}/.k9s/skin.yml" \
+  "${HOME}/.config/k9s/skin.yml"
+
+# -----------------------------------------------------------------------------
+# ${HOME}/.config/mpv
+# -----------------------------------------------------------------------------
 rm -rf "${HOME}/.config/mpv"
 mkdir -p "${HOME}/.config/mpv"
 ln -s "${DOTFILES}/.mpv/mpv.conf" "${HOME}/.config/mpv/mvp.conf"
 
+# -----------------------------------------------------------------------------
+# ${HOME}/.config/powerline
+# -----------------------------------------------------------------------------
 rm -rf "${HOME}/.config/powerline"
 mkdir -p "${HOME}/.config/powerline"
 mkdir -p "${HOME}/.config/powerline/colorschemes/tmux"
@@ -87,33 +122,51 @@ ln -s "${DOTFILES}/.powerline/colors.json" \
 ln -s "${DOTFILES}/.powerline/config.json" \
   "${HOME}/.config/powerline/config.json"
 
-
-# ${HOME}/.k9s                                                             {{{1
 # -----------------------------------------------------------------------------
-
-rm -rf "${HOME}/.k9s"
-mkdir -p "${HOME}/.k9s"
-ln -s "${DOTFILES}/.k9s/config.yml" "${HOME}/.k9s/config.yml"
-ln -s "${DOTFILES}/.k9s/skin.yml" "${HOME}/.k9s/skin.yml"
-
-
-# ${HOME}/.ssh                                                             {{{1
+# ${HOME}/.ssh
 # -----------------------------------------------------------------------------
-
+mkdir -p "${HOME}/.ssh"
 rm "${HOME}/.ssh/config"
 ln -s "${DOTFILES}/.ssh/config" "${HOME}/.ssh/config"
 
-
-# ${HOME}/.vim                                                             {{{1
 # -----------------------------------------------------------------------------
-
+# ${HOME}/.vim
+# -----------------------------------------------------------------------------
+mkdir -p "${HOME}/.vim"
 rm "${HOME}/.vim/.en.utf-8.add"
 ln -s "${DOTFILES}/.en.utf-8.add" "${HOME}/.vim/.en.utf-8.add"
 
-
-# ${HOME}/Library                                                          {{{1
 # -----------------------------------------------------------------------------
+# Homebrew Packages
+#
+# Files:
+#   * Brewfile
+#   * Brewfile.lock.json
+# -----------------------------------------------------------------------------
+brew bundle --file="${DOTFILES}/Brewfile" >/dev/null 2>&1
 
-rm "${HOME}"/Library/Application\ Support/Spectacle/Shortcuts.json
-ln -s "${DOTFILES}/Shortcuts.json" \
-  "${HOME}"/Library/Application\ Support/Spectacle/Shortcuts.json
+# -----------------------------------------------------------------------------
+# Oh My Zsh Theme
+#
+# Files:
+#   * nhk.zsh-theme
+# -----------------------------------------------------------------------------
+if [ -d "${HOME}/.oh-my-zsh" ]; then
+  rm "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
+  ln -s "${DOTFILES}/nhk.zsh-theme" \
+    "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
+else
+  echo 'ERROR: .oh-my-zsh directory does not exist.'
+fi
+
+# -----------------------------------------------------------------------------
+# Python Packages
+#
+# Files:
+#   * requirements.txt
+# -----------------------------------------------------------------------------
+if [ -x "$(command -v pip)" ]; then
+  pip install -r "${DOTFILES}/requirements.txt" >/dev/null 2>&1
+else
+  echo 'ERROR: pip not installed.'
+fi
