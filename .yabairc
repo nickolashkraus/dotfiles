@@ -1,50 +1,53 @@
-#!/usr/bin/env sh
-
-# the scripting-addition must be loaded manually if
-# you are running yabai on macOS Big Sur. Uncomment
-# the following line to have the injection performed
-# when the config is executed during startup.
+#!/usr/bin/env bash
 #
-# for this to work you must configure sudo such that
-# it will be able to run the command without password
+# The scripting addition must be loaded manually if you are running yabai on
+# macOS Big Sur. Uncomment the following lines to allow the injection to be
+# performed when the configuration is executed during startup. For this to work
+# you must configure sudo such that it will be able to run the command without
+# a password.
 #
-# see this wiki page for information:
+#   $ sudo visudo -f /private/etc/sudoers.d/yabai
+#
+#   ```
+#   <user> ALL = (root) NOPASSWD: /usr/local/bin/yabai --load-sa
+#   ```
+#
+# See the Wiki page for more information:
 #  - https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)
-
-# NOTE: Set 'window_border' to 'on' to hide macOS window border.
-
 sudo yabai --load-sa
 yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
 
-# global settings
-yabai -m config mouse_follows_focus          off
-yabai -m config focus_follows_mouse          off
-yabai -m config window_origin_display        default
-yabai -m config window_placement             second_child
-yabai -m config window_topmost               off
-yabai -m config window_shadow                off
-yabai -m config window_opacity               off
-yabai -m config window_opacity_duration      0.0
-yabai -m config active_window_opacity        1.0
-yabai -m config normal_window_opacity        0.90
-yabai -m config window_border                on
-yabai -m config window_border_width          6
+# GLOBAL SETTINGS
+#
+# NOTE: Set 'window_border' to 'on' to hide the macOS window border.
 yabai -m config active_window_border_color   0xff282828
-yabai -m config normal_window_border_color   0xff282828
-yabai -m config insert_feedback_color        0xffd75f5f
-yabai -m config split_ratio                  0.50
+yabai -m config active_window_opacity        1.0
 yabai -m config auto_balance                 off
-yabai -m config mouse_modifier               fn
+yabai -m config focus_follows_mouse          off
+yabai -m config insert_feedback_color        0xffd75f5f
 yabai -m config mouse_action1                move
 yabai -m config mouse_action2                resize
 yabai -m config mouse_drop_action            swap
+yabai -m config mouse_follows_focus          off
+yabai -m config mouse_modifier               fn
+yabai -m config normal_window_border_color   0xff282828
+yabai -m config normal_window_opacity        0.90
+yabai -m config split_ratio                  0.50
+yabai -m config window_border                on
+yabai -m config window_border_width          6
+yabai -m config window_opacity               off
+yabai -m config window_opacity_duration      0.0
+yabai -m config window_origin_display        default
+yabai -m config window_placement             second_child
+yabai -m config window_shadow                off
+yabai -m config window_topmost               off
 
-# general space settings
-yabai -m config layout                       bsp
-yabai -m config top_padding                  12
+# SPACE SETTINGS
 yabai -m config bottom_padding               12
+yabai -m config layout                       bsp
 yabai -m config left_padding                 12
 yabai -m config right_padding                12
+yabai -m config top_padding                  12
 yabai -m config window_gap                   06
 
-echo "yabai configuration loaded.."
+echo "yabai configuration loaded..."
