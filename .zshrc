@@ -183,9 +183,8 @@ export WORKON_HOME="${HOME}/.virtualenvs"
 export VIRTUALENVWRAPPER_PYTHON="${HOME}/.pyenv/shims/python"
 export VIRTUALENVWRAPPER_VIRTUALENV="${HOME}/.pyenv/shims/virtualenv"
 
-export PYENV_ROOT="${HOME}/.pyenv"
-export PATH="${PYENV_ROOT}/bin:${PATH}"
-eval "$(pyenv init --path)"
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
 python3.latest() {
