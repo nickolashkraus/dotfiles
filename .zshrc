@@ -158,6 +158,15 @@ source $(brew --prefix nvm)/nvm.sh
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
+# Java                                                                     {{{2
+# -----------------------------------------------------------------------------
+# openjdk@11 is keg-only, which means it was not symlinked into
+# `brew --prefix`, because this is an alternate version of another formula.
+export PATH="$(brew --prefix)/opt/openjdk@11/bin:$PATH"
+
+# For compilers to find openjdk@11 you may need to set:
+export CPPFLAGS="-I/opt/homebrew/opt/openjdk@11/include"
+
 # Virtual Environments                                                     {{{1
 # -----------------------------------------------------------------------------
 
