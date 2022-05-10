@@ -29,35 +29,13 @@ mkdir -p "${HOME}/.config"
 # -----------------------------------------------------------------------------
 # ${HOME}
 # -----------------------------------------------------------------------------
-rm "${HOME}/.agignore"
-ln -s "${DOTFILES}/.agignore" "${HOME}/.agignore"
-
-rm "${HOME}/.cobra.yaml"
-ln -s "${DOTFILES}/.cobra.yaml" "${HOME}/.cobra.yaml"
-
-rm "${HOME}/.gitconfig"
-ln -s "${DOTFILES}/.gitconfig" "${HOME}/.gitconfig"
-
-rm "${HOME}/.gitignore"
-ln -s "${DOTFILES}/.gitignore" "${HOME}/.gitignore"
-
-rm "${HOME}/.powerline.conf"
-ln -s "${DOTFILES}/.powerline.conf" "${HOME}/.powerline.conf"
-
-rm "${HOME}/.skhdrc"
-ln -s "${DOTFILES}/.skhdrc" "${HOME}/.skhdrc"
-
-rm "${HOME}/.tmux.conf"
-ln -s "${DOTFILES}/.tmux.conf" "${HOME}/.tmux.conf"
-
-rm "${HOME}/.vimrc"
-ln -s "${DOTFILES}/.vimrc" "${HOME}/.vimrc"
-
-rm "${HOME}/.yabairc"
-ln -s "${DOTFILES}/.yabairc" "${HOME}/.yabairc"
-
-rm "${HOME}/.zshrc"
-ln -s "${DOTFILES}/.zshrc" "${HOME}/.zshrc"
+for f in "${DOTFILES}"/.*; do
+  f="$(basename "${f}")"
+  if [ -f "${f}" ]; then
+    rm "${HOME}/${f}" >/dev/null 2>&1 || echo "${f} does not exist. Creating..."
+    ln -s "${DOTFILES}/${f}" "${HOME}/${f}"
+  fi
+done
 
 # -----------------------------------------------------------------------------
 # ${HOME}/.aws
