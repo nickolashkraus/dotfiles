@@ -173,9 +173,9 @@ if !exists("autocommands_loaded")
     autocmd InsertLeave * set timeoutlen=1000
   augroup END
 
-  " open packages in readonly, nomodifiable mode
-  autocmd BufReadPre,BufNewFile /usr/local/Cellar/* setlocal readonly nomodifiable
-  autocmd! BufReadPre,BufNewFile /usr/local/Cellar/* setlocal readonly nomodifiable
+  " open packages installed via Homebrew in readonly, nomodifiable mode
+  autocmd BufReadPre,BufNewFile /opt/homebrew/cellar/* setlocal readonly nomodifiable
+  autocmd! BufReadPre,BufNewFile /opt/homebrew/Cellar/* setlocal readonly nomodifiable
 endif
 
 " Remap                                                                    {{{1
