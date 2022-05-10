@@ -3,7 +3,7 @@
 # See the documentation:
 #   * https://git-scm.com/docs/git-config
 [core]
-    editor = /usr/local/bin/vim
+    editor = vim
     excludesfile = ~/.gitignore
 [init]
     defaultBranch = master

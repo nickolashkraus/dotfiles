@@ -9,7 +9,7 @@
 #   $ sudo visudo -f /private/etc/sudoers.d/yabai
 #
 #   ```
-#   <user> ALL = (root) NOPASSWD: /usr/local/bin/yabai --load-sa
+#   <user> ALL = (root) NOPASSWD: $(brew --prefix)/bin/yabai --load-sa
 #   ```
 #
 # See the Wiki for more information:
