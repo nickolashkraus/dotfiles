@@ -281,7 +281,7 @@ nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : ''
 " -----------------------------------------------------------------------------
 
 " add fzf to Vim runtimepath if installed using Homebrew
-set rtp+=/usr/local/opt/fzf
+set rtp+=/opt/homebrew/bin/fzf
 
 " default key bindings
 let g:fzf_action = {
