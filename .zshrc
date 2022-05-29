@@ -126,7 +126,7 @@ source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
 
 # Homebrew                                                                 {{{1
 # -----------------------------------------------------------------------------
-eval "$($(brew --prefix)/bin/brew shellenv)"
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
