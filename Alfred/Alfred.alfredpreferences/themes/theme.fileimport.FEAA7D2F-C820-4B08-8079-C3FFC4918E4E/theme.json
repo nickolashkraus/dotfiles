@@ -1,0 +1,64 @@
+{
+  "alfredtheme" : {
+    "result" : {
+      "textSpacing" : 5,
+      "subtext" : {
+        "size" : 12,
+        "colorSelected" : "#928374FF",
+        "font" : "System",
+        "color" : "#928374FF"
+      },
+      "shortcut" : {
+        "size" : 16,
+        "colorSelected" : "#EADBB2FF",
+        "font" : "System",
+        "color" : "#928374FF"
+      },
+      "backgroundSelected" : "#1D1F20FF",
+      "text" : {
+        "size" : 18,
+        "colorSelected" : "#EADBB2FF",
+        "font" : "System",
+        "color" : "#EADBB2FF"
+      },
+      "iconPaddingHorizontal" : 4,
+      "roundness" : 0,
+      "paddingVertical" : 3,
+      "iconSize" : 40
+    },
+    "search" : {
+      "backgroundSelected" : "#7B6F64FF",
+      "paddingHorizontal" : 8,
+      "spacing" : 8,
+      "text" : {
+        "size" : 34,
+        "colorSelected" : "#A79783FF",
+        "font" : "System Light",
+        "color" : "#EADBB2FF"
+      },
+      "background" : "#1D1F20FF",
+      "roundness" : 0,
+      "paddingVertical" : 5
+    },
+    "window" : {
+      "color" : "#282828FF",
+      "paddingHorizontal" : 9,
+      "width" : 559,
+      "borderPadding" : 0,
+      "borderColor" : "#0000007F",
+      "blur" : 40,
+      "roundness" : 3,
+      "paddingVertical" : 8
+    },
+    "credit" : "Nickolas Kraus",
+    "separator" : {
+      "color" : "#CBCBCBF3",
+      "thickness" : 0
+    },
+    "scrollbar" : {
+      "color" : "#928374FF",
+      "thickness" : 2
+    },
+    "name" : "Gruvbox"
+  }
+}
