@@ -11,3 +11,6 @@ doc/tags
 
 # .DS_Store stores custom attributes of its containing folder
 .DS_Store
+
+# Homebrew Bundle lock file
+Brewfile.lock.json
