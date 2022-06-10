@@ -4,6 +4,12 @@
 <dict>
 	<key>AdjustWindowForFontSizeChange</key>
 	<false/>
+	<key>AllowClipboardAccess</key>
+	<true/>
+	<key>AutoHideTmuxClientSession</key>
+	<false/>
+	<key>CopySelection</key>
+	<true/>
 	<key>Custom Color Presets</key>
 	<dict>
 		<key>gruvbox-dark</key>
@@ -349,18 +355,16 @@
 		</dict>
 	</dict>
 	<key>Default Bookmark Guid</key>
-	<string>96E33D3D-97EA-45DA-AB51-A7F117EB5812</string>
-	<key>DisableFullscreenTransparency</key>
-	<false/>
+	<string>A3147D23-F0C3-4AA2-ABDA-223D52E60FCD</string>
 	<key>EnableDivisionView</key>
-	<false/>
+	<true/>
 	<key>HapticFeedbackForEsc</key>
 	<false/>
-	<key>HideMenuBarInFullscreen</key>
+	<key>HideActivityIndicator</key>
 	<true/>
 	<key>HideScrollbar</key>
 	<true/>
-	<key>HideTab</key>
+	<key>HideTabNumber</key>
 	<true/>
 	<key>HotkeyMigratedFromSingleToMulti</key>
 	<true/>
@@ -699,7 +703,7 @@
 				<real>0.92156863212585449</real>
 			</dict>
 			<key>Guid</key>
-			<string>96E33D3D-97EA-45DA-AB51-A7F117EB5812</string>
+			<string>A3147D23-F0C3-4AA2-ABDA-223D52E60FCD</string>
 			<key>Horizontal Spacing</key>
 			<real>1</real>
 			<key>Idle Code</key>
@@ -1009,6 +1013,10 @@
 			</dict>
 			<key>Mouse Reporting</key>
 			<true/>
+			<key>Mouse Reporting allow clicks and drags</key>
+			<false/>
+			<key>Mouse Reporting allow mouse wheel</key>
+			<true/>
 			<key>Name</key>
 			<string>Default</string>
 			<key>Non Ascii Font</key>
@@ -1060,7 +1068,7 @@
 			<key>Shortcut</key>
 			<string></string>
 			<key>Silence Bell</key>
-			<false/>
+			<true/>
 			<key>Sync Title</key>
 			<false/>
 			<key>Tags</key>
@@ -1086,28 +1094,79 @@
 			<key>Window Type</key>
 			<integer>12</integer>
 			<key>Working Directory</key>
-			<string>/Users/x</string>
+			<string>/Users/nickolaskraus</string>
 		</dict>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<false/>
+	<key>OpenTmuxWindowsIn</key>
+	<integer>0</integer>
+	<key>PointerActions</key>
+	<dict>
+		<key>Button,1,1,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kContextMenuPointerAction</string>
+		</dict>
+		<key>Button,2,1,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kPasteFromClipboardPointerAction</string>
+		</dict>
+		<key>Gesture,ThreeFingerSwipeDown,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kPrevWindowPointerAction</string>
+		</dict>
+		<key>Gesture,ThreeFingerSwipeLeft,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kPrevTabPointerAction</string>
+		</dict>
+		<key>Gesture,ThreeFingerSwipeRight,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kNextTabPointerAction</string>
+		</dict>
+		<key>Gesture,ThreeFingerSwipeUp,,</key>
+		<dict>
+			<key>Action</key>
+			<string>kNextWindowPointerAction</string>
+		</dict>
+	</dict>
 	<key>PromptOnQuit</key>
 	<false/>
-	<key>QuitWhenAllWindowsClosed</key>
+	<key>SeparateWindowTitlePerTab</key>
 	<true/>
+	<key>ShowFullScreenTabBar</key>
+	<false/>
+	<key>ShowNewOutputIndicator</key>
+	<false/>
 	<key>SoundForEsc</key>
 	<false/>
-	<key>StatusBarPosition</key>
-	<integer>0</integer>
-	<key>TabStyleWithAutomaticOption</key>
-	<integer>4</integer>
-	<key>TabViewType</key>
-	<integer>0</integer>
-	<key>UseBorder</key>
+	<key>StretchTabsToFillBar</key>
 	<false/>
+	<key>TabStyleWithAutomaticOption</key>
+	<integer>5</integer>
+	<key>TabsHaveCloseButton</key>
+	<false/>
+	<key>TmuxUnpauseAutomatically</key>
+	<true/>
+	<key>TmuxUsesDedicatedProfile</key>
+	<true/>
+	<key>TmuxWarnBeforePausing</key>
+	<true/>
+	<key>UseLionStyleFullscreen</key>
+	<true/>
+	<key>UseTmuxStatusBar</key>
+	<true/>
 	<key>VisualIndicatorForEsc</key>
 	<false/>
 	<key>WindowNumber</key>
+	<false/>
+	<key>kCPKSelectionViewPreferredModeKey</key>
+	<integer>0</integer>
+	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
 	<false/>
 </dict>
 </plist>
