@@ -302,6 +302,12 @@ let $FZF_DEFAULT_COMMAND = 'ag --hidden -g ""'
 " do not open files in NERDTree
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
 
+" hide statusline
+"
+" see: https://github.com/junegunn/fzf.vim#hide-statusline
+autocmd! FileType fzf set laststatus=0 noshowmode noruler
+  \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+
 " nerdcommenter                                                            {{{2
 " -----------------------------------------------------------------------------
 
