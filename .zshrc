@@ -128,6 +128,14 @@ source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
 # -----------------------------------------------------------------------------
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# Google Cloud SDK                                                         {{{1
+# -----------------------------------------------------------------------------
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/nickolaskraus/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/nickolaskraus/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc'; fi
+
 # fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
 
