@@ -14,3 +14,10 @@
 [user]
     name = NickolasHKraus
     email = 0x@nickolaskraus.io
+# Configure go command for private repositories.
+#
+# See:
+#   * https://go.dev/ref/mod#private-modules
+#   * https://go.dev/doc/faq#git_https
+[url "ssh://git@github.com"]
+    insteadOf = https://github.com
