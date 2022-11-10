@@ -124,6 +124,10 @@ fi
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
 source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
 
+# Kubernetes                                                               {{{1
+# -----------------------------------------------------------------------------
+export KUBECONFIG=$HOME/.kube/config
+
 # Homebrew                                                                 {{{1
 # -----------------------------------------------------------------------------
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -274,6 +278,11 @@ add_newline_eof() {
   -not -path "./.git/*" \
   -exec gsed -i '$a\' {} \;
 }
+
+# Workiva                                                                  {{{1
+# -----------------------------------------------------------------------------
+export PATH=$PATH:$HOME/.wk/bin
+export KUBECONFIG=$KUBECONFIG:$HOME/.kube/workiva.yaml
 
 # Default                                                                  {{{1
 # -----------------------------------------------------------------------------
