@@ -14,7 +14,7 @@
 # Determine location of 'dotfiles' directory
 # DOTFILES=$(find "${HOME}" -type d -name "*dotfiles*")
 
-DOTFILES="${HOME}/NickolasHKraus/dotfiles"
+DOTFILES="${HOME}/nickolashkraus/dotfiles"
 
 echo "'dotfiles' was found at the following location: ${DOTFILES}"
 read -rp "Do you wish to proceed? [Y/n]: " proceed

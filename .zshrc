@@ -226,8 +226,6 @@ alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo
 alias docker-rmv='docker volume rm --force $(docker volume ls -q) >/dev/null 2>&1 || echo "No volumes to remove."'
 alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
 alias gcp='git log -1 --pretty=%B | pbcopy'
-alias go-infrable-io='$HOME/go/src/github.com/infrable-io'
-alias go-nickolashkraus='$HOME/go/src/github.com/NickolasHKraus'
 alias k='kubectl'
 alias osx-show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
 alias osx-show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'

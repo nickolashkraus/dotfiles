@@ -12,7 +12,7 @@
 [pull]
     rebase = true
 [user]
-    name = NickolasHKraus
+    name = nickolashkraus
     email = 0x@nickolaskraus.io
 # Configure go command for private repositories.
 #
