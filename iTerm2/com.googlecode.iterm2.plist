@@ -1156,6 +1156,8 @@
 	<true/>
 	<key>TmuxWarnBeforePausing</key>
 	<true/>
+	<key>UseBorder</key>
+	<false/>
 	<key>UseLionStyleFullscreen</key>
 	<true/>
 	<key>UseTmuxStatusBar</key>
@@ -1164,8 +1166,6 @@
 	<false/>
 	<key>WindowNumber</key>
 	<false/>
-	<key>findMode_iTerm</key>
-	<integer>0</integer>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>0</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>
