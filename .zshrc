@@ -140,6 +140,11 @@ if [ -f '/Users/nickolaskraus/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/n
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc'; fi
 
+# Docker                                                               {{{1
+# -----------------------------------------------------------------------------
+# Added by Docker Desktop
+source "$HOME/.docker/init-zsh.sh" || true
+
 # fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
 
@@ -280,7 +285,7 @@ add_newline_eof() {
 # Workiva                                                                  {{{1
 # -----------------------------------------------------------------------------
 export PATH=$PATH:$HOME/.wk/bin
-export KUBECONFIG=$KUBECONFIG:$HOME/.kube/workiva.yaml
+export KUBECONFIG=$KUBECONFIG:$HOME/.kube/infrable.yaml:$HOME/.kube/workiva.yaml
 
 # Default                                                                  {{{1
 # -----------------------------------------------------------------------------
