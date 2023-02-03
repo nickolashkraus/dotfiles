@@ -143,7 +143,7 @@ if [ -f '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc' ]; then . '/U
 # Docker                                                               {{{1
 # -----------------------------------------------------------------------------
 # Added by Docker Desktop
-source "$HOME/.docker/init-zsh.sh" || true
+# source "$HOME/.docker/init-zsh.sh" || true
 
 # fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
