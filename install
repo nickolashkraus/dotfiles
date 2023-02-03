@@ -50,6 +50,8 @@ ln -s "${DOTFILES}/.aws/config" "${HOME}/.aws/config"
 mkdir -p "${HOME}/.kube"
 rm -rf "${HOME}/.kube/granular.yaml"
 ln -s "${DOTFILES}/.kube/granular.yaml" "${HOME}/.kube/granular.yaml"
+rm -rf "${HOME}/.kube/infrable.yaml"
+ln -s "${DOTFILES}/.kube/infrable.yaml" "${HOME}/.kube/infrable.yaml"
 rm -rf "${HOME}/.kube/workiva.yaml"
 ln -s "${DOTFILES}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 
