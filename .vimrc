@@ -354,6 +354,10 @@ let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
+" TODO: https://github.com/vim-syntastic/syntastic#5-faq
+" * Add documentation
+" * Automate checker installation
+
 " configure Go syntax checkers
 " available checkers:
 " go, gofmt, GolangCI-Lint, Golint, Go Meta Linter, gotype, vet
@@ -365,6 +369,11 @@ let g:syntastic_go_checkers = ['go', 'gofmt', 'gotype', 'vet']
 " Pyflakes, Pylama, Pylint, python
 let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']
 let g:syntastic_python_flake8_exe = 'python3 -m flake8'
+
+" configure TypeScript syntax checkers
+" available checkers:
+" eslint, lynt, tslint
+let g:syntastic_typescript_checkers = ['eslint']
 
 " configure Vim syntax checkers
 " available checkers:
