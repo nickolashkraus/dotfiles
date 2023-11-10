@@ -16,7 +16,7 @@
     "time:divider":               { "fg": "gray5", "bg": "gruvbox:dark0_hard", "attrs": [] },
     "email_alert":                "warning:regular",
     "email_alert_gradient":       { "fg": "white", "bg": "yellow_orange_red", "attrs": ["bold"] },
-    "hostname":                   { "fg": "gruvbox:dark0_hard", "bg": "gruvbox:light0_hard", "attrs": ["bold"] },
+    "hostname":                   { "fg": "gruvbox:dark1_hard", "bg": "gruvbox:light1", "attrs": ["bold"] },
     "weather":                    { "fg": "gray8", "bg": "gruvbox:dark0_hard", "attrs": [] },
     "weather_temp_gradient":      { "fg": "blue_red", "bg": "gruvbox:dark0_hard", "attrs": [] },
     "weather_condition_hot":      { "fg": "khaki1", "bg": "gruvbox:dark0_hard", "attrs": [] },
