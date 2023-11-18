@@ -116,9 +116,10 @@ shift + cmd - n : yabai -m space --create && \
 cmd + alt - x : yabai -m space --focus recent
 cmd + alt - 1 : yabai -m space --focus 1
 
+# NOTE: This interferes with the standard 'Redo' command (Command + Shift + Z)
 # Send window to desktop and follow focus
-shift + cmd - z : yabai -m window --space next; yabai -m space --focus next
-shift + cmd - 2 : yabai -m window --space  2; yabai -m space --focus 2
+# shift + cmd - z : yabai -m window --space next; yabai -m space --focus next
+# shift + cmd - 2 : yabai -m window --space  2; yabai -m space --focus 2
 
 # Focus monitor
 ctrl + alt - z  : yabai -m display --focus prev
