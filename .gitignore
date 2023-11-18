@@ -14,3 +14,6 @@ doc/tags
 
 # Homebrew Bundle lock file
 Brewfile.lock.json
+
+# Workiva kubeconfig file
+.kube/workiva.yaml
