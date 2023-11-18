@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # The scripting addition must be loaded manually if you are running yabai on
 # macOS Big Sur. Uncomment the following lines to allow the injection to be
