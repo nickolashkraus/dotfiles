@@ -381,6 +381,10 @@ let g:syntastic_typescript_checkers = ['eslint']
 " vimlint, vint
 let g:syntastic_vim_checkers = ['vimlint', 'vint']
 
+" vim-airline                                                              {{{2
+" -----------------------------------------------------------------------------
+let g:airline_theme='gruvbox'
+
 " vim-anyfold                                                              {{{2
 " -----------------------------------------------------------------------------
 
