@@ -20,6 +20,7 @@ Plugin 'Vimjas/vim-python-pep8-indent'
 Plugin 'Xuyuanp/nerdtree-git-plugin'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'altercation/vim-colors-solarized'
+Plugin 'dense-analysis/ale'
 Plugin 'fatih/vim-go'
 Plugin 'github/copilot.vim'
 Plugin 'hashivim/vim-terraform'
@@ -27,16 +28,18 @@ Plugin 'jiangmiao/auto-pairs'
 Plugin 'junegunn/fzf'
 Plugin 'mileszs/ack.vim'
 Plugin 'morhetz/gruvbox'
+Plugin 'preservim/nerdcommenter'
+Plugin 'preservim/nerdtree'
+Plugin 'preservim/vim-markdown'
 Plugin 'pseewald/vim-anyfold'
-Plugin 'scrooloose/nerdcommenter'
-Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'sjl/vitality.vim'
 Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-sensible'
+Plugin 'tpope/vim-sleuth'
 Plugin 'tpope/vim-surround'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'vim-syntastic/syntastic'
 Plugin 'ycm-core/YouCompleteMe'
 
 " All of your Plugins must be added before the following line
@@ -218,6 +221,60 @@ noremap Q @q
 " Plugins                                                                  {{{1
 " -----------------------------------------------------------------------------
 
+" Language                                                                 {{{2
+" -----------------------------------------------------------------------------
+
+" dense-analysis/ale                                                       {{{3
+" -----------------------------------------------------------------------------
+
+" set the background color for ALE error signs
+highlight ALEErrorSign ctermfg=darkred ctermbg=235
+
+" set the background color for ALE info signs
+highlight ALEInfoSign ctermfg=darkyellow ctermbg=235
+
+" set the background color for ALE warning signs
+highlight ALEWarningSign ctermfg=darkyellow ctermbg=235
+
+" automatically open a window for the location list
+let g:ale_open_list = 1
+
+" do not show problems with virtual-text (i.e. inline text)
+let g:ale_virtualtext_cursor = 'disabled'
+
+" disable LSP linters and `tsserver`
+"
+" >If you are running ALE in combination with another LSP client, you may wish
+" >to disable ALE's LSP functionality entirely. You can change the setting to 1
+" >to always disable all LSP functionality.
+"
+" See: https://github.com/dense-analysis/ale/tree/master#how-can-i-use-ale-with-other-lsp-clients
+"
+" NOTE: This also disables `tsserver` for TypeScript.
+let g:ale_disable_lsp = 0
+
+" TODO: Add ALE fixers.
+"
+" See: https://github.com/dense-analysis/ale#fixing
+
+" preservim/nerdtree                                                       {{{3
+" -----------------------------------------------------------------------------
+
+" toggle NERDTree (if closed, open it; if open, close it)
+nnoremap <C-n> :NERDTreeToggle<CR>
+
+" find the file for the active buffer in the NERDTree window
+nnoremap <C-f> :NERDTreeFind<CR>
+
+" show hidden files by default
+let g:NERDTreeShowHidden=1
+
+" ignore specifc files
+let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$', '\.mypy_cache$', '\.pytest_cache$', '__pycache__$']
+
+" set sorting of nodes to be case-sensitive
+let g:NERDTreeCaseSensitiveSort=2
+
 " YouCompleteMe                                                            {{{2
 " -----------------------------------------------------------------------------
 
@@ -267,6 +324,9 @@ let g:ycm_auto_hover=""
 " manually trigger documentation
 nmap <leader>D <plug>(YCMHover)
 
+" disable error checking
+let g:ycm_show_diagnostics_ui = 0
+
 " ack                                                                      {{{2
 " -----------------------------------------------------------------------------
 
@@ -315,71 +375,12 @@ autocmd! FileType fzf set laststatus=0 noshowmode noruler
 " add spaces after comment delimiters by default
 let g:NERDSpaceDelims = 1
 
-" nerdtree                                                                 {{{2
-" -----------------------------------------------------------------------------
-
-" map toggle NERDTree to CTRL + n
-map <C-N> :NERDTreeToggle<CR>
-
-" show hidden files by default
-let g:NERDTreeShowHidden=1
-
-" ignore specifc files
-let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$']
-
-" set sorting of nodes to be case-sensitive
-let g:NERDTreeCaseSensitiveSort=1
-
 " vim-gitgutter                                                            {{{2
 " -----------------------------------------------------------------------------
 highlight GitGutterAdd ctermfg=darkgreen ctermbg=235
 highlight GitGutterChange ctermfg=darkyellow ctermbg=235
 highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
 highlight GitGutterDelete ctermfg=darkred ctermbg=235
-
-" syntastic                                                                {{{2
-" -----------------------------------------------------------------------------
-
-" set :SyntasticToggleMode command to <F3>
-noremap <F3> :SyntasticToggleMode <CR>
-
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-highlight SyntasticErrorSign ctermfg=darkred ctermbg=235
-highlight SyntasticWarningSign ctermfg=darkyellow ctermbg=235
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-
-" TODO: https://github.com/vim-syntastic/syntastic#5-faq
-" * Add documentation
-" * Automate checker installation
-
-" configure Go syntax checkers
-" available checkers:
-" go, gofmt, GolangCI-Lint, Golint, Go Meta Linter, gotype, vet
-let g:syntastic_go_checkers = ['go', 'gofmt', 'gotype', 'vet']
-
-" configure Python and Python3 syntax checkers
-" available checkers:
-" Bandit, flake8, Frosted, mypy, Prospector, py3kwarn, pycodestyle, pydocstyle,
-" Pyflakes, Pylama, Pylint, python
-let g:syntastic_python_checkers = ['flake8', 'pyflakes', 'pylint', 'python']
-let g:syntastic_python_flake8_exe = 'python3 -m flake8'
-
-" configure TypeScript syntax checkers
-" available checkers:
-" eslint, lynt, tslint
-let g:syntastic_typescript_checkers = ['eslint']
-
-" configure Vim syntax checkers
-" available checkers:
-" vimlint, vint
-let g:syntastic_vim_checkers = ['vimlint', 'vint']
 
 " vim-airline                                                              {{{2
 " -----------------------------------------------------------------------------
@@ -419,6 +420,19 @@ let g:terraform_fold_sections=1
 " `terraform fmt`. You can also do this manually with the :TerraformFmt
 " command.
 let g:terraform_fmt_on_save=1
+
+" Other                                                                    {{{2
+" -----------------------------------------------------------------------------
+
+" tpope/vim-sensible                                                       {{{3
+" -----------------------------------------------------------------------------
+
+" preservim/nerdcommenter                                                  {{{3
+" -----------------------------------------------------------------------------
+
+" Add configuration here...
+"
+" See `:help nerdcommenter.txt` or https://github.com/preservim/nerdcommenter.
 
 " Languages                                                                {{{1
 " -----------------------------------------------------------------------------
