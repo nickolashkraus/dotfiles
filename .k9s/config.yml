@@ -1,43 +1,33 @@
 k9s:
+  liveViewAutoRefresh: false
   refreshRate: 2
   maxConnRetry: 5
-  enableMouse: true
+  enableMouse: false
+  enableImageScan: false
   headless: false
   logoless: false
   crumbsless: false
   readOnly: false
   noExitOnCtrlC: false
   noIcons: false
+  shellPod:
+    image: busybox:1.35.0
+    namespace: default
+    limits:
+      cpu: 100m
+      memory: 100Mi
+  skipLatestRevCheck: false
   logger:
     tail: 100
     buffer: 5000
-    sinceSeconds: 300
+    sinceSeconds: -1
     fullScreenLogs: false
     textWrap: false
     showTime: false
-  currentContext: minikube
-  currentCluster: minikube
-  clusters:
-    minikube:
-      namespace:
-        active: all
-        lockFavorites: false
-        favorites:
-        - all
-        - default
-      view:
-        active: pod
-      featureGates:
-        nodeShell: false
-      shellPod:
-        image: busybox:1.31
-        command: []
-        args: []
-        namespace: default
-        limits:
-          cpu: 100m
-          memory: 100Mi
-      portForwardAddress: localhost
+  currentContext: ""
+  currentCluster: ""
+  keepMissingClusters: false
+  clusters: []
   thresholds:
     cpu:
       critical: 90
@@ -45,4 +35,5 @@ k9s:
     memory:
       critical: 90
       warn: 70
-  screenDumpDir: /var/folders/h3/7qbwch0j3db67hk9pgqtcd580000gq/T/k9s-screens-nickolaskraus
+  screenDumpDir: /var/folders/pb/tbvm1nfx0d14pyh7xbrkh_m00000gs/T/k9s-screens-nickolaskraus
+  disablePodCounting: false
