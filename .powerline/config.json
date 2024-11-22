@@ -33,11 +33,9 @@
       "theme": "default",
       "local_themes": {
         "__tabline__": "tabline",
-
         "cmdwin": "cmdwin",
         "help": "help",
         "quickfix": "quickfix",
-
         "powerline.matchers.vim.plugin.nerdtree.nerdtree": "plugin_nerdtree",
         "powerline.matchers.vim.plugin.commandt.commandt": "plugin_commandt",
         "powerline.matchers.vim.plugin.gundo.gundo": "plugin_gundo",
