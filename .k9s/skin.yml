@@ -4,7 +4,7 @@
 # Skin files live in your $XDG_CONFIG_HOME/k9s folder.
 
 ###############################################################################
-# Gruvbox (Dark)
+# gruvbox (Dark)
 ###############################################################################
 red: &red "#cc241d"
 orange: &orange "#d65d0e"
@@ -53,6 +53,12 @@ k9s:
   info:
     fgColor: *blue
     sectionColor: *foreground
+  help:
+    fgColor: *foreground
+    bgColor: *background
+    keyColor: *blue
+    numKeyColor: *blue
+    sectionColor: *green
   dialog:
     fgColor: *foreground
     bgColor: *background
@@ -79,7 +85,7 @@ k9s:
       modifyColor: *blue
       addColor: *green
       errorColor: *red
-      highlightcolor: *orange
+      highlightColor: *orange
       killColor: *comment
       completedColor: *comment
     title:
@@ -105,7 +111,7 @@ k9s:
       header:
         fgColor: *foreground
         bgColor: *background
-        sorterColor: *cyan
+        sorterColor: *selection
     xray:
       fgColor: *foreground
       bgColor: *background
@@ -121,4 +127,4 @@ k9s:
       bgColor: *background
       indicator:
         fgColor: *foreground
-        bgColor: *selection
+        bgColor: *background
