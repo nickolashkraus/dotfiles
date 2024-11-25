@@ -65,6 +65,13 @@ ln -s "${DOTFILES}/.k9s/config.yml" \
 ln -s "${DOTFILES}/.k9s/skin.yml" \
   "${HOME}/.config/k9s/skin.yml"
 
+rm -rf "${HOME}/Library/Application Support/k9s/config.yml"
+ln -s "${DOTFILES}/.k9s/config.yml" \
+  "${HOME}/Library/Application Support/k9s/config.yml"
+rm -rf "${HOME}/Library/Application Support/k9s/skin.yml"
+ln -s "${DOTFILES}/.k9s/skin.yml" \
+  "${HOME}/Library/Application Support/k9s/skin.yml"
+
 # -----------------------------------------------------------------------------
 # ${HOME}/.config/mpv
 # -----------------------------------------------------------------------------
@@ -103,6 +110,13 @@ ln -s "${DOTFILES}/.powerline/colors.json" \
   "${HOME}/.config/powerline/colors.json"
 ln -s "${DOTFILES}/.powerline/config.json" \
   "${HOME}/.config/powerline/config.json"
+
+# -----------------------------------------------------------------------------
+# ${HOME}/.config/yamllint
+# -----------------------------------------------------------------------------
+rm -rf "${HOME}/.config/yamllint"
+mkdir -p "${HOME}/.config/yamllint"
+ln -s "${DOTFILES}/.yamllint" "${HOME}/.config/yamllint/config"
 
 # -----------------------------------------------------------------------------
 # ${HOME}/.ssh
