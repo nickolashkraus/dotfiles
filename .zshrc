@@ -115,11 +115,11 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Gruvbox                                                                  {{{1
+# gruvbox                                                                  {{{1
 # -----------------------------------------------------------------------------
 
 # Script to override the system default 256-color palette with the precise
-# Gruvbox color palette.
+# gruvbox color palette.
 #
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
 source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
@@ -213,7 +213,7 @@ command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
 python3.latest() {
-  pyenv shell 3.10.3
+  pyenv shell 3.13.0
   pyenv virtualenvwrapper
 }
 
@@ -240,12 +240,21 @@ alias ssh-ip='ip=$(pbpaste); ssh nickolaskraus@${ip}'
 alias tf='terraform'
 alias tmux-config='vim ~/.tmux.conf'
 alias tmux-kill='tmux kill-server'
-alias tmux-new='tmux new -s $(basename $(pwd))'
+alias tmux-new='tmux_new'
 alias vim-config='vim ~/.vimrc'
 alias zsh-config='vim ~/.zshrc'
 
 # Bash Functions                                                           {{{1
 # -----------------------------------------------------------------------------
+tmux_new() {
+  SESSION_NAME="$(basename $(pwd))"
+  tmux new-session -d -s "${SESSION_NAME}"\; \
+  split-window -v \; \
+  split-window -h -t 1 \; \
+  select-layout '4059,276x226,0,0[276x32,0,0,0,276x136,0,33,1,276x56,0,170,2]' \; \
+  attach-session -t "${SESSION_NAME}"
+}
+
 python_clean() {
   # Remove build artifacts
   find . -name '*.egg' -exec rm -fr {} +
