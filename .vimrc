@@ -236,8 +236,8 @@ highlight ALEInfoSign ctermfg=darkyellow ctermbg=235
 " set the background color for ALE warning signs
 highlight ALEWarningSign ctermfg=darkyellow ctermbg=235
 
-" automatically open a window for the location list
-let g:ale_open_list = 1
+" do not automatically open a window for the location list
+let g:ale_open_list = 0
 
 " do not show problems with virtual-text (i.e. inline text)
 let g:ale_virtualtext_cursor = 'disabled'
@@ -253,9 +253,28 @@ let g:ale_virtualtext_cursor = 'disabled'
 " NOTE: This also disables `tsserver` for TypeScript.
 let g:ale_disable_lsp = 0
 
+" configure mypy
+"
+" See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
+let g:ale_python_mypy_options = '--follow-imports=silent'
+
+" TODO: Remove when updating ALE:
+"
+"   https://github.com/dense-analysis/ale/pull/4730
+let g:ale_go_golangci_lint_package=1
+
 " TODO: Add ALE fixers.
 "
 " See: https://github.com/dense-analysis/ale#fixing
+
+" disable E501 error (line too long) for flake8 in ALE
+let g:ale_python_flake8_options = '--ignore=E501'
+
+" disable E501 error (line too long) for pycodestyle in ALE
+let g:ale_python_pycodestyle_options = '--ignore=E501'
+
+" disable ALE in status line
+let g:ale_statusline_enabled = 0
 
 " preservim/nerdtree                                                       {{{3
 " -----------------------------------------------------------------------------
@@ -274,6 +293,8 @@ let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$', '\.mypy_cache$', '\.pytest_cach
 
 " set sorting of nodes to be case-sensitive
 let g:NERDTreeCaseSensitiveSort=2
+
+let g:NERDTreeWinSize = 35
 
 " YouCompleteMe                                                            {{{2
 " -----------------------------------------------------------------------------
@@ -384,7 +405,26 @@ highlight GitGutterDelete ctermfg=darkred ctermbg=235
 
 " vim-airline                                                              {{{2
 " -----------------------------------------------------------------------------
+
+" gruvbox theme
 let g:airline_theme='gruvbox'
+
+" enable Powerline fonts
+let g:airline_powerline_fonts = 1
+
+" diable ALE extension (airline-ale)
+let g:airline#extensions#ale#enabled = 0
+
+" diable whitespace extension (airline-whitespace)
+let g:airline#extensions#whitespace#enabled = 0
+
+" enable branch information (requires vim-fugitive)
+let g:airline#extensions#branch#enabled = 1
+
+" enable hunks information (requires vim-fugitive)
+let g:airline#extensions#hunks#enabled = 1
+
+let g:airline#extensions#nerdtree_statusline = 1
 
 " vim-anyfold                                                              {{{2
 " -----------------------------------------------------------------------------
