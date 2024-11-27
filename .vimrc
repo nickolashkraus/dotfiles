@@ -390,6 +390,26 @@ nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : ''
 autocmd! FileType fzf set laststatus=0 noshowmode noruler
   \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
 
+" set colorscheme
+let g:fzf_colors = {
+      \ 'fg':         ['fg', 'GruvboxFg1'],
+      \ 'bg':         ['bg', 'GruvboxBg0'],
+      \ 'preview-fg': ['fg', 'GruvboxFg1'],
+      \ 'preview-bg': ['bg', 'GruvboxBg0'],
+      \ 'hl':         ['fg', 'GruvboxYellow'],
+      \ 'fg+':        ['fg', 'GruvboxFg1'],
+      \ 'bg+':        ['bg', 'GruvboxBg1'],
+      \ 'gutter':     ['fg', 'GruvboxBg1'],
+      \ 'hl+':        ['fg', 'GruvboxYellow'],
+      \ 'info':       ['fg', 'GruvboxBlue'],
+      \ 'border':     ['fg', 'GruvboxBg1'],
+      \ 'prompt':     ['fg', 'GruvboxFg3'],
+      \ 'pointer':    ['fg', 'GruvboxBlue'],
+      \ 'marker':     ['fg', 'GruvboxOrange'],
+      \ 'spinner':    ['fg', 'GruvboxBlue'],
+      \ 'header':     ['fg', 'GruvboxBg1']
+      \ }
+
 " nerdcommenter                                                            {{{2
 " -----------------------------------------------------------------------------
 

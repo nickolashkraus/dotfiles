@@ -148,9 +148,31 @@ if [ -f '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc' ]; then . '/U
 # fzf                                                                      {{{1
 # -----------------------------------------------------------------------------
 
-# Configure fzf layout
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Configure fzf layout
 export FZF_DEFAULT_OPTS='--preview-window down --height 40% --layout=reverse --border'
+
+# Configure fzf colorscheme
+#
+# See: https://github.com/junegunn/fzf/wiki/Color-schemes
+export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS
+--color=fg:#ebdbb2
+--color=bg:#282828
+--color=preview-fg:#ebdbb2
+--color=preview-bg:#282828
+--color=hl:#fabd2f
+--color=fg+:#ebdbb2
+--color=bg+:#3c3836
+--color=gutter:#3c3836
+--color=hl+:#fabd2f
+--color=info:#83a598
+--color=border:#3c3836
+--color=prompt:#bdae93
+--color=pointer:#83a598
+--color=marker:#fe8019
+--color=spinner:#83a598
+--color=header:#3c3836"
 
 # Ignore files specified in .gitignore
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
