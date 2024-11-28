@@ -58,19 +58,13 @@ ln -s "${DOTFILES}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 # -----------------------------------------------------------------------------
 # ${HOME}/.config/k9s
 # -----------------------------------------------------------------------------
-rm -rf "${HOME}/.config/k9s"
-mkdir -p "${HOME}/.config/k9s"
-ln -s "${DOTFILES}/.k9s/config.yml" \
-  "${HOME}/.config/k9s/config.yml"
-ln -s "${DOTFILES}/.k9s/skin.yml" \
-  "${HOME}/.config/k9s/skin.yml"
-
-rm -rf "${HOME}/Library/Application Support/k9s/config.yml"
-ln -s "${DOTFILES}/.k9s/config.yml" \
-  "${HOME}/Library/Application Support/k9s/config.yml"
-rm -rf "${HOME}/Library/Application Support/k9s/skin.yml"
-ln -s "${DOTFILES}/.k9s/skin.yml" \
-  "${HOME}/Library/Application Support/k9s/skin.yml"
+rm -rf "${XDG_CONFIG_HOME}/k9s"
+mkdir -p "${XDG_CONFIG_HOME}/k9s"
+mkdir -p "${XDG_CONFIG_HOME}/k9s/skins"
+ln -s "${DOTFILES}/.k9s/config.yaml" \
+  "${XDG_CONFIG_HOME}/k9s/config.yaml"
+ln -s "${DOTFILES}/.k9s/skin.yaml" \
+  "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
 
 # -----------------------------------------------------------------------------
 # ${HOME}/.config/mpv

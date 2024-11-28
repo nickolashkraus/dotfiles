@@ -1,0 +1,125 @@
+# $XDG_CONFIG_HOME/k9s/skin.yamml
+#
+# Skins are YAML files that enable a user to change the K9s presentation layer.
+# Skin files live in your $XDG_CONFIG_HOME/k9s folder.
+
+###############################################################################
+# gruvbox (Dark)
+###############################################################################
+red: &red "#fb4934"
+green: &green "#b8bb26"
+yellow: &yellow "#fabd2f"
+blue: &blue "#83a598"
+purple: &purple "#d3869b"
+aqua: &aqua "#8ec07c"
+orange: &orange "#fe8019"
+gray: &gray "#928374"
+foreground: &foreground "#ebdbb2"
+background: &background "#282828"
+
+foreground1: &foreground1 "#ebdbb2"
+foreground2: &foreground2 "#d5c4a1"
+background0: &background0 "#282828"
+background1: &background1 "#3c3836"
+###############################################################################
+
+k9s:
+  body:
+    fgColor: *foreground
+    bgColor: *background
+    logoColor: *blue
+  prompt:
+    fgColor: *foreground
+    bgColor: *background
+    suggestColor: *yellow
+  info:
+    fgColor: *blue
+    sectionColor: *foreground
+  help:
+    fgColor: *foreground
+    bgColor: *background
+    sectionColor: *green
+    keyColor: *blue
+    numKeyColor: *blue
+  dialog:
+    fgColor: *foreground
+    bgColor: *background
+    buttonFgColor: *foreground2
+    buttonBgColor: *background0
+    buttonFocusFgColor: *foreground1
+    buttonFocusBgColor: *background1
+    labelFgColor: *orange
+    fieldFgColor: *gray
+  frame:
+    title:
+      fgColor: *gray
+      bgColor: *background
+      highlightColor: *blue
+      counterColor: *green
+      filterColor: *gray
+    border:
+      fgColor: *gray
+      focusColor: *gray
+    menu:
+      fgColor: *foreground
+      keyColor: *blue
+      numKeyColor: *blue
+    crumbs:
+      fgColor: *background
+      bgColor: *gray
+      activeColor: *blue
+    status:
+      newColor: *green
+      modifyColor: *blue
+      addColor: *green
+      pendingColor: *orange
+      errorColor: *red
+      highlightColor: *aqua
+      killColor: *red
+      completedColor: *blue
+  views:
+    table:
+      fgColor: *foreground
+      bgColor: *background
+      cursorFgColor: *background
+      cursorBgColor: *gray
+      markColor: *orange
+      header:
+        fgColor: *foreground
+        bgColor: *background
+        sorterColor: *orange
+    xray:
+      fgColor: *foreground
+      bgColor: *background
+      cursorColor: *background1
+      cursorTextColor: *background
+      graphicColor: *blue
+    charts:
+      bgColor: *background
+      chartBgColor: *background
+      dialBgColor: *background
+      defaultDialColors:
+        - *green
+        - *red
+      defaultChartColors:
+        - *green
+        - *red
+      resourceColors:
+        cpu:
+          - *purple
+          - *blue
+        mem:
+          - *orange
+          - *orange
+    yaml:
+      keyColor: *green
+      colonColor: *blue
+      valueColor: *foreground
+    logs:
+      fgColor: *foreground
+      bgColor: *background
+      indicator:
+        fgColor: *foreground
+        bgColor: *background
+        toggleOnColor: *green
+        toggleOffColor: *gray
