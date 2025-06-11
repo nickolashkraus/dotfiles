@@ -1,4 +1,4 @@
-# $XDG_CONFIG_HOME/k9s/skin.yamml
+# $XDG_CONFIG_HOME/k9s/skin.yaml
 #
 # Skins are YAML files that enable a user to change the K9s presentation layer.
 # Skin files live in your $XDG_CONFIG_HOME/k9s folder.
