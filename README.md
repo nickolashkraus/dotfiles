@@ -1,6 +1,6 @@
 # Dotfiles
 
-My personal dotfiles. Hic sunt dracones...
+My personal dotfiles.
 
 ## Installation
 

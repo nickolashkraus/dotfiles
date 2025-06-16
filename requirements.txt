@@ -1,18 +1,18 @@
+###############################################################################
 # Python Packages
 #
-# INSTALLATION
+# DESCRIPTION
+#   Global Python packages.
 #
-#   pip install -r ~/path/to/requirements.txt
-awscli
-black
-bumpversion
-cookiecutter
-credstash
-flake8
-isort
-pip
+# INSTALLATION
+#   pip install --upgrade -r requirements.txt
+###############################################################################
+
+# As of 2025, Powerline is the most popular statusline tool that provides
+# unified configuration across Vim, tmux, and Zsh.
 powerline-status
-pycodestyle
-pydocstyle
-pyflakes
-yapf
+
+# As of 2025, Ruff is the most popular linter and formatter for Python. It's
+# extremely fast (written in Rust) and combines linting and formatting in one
+# tool.
+ruff

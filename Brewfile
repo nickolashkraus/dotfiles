@@ -1,30 +1,42 @@
-# Homebrew Bundle
+###############################################################################
+# Brewfile
 #
-# See the documentation:
-#   * https://github.com/Homebrew/homebrew-bundle
-tap "homebrew/bundle"
-tap "homebrew/cask"
-tap "homebrew/core"
+# DESCRIPTION
+#   Declarative interface for installing/upgrading packages with Homebrew.
+#   This file was created using a combination of `brew bundle dump` and
+#   `brew leaves`.
+#   See: https://docs.brew.sh/Brew-Bundle-and-Brewfile
+#
+# INSTALLATION
+#   brew bundle check || brew bundle install
+###############################################################################
 
-# This list is generated using `brew leaves`.
+tap "derailed/k9s"
+tap "hashicorp/tap"
+tap "homebrew/bundle"
+tap "homebrew/services"
+tap "koekeishiya/formulae"
+
+brew "awscli"
+brew "bash"
 brew "bzip2"
 brew "cmake"
-brew "coreutils"
 brew "curl"
-brew "ffmpeg"
+brew "ffmpeg@4"
 brew "fzf"
+brew "gh"
 brew "git"
 brew "gnu-sed"
 brew "gnupg"
 brew "go"
-brew "grep"
+brew "hatch"
+brew "helm"
 brew "httpie"
 brew "hugo"
-brew "java"
-brew "java11"
 brew "jenv"
 brew "jq"
 brew "k9s"
+brew "kind"
 brew "koekeishiya/formulae/skhd"
 brew "koekeishiya/formulae/yabai"
 brew "mas"
@@ -33,29 +45,29 @@ brew "mpv"
 brew "nginx"
 brew "nmap"
 brew "node"
+brew "numpy"
 brew "nvm"
 brew "openjdk"
-brew "pipenv"
-brew "postgresql"
-brew "pyenv"
+brew "openjdk@11"
+brew "pyenv-virtualenv"
 brew "pyenv-virtualenvwrapper"
 brew "rbenv"
+brew "ripgrep"
 brew "shellcheck"
-brew "tcptraceroute"
 brew "telnet"
+brew "terraform-docs"
 brew "tfenv"
+brew "tflint"
 brew "the_silver_searcher"
 brew "tmux"
 brew "tree"
+brew "vault"
 brew "vim"
+brew "yamllint"
 brew "youtube-dl"
 brew "zlib"
 
-# This list is generated using `mas list`.
 mas "Bear", id: 1091189122
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
-mas "Instapaper", id: 288545208
-mas "LastPass", id: 926036361
-mas "Reeder", id: 1529448980
 mas "Todoist", id: 585829637
