@@ -1,0 +1,22 @@
+###############################################################################
+# Git Ignore file
+#
+# DESCRIPTION
+#   A gitignore file specifies intentionally untracked files that Git should
+#   ignore. Files already tracked by Git are not affected.
+#   See: https://git-scm.com/docs/gitignore
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/git/ignore:
+#
+#     ln -s .config/git/ignore $XDG_CONFIG_HOME/git/ignore
+###############################################################################
+
+# Vim swap files.
+*.swp
+
+# Vim recovery swap files.
+*.swo
+
+# macOS Finder metadata file.
+.DS_Store

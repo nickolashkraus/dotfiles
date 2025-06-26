@@ -1,0 +1,34 @@
+###############################################################################
+# Git Configuration
+#
+# DESCRIPTION
+#   User-specific configuration file. When the XDG_CONFIG_HOME environment
+#   variable is not set or empty, $HOME/.config/ is used as $XDG_CONFIG_HOME.
+#   By default, `git config` will read configuration options from this file.
+#   See: https://git-scm.com/docs/git-config
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/git/config:
+#
+#     ln -s .config/git/config $XDG_CONFIG_HOME/git/config
+###############################################################################
+
+[core]
+    editor = vim
+    excludesFile = $XDG_CONFIG_HOME/git/ignore
+[init]
+    defaultBranch = master
+[merge]
+    tool = vimdiff
+[pull]
+    rebase = true
+[user]
+    name = nickolashkraus
+    email = 0x@nickolaskraus.io
+# Configure go command for private repositories.
+#
+# See:
+#   * https://go.dev/ref/mod#private-modules
+#   * https://go.dev/doc/faq#git_https
+[url "ssh://git@github.com"]
+    insteadOf = https://github.com
