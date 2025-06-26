@@ -1,10 +1,19 @@
-# $XDG_CONFIG_HOME/k9s/skin.yaml
+###############################################################################
+# k9s Skin
 #
-# Skins are YAML files that enable a user to change the K9s presentation layer.
-# Skin files live in your $XDG_CONFIG_HOME/k9s folder.
+# DESCRIPTION
+#   Skin for k9s. Skins are YAML files that enable a user to change the K9s
+#   presentation layer. Skin files live in $XDG_CONFIG_HOME/k9s/skins folder.
+#   See: https://k9scli.io/topics/skins/
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/k9s/skins/gruvbox.yaml:
+#
+#     ln -s .config/k9s/skins/gruvbox.yaml $XDG_CONFIG_HOME/k9s/skins/gruvbox.yaml
+###############################################################################
 
 ###############################################################################
-# gruvbox (Dark)
+# Gruvbox (Dark)
 ###############################################################################
 red: &red "#fb4934"
 green: &green "#b8bb26"
@@ -109,7 +118,7 @@ k9s:
           - *purple
           - *blue
         mem:
-          - *orange
+          - *yellow
           - *orange
     yaml:
       keyColor: *green

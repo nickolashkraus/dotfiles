@@ -1,0 +1,61 @@
+###############################################################################
+# k9s Configuration
+#
+# DESCRIPTION
+#   Configuration for k9s. The main configuration file is named config.yaml and
+#   stores various K9s specific bits.
+#   See: https://k9scli.io/topics/config/
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/k9s/config.yaml:
+#
+#     ln -s .config/k9s/config.yaml ${XDG_CONFIG_HOME}/k9s/config.yaml
+###############################################################################
+k9s:
+  liveViewAutoRefresh: false
+  screenDumpDir: /Users/nickolaskraus/Library/Application Support/k9s/screen-dumps
+  refreshRate: 2
+  apiServerTimeout: 15s
+  maxConnRetry: 5
+  readOnly: false
+  noExitOnCtrlC: false
+  portForwardAddress: localhost
+  ui:
+    enableMouse: false
+    headless: false
+    logoless: false
+    crumbsless: false
+    splashless: false
+    reactive: false
+    noIcons: false
+    defaultsToFullScreen: false
+    useFullGVRTitle: false
+    skin: gruvbox
+  skipLatestRevCheck: false
+  disablePodCounting: false
+  shellPod:
+    image: busybox:1.35.0
+    namespace: default
+    limits:
+      cpu: 100m
+      memory: 100Mi
+  imageScans:
+    enable: false
+    exclusions:
+      namespaces: []
+      labels: {}
+  logger:
+    tail: 100
+    buffer: 5000
+    sinceSeconds: -1
+    textWrap: false
+    disableAutoscroll: false
+    showTime: false
+  thresholds:
+    cpu:
+      critical: 90
+      warn: 70
+    memory:
+      critical: 90
+      warn: 70
+  defaultView: ""
