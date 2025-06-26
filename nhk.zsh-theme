@@ -9,15 +9,21 @@
 #
 #               This is the personal Zsh theme of Nickolas Kraus.
 #
-# Install Powerline fonts in order to render \uE0A0.
+# DESCRIPTION
+#   My personal Zsh theme.
 #
-# Run the following:
+# INSTALLATION
+#   Symlink file to Oh My Zsh themes directory:
 #
-#   git clone https://github.com/powerline/fonts.git --depth=1
-#   cd fonts
-#   ./install.sh
-#   cd ..
-#   rm -rf fonts
+#     ln -s nhk.zsh-theme ~/.oh-my-zsh/custom/themes/nhk.zsh-theme
+#
+#   Install Powerline fonts to render custom/private symbols (e.g., \uE0A0):
+#
+#     git clone https://github.com/powerline/fonts.git --depth=1
+#     cd fonts
+#     ./install.sh
+#     cd ..
+#     rm -rf fonts
 ###############################################################################
 
 ZSH_THEME_GIT_PROMPT_PREFIX=" on %{$fg_bold[default]%}\uE0A0 "
