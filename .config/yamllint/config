@@ -1,0 +1,18 @@
+###############################################################################
+# yamllint Configuration
+#
+# DESCRIPTION
+#   Configuration file for yamllint, a linter for YAML files.
+#   See: https://yamllint.readthedocs.io/en/stable/configuration.html
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/yamllint/config:
+#
+#     ln -s .config/yamllint/config $XDG_CONFIG_HOME/yamllint/config
+###############################################################################
+
+extends: default
+
+rules:
+  document-start: disable
+  line-length: disable
