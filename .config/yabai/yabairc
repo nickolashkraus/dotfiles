@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+###############################################################################
+# yabai Configuration
+#
+# DESCRIPTION
+#   Configuration file for yabai, a window management utility that is designed
+#   to work as an extension to the built-in window manager of macOS.
+#   See: https://github.com/koekeishiya/yabai
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/yabai/yabairc:
+#
+#     ln -s .config/yabai/yabairc $XDG_CONFIG_HOME/yabai/yabairc
+#
+#   yabai uses the macOS Mach APIs to inject code into Dock.app; this requires
+#   elevated (root) privileges. You can configure your user to execute
+#   `yabai --load-sa` as the root user without having to enter a password by
+#   adding a rule to the sudoers configuration:
+#
+#     $ sudo visudo -f /private/etc/sudoers.d/yabai
+#
+#     ```
+#     <user> ALL=(root) NOPASSWD: $(brew --prefix)/bin/yabai --load-sa
+#     ```
+#
+#   See: https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)
+###############################################################################
+
+# NOTE: Loading the scripting addition requires SIP to be partially disabled.
+sudo yabai --load-sa
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+
+###############################################################################
+# Appearance
+###############################################################################
+yabai -m config active_window_opacity         1.0
+yabai -m config normal_window_opacity         1.0
+yabai -m config window_opacity                off
+yabai -m config window_opacity_duration       0.0
+yabai -m config window_origin_display         default
+yabai -m config window_shadow                 off
+yabai -m config external_bar                  all:-12:12
+yabai -m config menubar_opacity               0.0
+
+###############################################################################
+# Layout & Placement
+###############################################################################
+yabai -m config auto_balance                  off
+yabai -m config layout                        bsp
+yabai -m config split_ratio                   0.5
+yabai -m config window_placement              second_child
+
+###############################################################################
+# Padding & Gaps
+###############################################################################
+yabai -m config top_padding                   0
+yabai -m config bottom_padding                12
+yabai -m config left_padding                  12
+yabai -m config right_padding                 12
+yabai -m config window_gap                    6
+
+###############################################################################
+# Mouse Controls
+###############################################################################
+yabai -m config mouse_modifier                fn
+yabai -m config mouse_action1                 move
+yabai -m config mouse_action2                 resize
+yabai -m config mouse_drop_action             swap
+
+###############################################################################
+# Focus Behavior
+###############################################################################
+yabai -m config focus_follows_mouse           off
+yabai -m config mouse_follows_focus           off
+
+###############################################################################
+# Feedback
+###############################################################################
+yabai -m config insert_feedback_color         0xff504945  # Gruvbox: dark2
+
+###############################################################################
+# Animation
+# NOTE: Only effective if scripting addition is loaded.
+###############################################################################
+yabai -m config window_animation_duration     0.0
+
+###############################################################################
+# Debug
+###############################################################################
+yabai -m config debug_output                  off
+
+###############################################################################
+# Rules
+# Grid Format: <rows>:<cols>:<start-x>:<start-y>:<width>:<height>
+###############################################################################
+yabai -m rule --add app=".*"                manage=off display=^1 sub-layer=below grid=12:24:0:0:0:6
+yabai -m rule --add app="^Bear$"            manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Finder$"          manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Fantastical$"     manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Firefox$"         manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Mail$"            manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Messages$"        manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Slack$"           manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Todoist$"         manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^System Settings$" manage=off display=^1 sub-layer=below grid=12:24:0:0:0:6
+
+###############################################################################
+# JankyBorders
+###############################################################################
+borders &
