@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+###############################################################################
+# JankyBorders Configuration
+#
+# DESCRIPTION
+#   Configuration file for JankyBorders, a lightweight tool designed to add
+#   colored borders to user windows on macOS 14.0+.
+#   See: https://github.com/FelixKratz/JankyBorders
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/borders/bordersrc:
+#
+#     ln -s .config/borders/bordersrc $XDG_CONFIG_HOME/borders/bordersrc
+#
+#   The service is started via yabai (see yabairc):
+#
+#     borders &
+###############################################################################
+
+options=(
+ style=round
+ width=6.0
+ hidpi=on
+ background_color=0xff282828  # Gruvbox: dark0
+ active_color=0xff504945      # Gruvbox: dark2
+ inactive_color=0xff504945    # Gruvbox: dark2
+ blacklist="iTerm2"
+)
+
+borders "${options[@]}"
