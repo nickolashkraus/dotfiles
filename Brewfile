@@ -1,5 +1,5 @@
 ###############################################################################
-# Brewfile
+# Brewfile (Homebrew Packages)
 #
 # DESCRIPTION
 #   Declarative interface for installing/upgrading packages with Homebrew.
@@ -8,10 +8,13 @@
 #   See: https://docs.brew.sh/Brew-Bundle-and-Brewfile
 #
 # INSTALLATION
-#   brew bundle check || brew bundle install
+#   Install via Homebrew:
+#
+#     brew bundle check || brew bundle install
 ###############################################################################
 
 tap "derailed/k9s"
+tap "felixkratz/formulae"
 tap "hashicorp/tap"
 tap "homebrew/bundle"
 tap "homebrew/services"
@@ -22,6 +25,7 @@ brew "bash"
 brew "bzip2"
 brew "cmake"
 brew "curl"
+brew "felixkratz/formulae/borders"
 brew "ffmpeg@4"
 brew "fzf"
 brew "gh"
