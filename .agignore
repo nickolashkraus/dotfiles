@@ -1,12 +1,17 @@
-# The Silver Searcher (ag) agignore File
+###############################################################################
+# The Silver Searcher (ag) Ignore File
 #
-# IGNORING FILES
+# DESCRIPTION
+#   By default, ag will ignore files whose names match patterns in .gitignore,
+#   .hgignore, or .ignore. These files can be anywhere in the directories being
+#   searched. Binary files are ignored by default as well. Finally, ag looks in
+#   $HOME/.agignore for ignore patterns.
+#   See: https://github.com/ggreer/the_silver_searcher/blob/master/doc/ag.1.md#ignoring-files
 #
-# By default, ag will ignore files whose names match patterns in .gitignore,
-# .hgignore, or .ignore. These files can be anywhere in the directories being
-# searched. Binary files are ignored by default as well. Finally, ag looks in
-# $HOME/.agignore for ignore patterns.
+# INSTALLATION
+#   Symlink file to $HOME/.agignore:
 #
-# See the documentation:
-#   * https://github.com/ggreer/the_silver_searcher/blob/master/doc/ag.1.md#ignoring-files
+#     ln -s .agignore $HOME/.agignore
+###############################################################################
+
 .git/
