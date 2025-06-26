@@ -5,7 +5,9 @@
 #   Global Python packages.
 #
 # INSTALLATION
-#   pip install --upgrade -r requirements.txt
+#   Install via pip:
+#
+#     pip install --upgrade -r requirements.txt
 ###############################################################################
 
 # As of 2025, Powerline is the most popular statusline tool that provides
