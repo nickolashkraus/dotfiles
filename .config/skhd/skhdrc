@@ -1,0 +1,77 @@
+###############################################################################
+# skhd Configuration
+#
+# DESCRIPTION
+#   Configuration file for skhd. skhd is a simple hotkey daemon for macOS that
+#   focuses on responsiveness and performance. Hotkeys are defined in a text
+#   file through a simple DSL. skhd is able to hotload its config file, meaning
+#   that hotkeys can be edited and updated live while skhd is running.
+#   See: https://github.com/koekeishiya/skhd
+#
+#   See the following for an example skhdrc and explanation of the grammar that
+#   skhd parses: https://github.com/koekeishiya/yabai/blob/master/examples/skhdrc
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/skhd/skhdrc:
+#
+#     ln -s .config/skhd/skhdrc $XDG_CONFIG_HOME/skhd/skhdrc
+###############################################################################
+
+# Vi-style focus windows.
+alt - h : yabai -m window --focus west
+alt - j : yabai -m window --focus south
+alt - k : yabai -m window --focus north
+alt - l : yabai -m window --focus east
+
+# Vi-style swap managed windows.
+shift + alt - h : yabai -m window --swap west
+shift + alt - j : yabai -m window --swap south
+shift + alt - k : yabai -m window --swap north
+shift + alt - l : yabai -m window --swap east
+
+# Vi-style move managed windows.
+shift + cmd - h : yabai -m window --warp west
+shift + cmd - j : yabai -m window --warp south
+shift + cmd - k : yabai -m window --warp north
+shift + cmd - l : yabai -m window --warp east
+
+# Balance size of windows.
+shift + alt - 0 : yabai -m space --balance
+
+# Floating window fills screen.
+shift + alt - up : yabai -m window --grid 1:1:0:0:1:1
+
+# Floating window centered on screen.
+shift + alt - down : yabai -m window --grid 12:24:6:2:12:8
+
+# Floating window fills left half of screen.
+shift + alt - left : yabai -m window --grid 1:2:0:0:1:1
+
+# Floating window fills right half of screen.
+shift + alt - right : yabai -m window --grid 1:2:1:0:1:1
+
+# Toggle menu bar visibility.
+alt - m : yabai -m config menubar_opacity \
+          $([ "$(yabai -m config menubar_opacity)" = "0.5000" ] \
+          && echo "0.0" || echo "0.5")
+
+# Fast focus between iTerm2 windows.
+ctrl - return : yabai -m query --windows \
+                | jq -r 'map(select(.app == "iTerm2")) as $w | select($w | length == 2 and ($w[0].display != $w[1].display)) | if $w[0]["has-focus"] then $w[1].id else $w[0].id end' \
+                | xargs -r yabai -m window --focus
+
+# Focus and show Firefox (bring floating window to front).
+ctrl - f : yabai -m window --focus $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "Firefox") | .id') \
+           && yabai -m window --layer above $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "Firefox") | .id')
+
+# Focus iTerm2 window on display 2.
+ctrl - 1 : yabai -m window --focus $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "iTerm2" and .display == 2) | .id')
+
+# Focus iTerm2 window on display 1 and put it above all other windows.
+ctrl - 2 : yabai -m window --focus $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id') \
+           && yabai -m window --layer above $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id')
