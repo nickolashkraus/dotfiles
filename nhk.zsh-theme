@@ -15,7 +15,7 @@
 # INSTALLATION
 #   Symlink file to Oh My Zsh themes directory:
 #
-#     ln -s nhk.zsh-theme ~/.oh-my-zsh/custom/themes/nhk.zsh-theme
+#     ln -s nhk.zsh-theme $ZSH_CUSTOM/themes/nhk.zsh-theme
 #
 #   Install Powerline fonts to render custom/private symbols (e.g., \uE0A0):
 #
