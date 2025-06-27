@@ -1,162 +1,328 @@
-#!/bin/bash
-#
-# USAGE
-#
-#   install
+#!/usr/bin/env bash
 #
 # DESCRIPTION
+#   Bootstraps this machine using the configuration files in this repository.
+#     - Creates symbolic links for configuration files.
+#     - Installs Homebrew packages via Brewfile.
+#     - Installs Python packages via requirements.txt.
 #
-#   Creates symbolic links to configuration files found in a 'dotfiles'
-#   directory.
+# USAGE
+#   install [OPTIONS]
 #
-# vim: fdm=marker
+# OPTIONS
+#   -h, --help    Show this help message
+#
+# EXAMPLES
+#   ./install
 
-# Determine location of 'dotfiles' directory
-# DOTFILES=$(find "${HOME}" -type d -name "*dotfiles*")
+# Colors
+red='\033[0;31m'
+reset='\033[0m'
 
-DOTFILES="${HOME}/nickolashkraus/dotfiles"
+# Print usage information.
+function usage() {
+  echo "usage: $(basename "$0") [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help    Show this help message"
+  echo ""
+}
 
-echo "'dotfiles' was found at the following location: ${DOTFILES}"
-read -rp "Do you wish to proceed? [Y/n]: " proceed
-
-if [[ ! "${proceed}" =~ [Y|y|YES|yes] ]]; then
-  echo 'Aborting...'
-  exit
-fi
-
-mkdir -p "${HOME}/.config"
-
-# -----------------------------------------------------------------------------
-# ${HOME}
-# -----------------------------------------------------------------------------
-for f in "${DOTFILES}"/.*; do
-  f="$(basename "${f}")"
-  if [ -f "${f}" ]; then
-    rm "${HOME}/${f}" >/dev/null 2>&1 || echo "${f} does not exist. Creating..."
-    ln -s "${DOTFILES}/${f}" "${HOME}/${f}"
-  fi
+# Parse command line arguments.
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help) usage; exit 0 ;;
+    -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    *) echo "Unknown argument: $1" >&2; usage; exit 1 ;;
+  esac
 done
 
-# -----------------------------------------------------------------------------
-# ${HOME}/.aws
-# -----------------------------------------------------------------------------
+dotfiles="${HOME}/nickolashkraus/dotfiles"
+echo "dotfiles directory found at the following location: ${dotfiles}"
+read -rp "Do you wish to proceed? [Y/n]: " proceed
+proceed=${proceed:-Y}
+if [[ ! "${proceed}" =~ ^[Yy] ]]; then
+  echo "Aborting..."
+  exit 0
+fi
+
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+mkdir -p "$XDG_CONFIG_HOME"
+
+###############################################################################
+# Check if a file exists.
+#
+# Globals:
+#   red, reset (optional color variables)
+# Arguments:
+#   $1: path to file
+# Outputs:
+#   Error message to standard error
+# Returns:
+#   1 if file does not exist or no argument provided, 0 otherwise
+###############################################################################
+function check_file_exists() {
+  if [[ $# -eq 0 ]]; then
+    echo -e "${red}ERROR: File path not provided${reset}" >&2
+    return 1
+  fi
+  if [[ ! -e "${1}" ]]; then
+    echo -e "${red}ERROR: ${1} does not exist.${reset}" >&2
+    return 1
+  fi
+  return 0
+}
+
+###############################################################################
+# Check if a directory exists.
+#
+# Globals:
+#   red, reset (optional color variables)
+# Arguments:
+#   $1: path to directory
+# Outputs:
+#   Error message to standard error
+# Returns:
+#   1 if directory does not exist or no argument provided, 0 otherwise
+###############################################################################
+function check_dir_exists() {
+  if [[ $# -eq 0 ]]; then
+    echo -e "${red}ERROR: Directory path not provided${reset}" >&2
+    return 1
+  fi
+  if [[ ! -d "${1}" ]]; then
+    echo -e "${red}ERROR: ${1} does not exist.${reset}" >&2
+    return 1
+  fi
+  return 0
+}
+
+###############################################################################
+# Check if a command exists and is executable.
+#
+# Globals:
+#   red, reset (optional color variables)
+# Arguments:
+#   $1: command name
+# Outputs:
+#   Error message to standard error
+# Returns:
+#   1 if command does NOT exist or no argument provided, 0 if command exists
+###############################################################################
+function check_command_exists() {
+  if [[ $# -eq 0 ]]; then
+    echo -e "${red}ERROR: command not provided${reset}" >&2
+    return 1
+  fi
+  if [[ ! -x "$(command -v "${1}")" ]]; then
+    echo -e "${red}ERROR: ${1} command not found.${reset}" >&2
+    return 1
+  fi
+  return 0
+}
+
+###############################################################################
+# $HOME Configuration
+#
+# Required Files:
+#   * .agignore
+#   * .vimrc
+#   * .zshrc
+###############################################################################
+check_file_exists "${dotfiles}/.agignore" || exit 1
+check_file_exists "${dotfiles}/.vimrc" || exit 1
+check_file_exists "${dotfiles}/.zshrc" || exit 1
+rm -f "${HOME}/.agignore" || true
+rm -f "${HOME}/.vimrc" || true
+rm -f "${HOME}/.zshrc" || true
+ln -s "${dotfiles}/.agignore" "${HOME}/.agignore"
+ln -s "${dotfiles}/.vimrc" "${HOME}/.vimrc"
+ln -s "${dotfiles}/.zshrc" "${HOME}/.zshrc"
+
+###############################################################################
+# AWS CLI Configuration
+#
+# Required Files:
+#   * .aws/config
+###############################################################################
+check_file_exists "${dotfiles}/.aws/config" || exit 1
 mkdir -p "${HOME}/.aws"
-rm "${HOME}/.aws/config"
-ln -s "${DOTFILES}/.aws/config" "${HOME}/.aws/config"
+rm -f "${HOME}/.aws/config" || true
+ln -s "${dotfiles}/.aws/config" "${HOME}/.aws/config"
 
-# -----------------------------------------------------------------------------
-# ${HOME}/.kube
-# -----------------------------------------------------------------------------
+###############################################################################
+# kubeconfig Files
+#
+# Required Files:
+#   * .kube/workiva.yaml
+###############################################################################
+check_file_exists "${dotfiles}/.kube/workiva.yaml" || exit 1
 mkdir -p "${HOME}/.kube"
-rm -rf "${HOME}/.kube/granular.yaml"
-ln -s "${DOTFILES}/.kube/granular.yaml" "${HOME}/.kube/granular.yaml"
-rm -rf "${HOME}/.kube/infrable.yaml"
-ln -s "${DOTFILES}/.kube/infrable.yaml" "${HOME}/.kube/infrable.yaml"
-rm -rf "${HOME}/.kube/workiva.yaml"
-ln -s "${DOTFILES}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
+rm -f "${HOME}/.kube/workiva.yaml" || true
+ln -s "${dotfiles}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 
-# -----------------------------------------------------------------------------
-# ${HOME}/.config/k9s
-# -----------------------------------------------------------------------------
-rm -rf "${XDG_CONFIG_HOME}/k9s"
+###############################################################################
+# SSH Configuration
+#
+# Required Files:
+#   * .ssh/config
+###############################################################################
+check_file_exists "${dotfiles}/.ssh/config" || exit 1
+mkdir -p "${HOME}/.ssh"
+rm -f "${HOME}/.ssh/config" || true
+ln -s "${dotfiles}/.ssh/config" "${HOME}/.ssh/config"
+
+###############################################################################
+# JankyBorders Configuration
+#
+# Required Files:
+#   * .config/borders/bordersrc
+###############################################################################
+check_file_exists "${dotfiles}/.config/borders/bordersrc" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/borders" || true
+mkdir -p "${XDG_CONFIG_HOME}/borders"
+ln -s "${dotfiles}/.config/borders/bordersrc" "${XDG_CONFIG_HOME}/borders/bordersrc"
+
+###############################################################################
+# Git Configuration & Ignore File
+#
+# Required Files:
+#   * .config/git/config
+#   * .config/git/ignore
+###############################################################################
+check_file_exists "${dotfiles}/.config/git/config" || exit 1
+check_file_exists "${dotfiles}/.config/git/ignore" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/git" || true
+mkdir -p "${XDG_CONFIG_HOME}/git"
+ln -s "${dotfiles}/.config/git/config" "${XDG_CONFIG_HOME}/git/config"
+ln -s "${dotfiles}/.config/git/ignore" "${XDG_CONFIG_HOME}/git/ignore"
+
+###############################################################################
+# k9s Configuration
+#
+# Required Files:
+#   * .config/k9s/config.yaml
+#   * .config/k9s/skins/gruvbox.yaml
+###############################################################################
+check_file_exists "${dotfiles}/.config/k9s/config.yaml" || exit 1
+check_file_exists "${dotfiles}/.config/k9s/skins/gruvbox.yaml" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/k9s" || true
 mkdir -p "${XDG_CONFIG_HOME}/k9s"
 mkdir -p "${XDG_CONFIG_HOME}/k9s/skins"
-ln -s "${DOTFILES}/.k9s/config.yaml" \
-  "${XDG_CONFIG_HOME}/k9s/config.yaml"
-ln -s "${DOTFILES}/.k9s/skin.yaml" \
-  "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
+ln -s "${dotfiles}/.config/k9s/config.yaml" "${XDG_CONFIG_HOME}/k9s/config.yaml"
+ln -s "${dotfiles}/.config/k9s/skins/gruvbox.yaml" "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
 
-# -----------------------------------------------------------------------------
-# ${HOME}/.config/mpv
-# -----------------------------------------------------------------------------
-rm -rf "${HOME}/.config/mpv"
-mkdir -p "${HOME}/.config/mpv"
-ln -s "${DOTFILES}/.mpv/mpv.conf" "${HOME}/.config/mpv/mvp.conf"
-
-# -----------------------------------------------------------------------------
-# ${HOME}/.config/powerline
-# -----------------------------------------------------------------------------
-rm -rf "${HOME}/.config/powerline"
-mkdir -p "${HOME}/.config/powerline"
-mkdir -p "${HOME}/.config/powerline/colorschemes/tmux"
-mkdir -p "${HOME}/.config/powerline/themes/tmux"
-
-ln -s "${DOTFILES}/.powerline/colorschemes/tmux/default.json" \
-  "${HOME}/.config/powerline/colorschemes/tmux/default.json"
-ln -s "${DOTFILES}/.powerline/colorschemes/tmux/solarized.json" \
-  "${HOME}/.config/powerline/colorschemes/tmux/solarized.json"
-ln -s "${DOTFILES}/.powerline/colorschemes/tmux/gruvbox.json" \
-  "${HOME}/.config/powerline/colorschemes/tmux/gruvbox.json"
-
-ln -s "${DOTFILES}/.powerline/colorschemes/default.json" \
-  "${HOME}/.config/powerline/colorschemes/default.json"
-ln -s "${DOTFILES}/.powerline/colorschemes/solarized.json" \
-  "${HOME}/.config/powerline/colorschemes/solarized.json"
-ln -s "${DOTFILES}/.powerline/colorschemes/gruvbox.json" \
-  "${HOME}/.config/powerline/colorschemes/gruvbox.json"
-
-ln -s "${DOTFILES}/.powerline/themes/tmux/default.json" \
-  "${HOME}/.config/powerline/themes/tmux/default.json"
-ln -s "${DOTFILES}/.powerline/themes/powerline_terminus.json" \
-  "${HOME}/.config/powerline/themes/powerline_terminus.json"
-
-ln -s "${DOTFILES}/.powerline/colors.json" \
-  "${HOME}/.config/powerline/colors.json"
-ln -s "${DOTFILES}/.powerline/config.json" \
-  "${HOME}/.config/powerline/config.json"
-
-# -----------------------------------------------------------------------------
-# ${HOME}/.config/yamllint
-# -----------------------------------------------------------------------------
-rm -rf "${HOME}/.config/yamllint"
-mkdir -p "${HOME}/.config/yamllint"
-ln -s "${DOTFILES}/.yamllint" "${HOME}/.config/yamllint/config"
-
-# -----------------------------------------------------------------------------
-# ${HOME}/.ssh
-# -----------------------------------------------------------------------------
-mkdir -p "${HOME}/.ssh"
-rm "${HOME}/.ssh/config"
-ln -s "${DOTFILES}/.ssh/config" "${HOME}/.ssh/config"
-
-# -----------------------------------------------------------------------------
-# ${HOME}/.vim
-# -----------------------------------------------------------------------------
-mkdir -p "${HOME}/.vim"
-rm "${HOME}/.vim/.en.utf-8.add"
-ln -s "${DOTFILES}/.en.utf-8.add" "${HOME}/.vim/.en.utf-8.add"
-
-# -----------------------------------------------------------------------------
-# Homebrew Packages
+###############################################################################
+# mpv Configuration
 #
-# Files:
-#   * Brewfile
-#   * Brewfile.lock.json
-# -----------------------------------------------------------------------------
-brew bundle --file="${DOTFILES}/Brewfile" >/dev/null 2>&1
+# Required Files:
+#   * .config/mpv/mpv.conf
+###############################################################################
+check_file_exists "${dotfiles}/.config/mpv/mpv.conf" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/mpv" || true
+mkdir -p "${XDG_CONFIG_HOME}/mpv"
+ln -s "${dotfiles}/.config/mpv/mpv.conf" "${XDG_CONFIG_HOME}/mpv/mpv.conf"
 
-# -----------------------------------------------------------------------------
+###############################################################################
+# Powerline Configuration
+#
+# Required Files:
+#   * .config/powerline/bindings/tmux/powerline.conf
+#   * .config/powerline/colorschemes/tmux/gruvbox.json
+#   * .config/powerline/colorschemes/gruvbox.json
+#   * .config/powerline/themes/tmux/default.json
+#   * .config/powerline/colors.json
+#   * .config/powerline/config.json
+###############################################################################
+check_file_exists "${dotfiles}/.config/powerline/bindings/tmux/powerline.conf" || exit 1
+check_file_exists "${dotfiles}/.config/powerline/colorschemes/tmux/gruvbox.json" || exit 1
+check_file_exists "${dotfiles}/.config/powerline/colorschemes/gruvbox.json" || exit 1
+check_file_exists "${dotfiles}/.config/powerline/themes/tmux/default.json" || exit 1
+check_file_exists "${dotfiles}/.config/powerline/colors.json" || exit 1
+check_file_exists "${dotfiles}/.config/powerline/config.json" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/powerline" || true
+mkdir -p "${XDG_CONFIG_HOME}/powerline"
+mkdir -p "${XDG_CONFIG_HOME}/powerline/bindings/tmux"
+mkdir -p "${XDG_CONFIG_HOME}/powerline/colorschemes/tmux"
+mkdir -p "${XDG_CONFIG_HOME}/powerline/themes/tmux"
+ln -s "${dotfiles}/.config/powerline/bindings/tmux/powerline.conf" "${XDG_CONFIG_HOME}/powerline/bindings/tmux/powerline.conf"
+ln -s "${dotfiles}/.config/powerline/colorschemes/tmux/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/tmux/gruvbox.json"
+ln -s "${dotfiles}/.config/powerline/colorschemes/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/gruvbox.json"
+ln -s "${dotfiles}/.config/powerline/themes/tmux/default.json" "${XDG_CONFIG_HOME}/powerline/themes/tmux/default.json"
+ln -s "${dotfiles}/.config/powerline/colors.json" "${XDG_CONFIG_HOME}/powerline/colors.json"
+ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/config.json"
+
+###############################################################################
+# skhd Configuration
+#
+# Required Files:
+#   * .config/skhd/skhdrc
+###############################################################################
+check_file_exists "${dotfiles}/.config/skhd/skhdrc" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/skhd" || true
+mkdir -p "${XDG_CONFIG_HOME}/skhd"
+ln -s "${dotfiles}/.config/skhd/skhdrc" "${XDG_CONFIG_HOME}/skhd/skhdrc"
+
+###############################################################################
+# tmux Configuration
+#
+# Required Files:
+#   * .config/tmux/tmux.conf
+###############################################################################
+check_file_exists "${dotfiles}/.config/tmux/tmux.conf" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/tmux" || true
+mkdir -p "${XDG_CONFIG_HOME}/tmux"
+ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
+
+###############################################################################
+# yabai Configuration
+#
+# Required Files:
+#   * .config/yabai/yabairc
+###############################################################################
+check_file_exists "${dotfiles}/.config/yabai/yabairc" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/yabai" || true
+mkdir -p "${XDG_CONFIG_HOME}/yabai"
+ln -s "${dotfiles}/.config/yabai/yabairc" "${XDG_CONFIG_HOME}/yabai/yabairc"
+
+###############################################################################
+# yamllint Configuration
+#
+# Required Files:
+#   * .config/yamllint/config
+###############################################################################
+check_file_exists "${dotfiles}/.config/yamllint/config" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/yamllint" || true
+mkdir -p "${XDG_CONFIG_HOME}/yamllint"
+ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
+
+###############################################################################
+# Brewfile (Homebrew Packages)
+#
+# Required Files:
+#   * Brewfile
+###############################################################################
+check_file_exists "${dotfiles}/Brewfile" || exit 1
+check_command_exists "brew" || exit 1
+brew bundle --file="${dotfiles}/Brewfile"
+
+###############################################################################
 # Oh My Zsh Theme
 #
-# Files:
+# Required Files:
 #   * nhk.zsh-theme
-# -----------------------------------------------------------------------------
-if [ -d "${HOME}/.oh-my-zsh" ]; then
-  rm "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
-  ln -s "${DOTFILES}/nhk.zsh-theme" \
-    "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
-else
-  echo 'ERROR: .oh-my-zsh directory does not exist.'
-fi
+###############################################################################
+check_file_exists "${dotfiles}/nhk.zsh-theme" || exit 1
+check_dir_exists "${HOME}/.oh-my-zsh" || exit 1
+rm -f "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme" || true
+ln -s "${dotfiles}/nhk.zsh-theme" "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
 
-# -----------------------------------------------------------------------------
+###############################################################################
 # Python Packages
 #
-# Files:
+# Required Files:
 #   * requirements.txt
-# -----------------------------------------------------------------------------
-if [ -x "$(command -v pip)" ]; then
-  pip install -r "${DOTFILES}/requirements.txt" >/dev/null 2>&1
-else
-  echo 'ERROR: pip not installed.'
-fi
+###############################################################################
+check_file_exists "${dotfiles}/requirements.txt" || exit 1
+check_command_exists "pip" || exit 1
+pip install --upgrade -r "${dotfiles}/requirements.txt"
