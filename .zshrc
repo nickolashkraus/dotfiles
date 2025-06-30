@@ -1,160 +1,81 @@
-# vim: fdm=marker
+###############################################################################
+# Zsh + Oh My Zsh Configuration
+#
+# DESCRIPTION
+#   Configuration file for Zsh + Oh My Zsh. Zsh (https://www.zsh.org) is a
+#   shell designed for interactive use. Oh My Zsh (https://ohmyz.sh) is an open
+#   source, community-driven framework for managing your Zsh configuration.
+#
+# INSTALLATION
+#   Symlink file to $HOME/.zshrc:
+#
+#     ln -s .zshrc $HOME/.zshrc
+###############################################################################
 
-# Zsh                                                                      {{{1
-# -----------------------------------------------------------------------------
+###############################################################################
+# Basic Configuration
+###############################################################################
 
-# If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Set $PATH.
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+# Set path to Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+# Set Oh My Zsh theme.
+# See: https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="nhk"
 
-# Prevent aws plugin from modifying RPROMPT.
-SHOW_AWS_PROMPT=false
+# Set auto update behavior.
+zstyle ':omz:update' mode auto     # Auto update without asking.
+zstyle ':omz:update' frequency 14  # Auto update every 14 days.
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
+# Enable plugins.
+# See: https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins
 plugins=(
   aws
   git
-  kubectl
-  poetry
   vi-mode
   virtualenv
 )
 
+# Prevent aws plugin from modifying RPROMPT.
+SHOW_AWS_PROMPT=false
+
 source $ZSH/oh-my-zsh.sh
 
-# User configuration
+###############################################################################
+# User Configuration
+###############################################################################
 
-# export MANPATH="/usr/local/man:$MANPATH"
+# Set path to configuration files.
+export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 
-# You may need to manually set your language environment
+# Set language.
 export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='vim'
-fi
+# Set preferred editor for local and remote sessions.
+export EDITOR='vim'
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
+# Set up Homebrew.
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-# gruvbox                                                                  {{{1
-# -----------------------------------------------------------------------------
-
-# Script to override the system default 256-color palette with the precise
-# gruvbox color palette.
-#
+# Run script to override the system default 256-color palette with the precise
+# Gruvbox color palette.
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
 source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
 
-# Kubernetes                                                               {{{1
-# -----------------------------------------------------------------------------
-export KUBECONFIG=$HOME/.kube/config
+# Set path to kubeconfig file (prepend Workiva-specific kubeconfig file).
+export KUBECONFIG=$HOME/.kube/workiva.yaml:$HOME/.kube/config
 
-# Homebrew                                                                 {{{1
-# -----------------------------------------------------------------------------
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-# Google Cloud SDK                                                         {{{1
-# -----------------------------------------------------------------------------
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/nickolaskraus/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/nickolaskraus/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/nickolaskraus/google-cloud-sdk/completion.zsh.inc'; fi
-
-# Docker                                                               {{{1
-# -----------------------------------------------------------------------------
-# Added by Docker Desktop
-# source "$HOME/.docker/init-zsh.sh" || true
-
-# fzf                                                                      {{{1
-# -----------------------------------------------------------------------------
-
+# Configure fzf.
+# See: https://github.com/junegunn/fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Configure fzf layout
+# Configure fzf layout.
 export FZF_DEFAULT_OPTS='--preview-window down --height 40% --layout=reverse --border'
 
-# Configure fzf colorscheme
-#
+# Configure fzf colorscheme.
 # See: https://github.com/junegunn/fzf/wiki/Color-schemes
 export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS
 --color=fg:#ebdbb2
@@ -174,159 +95,49 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS
 --color=spinner:#83a598
 --color=header:#3c3836"
 
-# Ignore files specified in .gitignore
+# Ignore files specified in .gitignore.
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 
-# Apply 'FZF_DEFAULT_COMMAND' to CTRL + t
+# Bind 'FZF_DEFAULT_COMMAND' to CTRL + t.
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# k9s                                                                      {{{1
-# -----------------------------------------------------------------------------
-export XDG_CONFIG_HOME=$HOME/.config
-
-# nvm                                                                      {{{1
-# -----------------------------------------------------------------------------
+# Set up nvm.
 export NVM_DIR=$HOME/.nvm && mkdir -p $NVM_DIR
 source $(brew --prefix nvm)/nvm.sh
 
-# Languages                                                                {{{1
-# -----------------------------------------------------------------------------
-
-# Go                                                                       {{{2
-# -----------------------------------------------------------------------------
+# Set up Go.
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
-# Java                                                                     {{{2
-# -----------------------------------------------------------------------------
-# openjdk@19 is keg-only, which means it was not symlinked into
-# `brew --prefix`, because this is an alternate version of another formula.
+# Set up Java.
+# openjdk@19 is marked as keg-only, so it isn't symlinked to `brew --prefix`.
+# This is because it's an alternative version of the main OpenJDK formula.
 export PATH="$(brew --prefix)/opt/openjdk@19/bin:$PATH"
-# For compilers to find openjdk@19 you may need to set:
+
+# For compilers to find openjdk@19, CPPFLAGS is set.
 export CPPFLAGS="-I/opt/homebrew/opt/openjdk@19/include"
 
-# Virtual Environments                                                     {{{1
-# -----------------------------------------------------------------------------
-
-# jenv                                                                     {{{2
-# -----------------------------------------------------------------------------
+# Set up jenv.
 export PATH="$HOME/.jenv/bin:$PATH"
 eval "$(jenv init -)"
 
-# pyenv                                                                    {{{2
-# -----------------------------------------------------------------------------
-
-# See https://github.com/pyenv/pyenv/issues/1737 for details.
-#
-# For compilers to find bzip2 you may need to set:
-export LDFLAGS="-L/usr/local/opt/bzip2/lib"
-export CPPFLAGS="-I/usr/local/opt/bzip2/include"
-
-# For compilers to find zlib you may need to set:
-export LDFLAGS="-L/usr/local/opt/zlib/lib"
-export CPPFLAGS="-I/usr/local/opt/zlib/include"
-
-export WORKON_HOME="${HOME}/.virtualenvs"
-export VIRTUALENVWRAPPER_PYTHON="${HOME}/.pyenv/shims/python"
-export VIRTUALENVWRAPPER_VIRTUALENV="${HOME}/.pyenv/shims/virtualenv"
-
+# Set up pyenv.
+# See: https://github.com/pyenv/pyenv
 export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
 
-python3.latest() {
-  pyenv shell 3.13.0
-  pyenv virtualenvwrapper
-}
-
-# rbenv                                                                    {{{2
-# -----------------------------------------------------------------------------
+# Set up rbenv.
 eval "$(rbenv init -)"
 
-# Aliases                                                                  {{{1
-# -----------------------------------------------------------------------------
-alias clean='deactivate; $HOME; clear; workon default; asp master.root'
-alias credstash='credstash --log-file /dev/null'
-alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv;'
-alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
-alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
-alias docker-rmv='docker volume rm --force $(docker volume ls -q) >/dev/null 2>&1 || echo "No volumes to remove."'
-alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
-alias gcp='git log -1 --pretty=%B | pbcopy'
-alias gp='git push origin $(git branch --show-current)'
-alias k='kubectl'
-alias osx-show-hidden-off='defaults write com.apple.finder AppleShowAllFiles NO'
-alias osx-show-hidden-on='defaults write com.apple.finder AppleShowAllFiles YES'
-alias pip-upgrade='pip list --format=freeze | cut -d = -f 1 | xargs pip install --upgrade'
-alias ssh-ip='ip=$(pbpaste); ssh nickolaskraus@${ip}'
-alias tf='terraform'
-alias tmux-config='vim ~/.tmux.conf'
-alias tmux-kill='tmux kill-server'
-alias tmux-new='tmux_new'
-alias vim-config='vim ~/.vimrc'
-alias zsh-config='vim ~/.zshrc'
-
-# Bash Functions                                                           {{{1
-# -----------------------------------------------------------------------------
-tmux_new() {
-  SESSION_NAME="$(basename $(pwd))"
-  tmux new-session -d -s "${SESSION_NAME}"\; \
-  split-window -v \; \
-  split-window -h -t 1 \; \
-  select-layout '4059,276x226,0,0[276x32,0,0,0,276x136,0,33,1,276x56,0,170,2]' \; \
-  attach-session -t "${SESSION_NAME}"
-}
-
-python_clean() {
-  # Remove build artifacts
-  find . -name '*.egg' -exec rm -fr {} +
-  find . -name '*.egg-info' -exec rm -fr {} +
-  rm -fr .eggs/
-  rm -fr build/
-  rm -fr dist/
-  # Remove Python artifacts
-  find . -name '*.pyc' -exec rm -f {} +
-  find . -name '*.pyo' -exec rm -f {} +
-  find . -name '*~' -exec rm -f {} +
-  find . -name '__pycache__' -exec rm -fr {} +
-  # Remove test and coverage artifacts
-  find . -name '*,cover' -exec rm -f {} +
-  find . -name '.coverage' -exec rm -f {} +
-  find . -name '.pytest_cache' -exec rm -fr {} +
-  find . -name 'cover' -exec rm -fr {} +
-  find . -name 'coverage.xml' -exec rm -f {} +
-  find . -name 'htmlcov' -exec rm -fr {} +
-}
-
-remove_whitespace() {
-  find . -type f \
-  -name "*" \
-  -not -name "*.png" \
-  -not -path "./.git/*" \
-  -exec gsed -i 's/[[:space:]]\+$//' {} \;
-}
-
-add_newline_eof() {
-  find . -type f \
-  -name "*" \
-  -not -name "*.png" \
-  -not -path "./.git/*" \
-  -exec gsed -i '$a\' {} \;
-}
-
-# Workiva                                                                  {{{1
-# -----------------------------------------------------------------------------
-export PATH=$PATH:$HOME/.wk/bin
-export KUBECONFIG=$KUBECONFIG:$HOME/.kube/infrable.yaml:$HOME/.kube/workiva.yaml
-
-# Default                                                                  {{{1
-# -----------------------------------------------------------------------------
-
-# Set default AWS profile
+# Set default AWS profile.
 export AWS_PROFILE=master.root
 
-# Default to latest version of Python 3
-python3.latest
-
-# Default to 'default' virtualenv
-workon default
+# Set default Python virtualenv.
+if command -v pyenv >/dev/null; then
+  if [[ "$(pyenv version-name)" != "default" ]]; then
+    pyenv activate default
+  fi
+fi
