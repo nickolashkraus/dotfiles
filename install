@@ -17,6 +17,8 @@
 
 # Colors
 red='\033[0;31m'
+yellow='\033[0;33m'
+white='\033[0;37m'
 reset='\033[0m'
 
 # Print usage information.
@@ -42,12 +44,16 @@ echo "dotfiles directory found at the following location: ${dotfiles}"
 read -rp "Do you wish to proceed? [Y/n]: " proceed
 proceed=${proceed:-Y}
 if [[ ! "${proceed}" =~ ^[Yy] ]]; then
-  echo "Aborting..."
+  echo -e "${yellow}Aborting...${reset}\n"
   exit 0
+else
+  echo -e "${white}Installing...${reset}\n"
 fi
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 mkdir -p "$XDG_CONFIG_HOME"
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
 ###############################################################################
 # Check if a file exists.
@@ -297,14 +303,16 @@ mkdir -p "${XDG_CONFIG_HOME}/yamllint"
 ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 
 ###############################################################################
-# Brewfile (Homebrew Packages)
+# Oh My Zsh Aliases
 #
 # Required Files:
-#   * Brewfile
+#   * aliases.zsh
 ###############################################################################
-check_file_exists "${dotfiles}/Brewfile" || exit 1
-check_command_exists "brew" || exit 1
-brew bundle --file="${dotfiles}/Brewfile"
+check_file_exists "${dotfiles}/aliases.zsh" || exit 1
+check_dir_exists "${HOME}/.oh-my-zsh" || exit 1
+mkdir -p "${ZSH_CUSTOM}"
+rm -f "${ZSH_CUSTOM}/aliases.zsh" || true
+ln -s "${dotfiles}/aliases.zsh" "${ZSH_CUSTOM}/aliases.zsh"
 
 ###############################################################################
 # Oh My Zsh Theme
@@ -314,8 +322,22 @@ brew bundle --file="${dotfiles}/Brewfile"
 ###############################################################################
 check_file_exists "${dotfiles}/nhk.zsh-theme" || exit 1
 check_dir_exists "${HOME}/.oh-my-zsh" || exit 1
-rm -f "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme" || true
-ln -s "${dotfiles}/nhk.zsh-theme" "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-theme"
+mkdir -p "${ZSH_CUSTOM}/themes"
+rm -f "${ZSH_CUSTOM}/themes/nhk.zsh-theme" || true
+ln -s "${dotfiles}/nhk.zsh-theme" "${ZSH_CUSTOM}/themes/nhk.zsh-theme"
+
+###############################################################################
+# Brewfile (Homebrew Packages)
+#
+# Required Files:
+#   * Brewfile
+###############################################################################
+echo -e "${white}###############################${reset}" >&2
+echo -e "${white}Installing Homebrew packages...${reset}" >&2
+echo -e "${white}###############################${reset}" >&2
+check_file_exists "${dotfiles}/Brewfile" || exit 1
+check_command_exists "brew" || exit 1
+brew bundle --file="${dotfiles}/Brewfile"
 
 ###############################################################################
 # Python Packages
@@ -323,6 +345,9 @@ ln -s "${dotfiles}/nhk.zsh-theme" "${HOME}/.oh-my-zsh/custom/themes/nhk.zsh-them
 # Required Files:
 #   * requirements.txt
 ###############################################################################
+echo -e "${white}#############################${reset}" >&2
+echo -e "${white}Installing Python packages...${reset}" >&2
+echo -e "${white}#############################${reset}" >&2
 check_file_exists "${dotfiles}/requirements.txt" || exit 1
 check_command_exists "pip" || exit 1
 pip install --upgrade -r "${dotfiles}/requirements.txt"
