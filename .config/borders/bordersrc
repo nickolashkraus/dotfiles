@@ -3,8 +3,13 @@
 # JankyBorders Configuration
 #
 # DESCRIPTION
-#   Configuration file for JankyBorders, a lightweight tool designed to add
-#   colored borders to user windows on macOS 14.0+.
+#   Configuration file for JankyBorders.
+#
+#   JankyBorders is a lightweight, user-configurable tool for macOS that adds
+#   visual borders around application windows. It is primarily used with tiling
+#   window managers like yabai to enhance visual clarity, especially when
+#   dealing with multiple windows on screen.
+#
 #   See: https://github.com/FelixKratz/JankyBorders
 #
 # INSTALLATION

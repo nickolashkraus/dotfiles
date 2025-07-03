@@ -4,6 +4,7 @@
 # DESCRIPTION
 #   A gitignore file specifies intentionally untracked files that Git should
 #   ignore. Files already tracked by Git are not affected.
+
 #   See: https://git-scm.com/docs/gitignore
 #
 # INSTALLATION
@@ -20,3 +21,6 @@
 
 # macOS Finder metadata file.
 .DS_Store
+
+# Local configuration file for Claude Code.
+**/.claude/settings.local.json

@@ -14,7 +14,7 @@
 # unified configuration across Vim, tmux, and Zsh.
 powerline-status
 
-# As of 2025, Ruff is the most popular linter and formatter for Python. It's
+# As of 2025, Ruff is the most popular linter and formatter for Python. It is
 # extremely fast (written in Rust) and combines linting and formatting in one
 # tool.
 ruff

@@ -1,4 +1,21 @@
-" vim: fdm=marker
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vim Configuration
+"
+" DESCRIPTION
+"   Configuration file for Vim.
+"
+"   Vim (short for Vi IMproved) is a highly configurable, powerful text editor
+"   used primarily for programming and system administration. It is an
+"   enhanced version of the Unix vi editor, offering many features for
+"   efficient text manipulation.
+"
+"   See: https://www.vim.org
+"
+" INSTALLATION
+"   Symlink file to $HOME/.vimrc:
+"
+"     ln -s .vimrc $HOME/.vimrc
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Vundle                                                                   {{{1
 " -----------------------------------------------------------------------------
@@ -101,8 +118,8 @@ set spelllang=en_us
 " set spell check file
 set spellfile=$HOME/.vim/.en.utf-8.add
 
-" automatically remove trailing whitespace before write
-autocmd BufWritePre * %s/\s\+$//e
+" automatically remove trailing whitespace before write (exclude Markdown)
+autocmd BufWritePre * if &filetype !~ '\(markdown\|md\)' | %s/\s\+$//e | endif
 
 " enable normal backspace behavior
 set backspace=indent,eol,start
@@ -180,6 +197,13 @@ if !exists("autocommands_loaded")
   " open packages installed via Homebrew in readonly, nomodifiable mode
   autocmd BufReadPre,BufNewFile /opt/homebrew/cellar/* setlocal readonly nomodifiable
   autocmd! BufReadPre,BufNewFile /opt/homebrew/Cellar/* setlocal readonly nomodifiable
+
+  " close location list window when buffer with errors is closed
+  augroup CloseLoclistWindowGroup
+      autocmd!
+      autocmd QuitPre * if empty(&buftype) | lclose | endif
+  augroup END
+
 endif
 
 " Remap                                                                    {{{1
@@ -266,6 +290,19 @@ let g:ale_go_golangci_lint_package=1
 "
 " See: https://github.com/dense-analysis/ale#fixing
 
+" enable ALE to fix files on save
+let g:ale_fix_on_save = 1
+
+" set prettier as the fixer for appropriate file types
+let g:ale_fixers = {
+\   'javascript': ['prettier'],
+\   'typescript': ['prettier'],
+\   'css': ['prettier'],
+\   'scss': ['prettier'],
+\   'html': ['prettier'],
+\   'json': ['prettier']
+\}
+
 " disable E501 error (line too long) for flake8 in ALE
 let g:ale_python_flake8_options = '--ignore=E501'
 
@@ -274,6 +311,21 @@ let g:ale_python_pycodestyle_options = '--ignore=E501'
 
 " disable ALE in status line
 let g:ale_statusline_enabled = 0
+
+" ALE settings for location list management
+let g:ale_keep_list_window_open = 0
+let g:ale_open_list = 1
+let g:ale_set_loclist = 1
+
+" let g:ale_linters = {
+" \   'go': [],
+" \}
+
+" fatih/vim-go                                                             {{{3
+" -----------------------------------------------------------------------------
+" let g:go_metalinter_enabled = 0
+" let g:go_fmt_autosave = 1
+" let g:go_asmfmt_autosave = 1
 
 " preservim/nerdtree                                                       {{{3
 " -----------------------------------------------------------------------------
@@ -331,6 +383,12 @@ let g:ycm_autoclose_preview_window_after_completion=1
 " map GoTo subcommand to <leader> + g
 map <leader>g :YcmCompleter GoTo<CR>
 
+" Horizontal split
+nnoremap <leader>gs :split \| :YcmCompleter GoTo<CR>
+
+" Vertical split
+nnoremap <leader>gv :vsplit \| :YcmCompleter GoTo<CR>
+
 " disable YouCompleteMe for file types: ['gitcommit']
 let g:ycm_filetype_specific_completion_to_disable = {
       \ 'gitcommit': 1
@@ -358,6 +416,10 @@ let g:ackprg = 'ag --column --nogroup --hidden'
 
 " do not open files in NERDTree
 nnoremap <silent> <expr> <C-O> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":FZF\<cr>"
+
+" prevent automatically opening first result in current buffer
+let g:ack_autoclose = 0
+let g:ack_autofold_results = 0
 
 " fzf                                                                      {{{2
 " -----------------------------------------------------------------------------
@@ -526,3 +588,11 @@ autocmd BufNewFile,BufRead *.vim:
       \ set softtabstop=4
       \ set tabstop=4
       \ set textwidth=79
+
+command! CopyRelPath let @+ = expand('%')
+nnoremap <leader>cp :CopyRelPath<CR>
+
+" Search should retain in the center of the window
+" Spellchecking
+" Alphabetize selected text
+" Autoformatting should be configured via ALE (see fixers)

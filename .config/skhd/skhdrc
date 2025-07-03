@@ -2,10 +2,13 @@
 # skhd Configuration
 #
 # DESCRIPTION
-#   Configuration file for skhd. skhd is a simple hotkey daemon for macOS that
-#   focuses on responsiveness and performance. Hotkeys are defined in a text
-#   file through a simple DSL. skhd is able to hotload its config file, meaning
-#   that hotkeys can be edited and updated live while skhd is running.
+#   Configuration file for skhd.
+#
+#   skhd is a simple hotkey daemon for macOS, designed to let users bind
+#   arbitrary key combinations to shell commands. It is commonly used alongside
+#   window managers like yabai to create a powerful, keyboard-driven macOS
+#   environment.
+#
 #   See: https://github.com/koekeishiya/skhd
 #
 #   See the following for an example skhdrc and explanation of the grammar that

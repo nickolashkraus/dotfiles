@@ -2,8 +2,11 @@
 # k9s Skin
 #
 # DESCRIPTION
-#   Skin for k9s. Skins are YAML files that enable a user to change the K9s
-#   presentation layer. Skin files live in $XDG_CONFIG_HOME/k9s/skins folder.
+#   Skin for k9s.
+#
+#   Skins are YAML files that enable a user to change the k9s presentation
+#   layer. Skin files live in $XDG_CONFIG_HOME/k9s/skins directory.
+#
 #   See: https://k9scli.io/topics/skins/
 #
 # INSTALLATION

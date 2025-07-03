@@ -2,8 +2,17 @@
 # k9s Configuration
 #
 # DESCRIPTION
-#   Configuration for k9s. The main configuration file is named config.yaml and
-#   stores various K9s specific bits.
+#   Configuration file for k9s.
+#
+#   k9s is a terminal-based UI for managing and observing Kubernetes clusters.
+#   It provides a fast, interactive interface to explore your Kubernetes
+#   resources without needing to constantly type kubectl commands.
+#
+#   See: https://k9scli.io
+#
+#   The main configuration file is named config.yaml and stores various k9s
+#   specific bits.
+#
 #   See: https://k9scli.io/topics/config/
 #
 # INSTALLATION

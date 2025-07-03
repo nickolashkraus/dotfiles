@@ -3,8 +3,12 @@
 # yabai Configuration
 #
 # DESCRIPTION
-#   Configuration file for yabai, a window management utility that is designed
-#   to work as an extension to the built-in window manager of macOS.
+#   Configuration file for yabai.
+#
+#   yabai is a tiling window manager for macOS that brings advanced window
+#   control and layout capabilities to the macOS desktop—similar to what you'd
+#   find on Linux with tools like i3 or bspwm.
+#
 #   See: https://github.com/koekeishiya/yabai
 #
 # INSTALLATION

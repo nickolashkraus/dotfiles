@@ -2,8 +2,13 @@
 # yamllint Configuration
 #
 # DESCRIPTION
-#   Configuration file for yamllint, a linter for YAML files.
-#   See: https://yamllint.readthedocs.io/en/stable/configuration.html
+#   Configuration file for yamllint.
+#
+#   yamllint is a linter for YAML files. It checks YAML syntax and style,
+#   helping you catch formatting errors, inconsistent indentation, and
+#   violations of best practices.
+#
+#   See: https://yamllint.readthedocs.io/en/stable/
 #
 # INSTALLATION
 #   Symlink file to $XDG_CONFIG_HOME/yamllint/config:

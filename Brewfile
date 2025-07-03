@@ -2,9 +2,17 @@
 # Brewfile (Homebrew Packages)
 #
 # DESCRIPTION
-#   Declarative interface for installing/upgrading packages with Homebrew.
-#   This file was created using a combination of `brew bundle dump` and
-#   `brew leaves`.
+#   Brewfile for Homebrew.
+#
+#   Homebrew is a package manager for macOS and Linux that makes it easy to
+#   install, manage, and update software from the command line.
+#
+#   See: https://brew.sh
+#
+#   A Brewfile is a declarative interface for installing/upgrading packages
+#   with Homebrew. This file was created using a combination of `brew bundle
+#   dump` and `brew leaves`.
+#
 #   See: https://docs.brew.sh/Brew-Bundle-and-Brewfile
 #
 # INSTALLATION

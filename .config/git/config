@@ -5,6 +5,7 @@
 #   User-specific configuration file. When the XDG_CONFIG_HOME environment
 #   variable is not set or empty, $HOME/.config/ is used as $XDG_CONFIG_HOME.
 #   By default, `git config` will read configuration options from this file.
+#
 #   See: https://git-scm.com/docs/git-config
 #
 # INSTALLATION

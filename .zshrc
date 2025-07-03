@@ -2,9 +2,20 @@
 # Zsh + Oh My Zsh Configuration
 #
 # DESCRIPTION
-#   Configuration file for Zsh + Oh My Zsh. Zsh (https://www.zsh.org) is a
-#   shell designed for interactive use. Oh My Zsh (https://ohmyz.sh) is an open
-#   source, community-driven framework for managing your Zsh configuration.
+#   Configuration file for Zsh + Oh My Zsh.
+#
+#   Zsh (Z Shell) is a powerful, feature-rich Unix shell that serves as an
+#   alternative to Bash. It is widely used as a command-line interpreter and
+#   interactive shell by developers and power users due to its advanced
+#   functionality, customization options, and plugin support.
+#
+#   See: https://www.zsh.org
+#
+#   Oh My Zsh is a popular open-source framework for managing Zsh configuration,
+#   designed to make using the Z shell more powerful, user-friendly, and
+#   visually appealing—especially for developers.
+#
+#   See: https://ohmyz.sh
 #
 # INSTALLATION
 #   Symlink file to $HOME/.zshrc:
