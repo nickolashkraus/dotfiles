@@ -16,7 +16,7 @@
 
 [core]
     editor = vim
-    excludesFile = $XDG_CONFIG_HOME/git/ignore
+    excludesFile = ~/.config/git/ignore
 [init]
     defaultBranch = master
 [merge]
