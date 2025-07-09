@@ -1,0 +1,18 @@
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vim Configuration
+"
+" DESCRIPTION
+"   Configuration file for Vim.
+"
+"   Vim (short for Vi IMproved) is a highly configurable, powerful text editor
+"   used primarily for programming and system administration. It is an
+"   enhanced version of the Unix vi editor, offering many features for
+"   efficient text manipulation.
+"
+"   See: https://www.vim.org
+"
+" INSTALLATION
+"   Symlink file to $HOME/.vimrc:
+"
+"     ln -s .vimrc $HOME/.vimrc
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
