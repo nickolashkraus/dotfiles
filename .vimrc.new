@@ -33,6 +33,7 @@ call plug#begin()
 " Language
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'godlygeek/tabular'
+Plug 'preservim/vim-markdown'
 
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
@@ -90,3 +91,26 @@ function! s:align()
     call search(repeat('[^|]*|',column).'\s\{-\}'.repeat('.',position),'ce',line('.'))
   endif
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-markdown Configuration
+"
+" vim-markdown is a Vim plugin that enhances Markdown editing by adding
+" features that are not available in Vim by default.
+"
+" See: https://github.com/preservim/vim-markdown
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Enable YAML front matter highlighting.
+let g:vim_markdown_frontmatter = 1
+
+" Enable TOML front matter.
+let g:vim_markdown_toml_frontmatter = 1
+
+" Enable JSON front matter.
+let g:vim_markdown_json_frontmatter = 1
+
+" Enable math syntax highlighting.
+let g:vim_markdown_math = 1
+
+" Show table of contents.
+nmap <Leader>toc :Toc<CR>
