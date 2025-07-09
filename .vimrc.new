@@ -20,6 +20,12 @@
 " Disable vi compatibility mode (enables Vim's enhanced features).
 set nocompatible
 
+" Disable Markdown syntax highlighting via vim-polyglot (use vim-markdown
+" instead).
+"
+" NOTE: This variable must be set *before* vim-polyglot is loaded.
+let g:polyglot_disabled = ['markdown']
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-plug Configuration
 "
@@ -34,6 +40,7 @@ call plug#begin()
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
+Plug 'sheerun/vim-polyglot'
 
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
@@ -114,3 +121,15 @@ let g:vim_markdown_math = 1
 
 " Show table of contents.
 nmap <Leader>toc :Toc<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-polyglot Configuration
+"
+" vim-polyglot is a language pack plugin for Vim and Neovim that bundles
+" syntax highlighting, indentation, and filetype detection for hundreds of
+" programming and markup languages—all in one plugin.
+"
+" See: https://github.com/sheerun/vim-polyglot
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
