@@ -260,7 +260,7 @@ highlight ALEInfoSign ctermfg=darkyellow ctermbg=235
 highlight ALEWarningSign ctermfg=darkyellow ctermbg=235
 
 " do not automatically open a window for the location list
-let g:ale_open_list = 0
+let g:ale_open_list = 1
 
 " do not show problems with virtual-text (i.e. inline text)
 let g:ale_virtualtext_cursor = 'disabled'
@@ -315,7 +315,7 @@ let g:ale_statusline_enabled = 0
 " ALE settings for location list management
 let g:ale_keep_list_window_open = 0
 let g:ale_open_list = 1
-let g:ale_set_loclist = 1
+let g:ale_set_loclist = 0
 
 " let g:ale_linters = {
 " \   'go': [],
@@ -339,7 +339,7 @@ nnoremap <C-f> :NERDTreeFind<CR>
 " show hidden files by default
 let g:NERDTreeShowHidden=1
 
-" ignore specifc files
+" ignore specific files
 let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$', '\.mypy_cache$', '\.pytest_cache$', '__pycache__$']
 
 " set sorting of nodes to be case-sensitive
