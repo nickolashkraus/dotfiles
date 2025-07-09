@@ -30,6 +30,29 @@ set nocompatible
 " See: https://github.com/junegunn/vim-plug
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin()
+" Language
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
 call plug#end()
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-go Configuration
+"
+" vim-go is a popular Vim plugin that provides comprehensive Go development
+" support within Vim. It's designed to make Vim feel like a full-featured IDE
+" for Go programming.
+"
+" NOTE: After installation, run:
+"
+"   :GoInstallBinaries
+"
+" See: https://github.com/fatih/vim-go
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Disable automatic linting (use ALE instead).
+let g:go_fmt_autosave = 0
+let g:go_imports_autosave = 0
+let g:go_metalinter_autosave = 0
+let g:go_metalinter_autosave_enabled = []
+let g:go_metalinter_enabled = []
