@@ -19,3 +19,17 @@
 
 " Disable vi compatibility mode (enables Vim's enhanced features).
 set nocompatible
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-plug Configuration
+"
+" vim-plug is a minimalist and fast plugin manager for Vim and Neovim. As of
+" 2025, vim-plug remains the most widely-used plugin manager across Vim and
+" Neovim, thanks to its speed, ease of use, and robust features.
+"
+" See: https://github.com/junegunn/vim-plug
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin()
+" NOTE: plug#end() automatically executes `filetype plugin indent on` and
+" `syntax enable`.
+call plug#end()
