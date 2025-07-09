@@ -16,3 +16,6 @@
 "
 "     ln -s .vimrc $HOME/.vimrc
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Disable vi compatibility mode (enables Vim's enhanced features).
+set nocompatible
