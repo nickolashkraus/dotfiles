@@ -69,7 +69,7 @@ let g:go_metalinter_enabled = []
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " tabular Configuration
 "
-" tabular is a popular Vim plugin for text alignment and formatting. It's
+" Tabular is a popular Vim plugin for text alignment and formatting. It's
 " designed to help you align text in columns, making it easier to create
 " well-formatted tables, code, and other structured text.
 "
