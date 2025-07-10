@@ -68,6 +68,9 @@ let g:ale_disable_lsp = 1
 let g:ale_fix_on_save = 1
 let g:ale_lint_on_save = 1
 
+" Only use linters explicitly set via g:ale_linters.
+let g:ale_linters_explicit = 1
+
 " Configure fixers and linters (Go, Python, JavaScript, TypeScript, Shell).
 "
 " Go:
@@ -165,7 +168,11 @@ let g:ale_fixers = {
 \   'css': ['prettier'],
 \   'scss': ['prettier'],
 \   'html': ['prettier'],
-\   'json': ['prettier']
+\   'json': ['prettier'],
+\   'yaml': ['prettier'],
+\   'yml': ['prettier'],
+\   'xml': ['xmllint'],
+\   'dockerfile': ['hadolint'],
 \}
 
 let g:ale_linters = {
@@ -174,7 +181,9 @@ let g:ale_linters = {
 \   'javascript': ['eslint'],
 \   'typescript': ['eslint', 'tsc'],
 \   'sh': ['shellcheck'],
-\   'markdown': ['cspell', 'vale']
+\   'markdown': ['cspell', 'vale'],
+\   'yaml': ['yamllint'],
+\   'dockerfile': ['hadolint'],
 \}
 
 " Configure mypy.
@@ -184,6 +193,12 @@ let g:ale_linters = {
 
 " Configure shfmt (see shftm --help).
 let g:ale_sh_shfmt_options = '-i 2 -ci'
+
+" Configure message format.
+let g:ale_echo_msg_info_str = 'I'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_error_str = 'E'
+" let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 
 " Set background color for ALE info signs.
 highlight ALEInfoSign ctermfg=darkblue ctermbg=235
@@ -210,6 +225,12 @@ nmap <silent> ]e <Plug>(ale_next_wrap)
 " This configuration enables better performance and fewer distractions.
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
+
+" ALE commands.
+nmap <silent> <Leader>af :ALEFix<CR>
+nmap <silent> <Leader>ai :ALEInfo<CR>
+nmap <silent> <Leader>ar :ALEReset<CR>
+nmap <silent> <Leader>at :ALEToggle<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-go Configuration
