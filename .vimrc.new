@@ -67,7 +67,7 @@ let g:go_metalinter_autosave_enabled = []
 let g:go_metalinter_enabled = []
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" tabular Configuration
+" Tabular Configuration
 "
 " Tabular is a popular Vim plugin for text alignment and formatting. It's
 " designed to help you align text in columns, making it easier to create
@@ -76,7 +76,7 @@ let g:go_metalinter_enabled = []
 " See: https://github.com/godlygeek/tabular
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " In visual mode, the alignment would apply to the selected lines. In normal
-" mode tabular attempts to guess the range.
+" mode Tabular attempts to guess the range.
 if exists(':Tabularize')
   " Manual alignment mappings for pipe characters (e.g., Markdown tables).
   nmap <Leader><Bar> :Tabularize /<Bar><CR>
