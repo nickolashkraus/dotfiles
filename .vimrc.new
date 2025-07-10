@@ -37,6 +37,7 @@ let g:polyglot_disabled = ['markdown']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin()
 " Language
+Plug 'dense-analysis/ale'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
@@ -45,6 +46,170 @@ Plug 'sheerun/vim-polyglot'
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
 call plug#end()
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" ALE Configuration
+"
+" ALE (Asynchronous Lint Engine) is a popular Vim plugin that provides
+" real-time linting and fixing capabilities. ALE is particularly popular
+" because it brings modern IDE-like features to Vim while maintaining the
+" editor's philosophy of being fast and customizable.
+"
+" NOTE: Though ALE offers Language Server support for autocomplete,
+" go-to-definition, and find references, this functionality is fulfilled by
+" YouCompleteMe.
+"
+" See: https://github.com/dense-analysis/ale
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Disable all LSP integrations (use YouCompleteMe instead).
+let g:ale_disable_lsp = 1
+
+" Enable fix/lint on save.
+let g:ale_fix_on_save = 1
+let g:ale_lint_on_save = 1
+
+" Configure fixers and linters (Go, Python, JavaScript, TypeScript, Shell).
+"
+" Go:
+"
+"   goimports
+"
+"     Adds, removes, and sorts import lines. In addition to fixing imports,
+"     goimports also formats code in the same style as gofmt (i.e., it can be
+"     used as a replacement).
+"
+"     See: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
+"
+"   golangci-lint
+"
+"     Go linters runner which integrates multiple linters. By default,
+"     golangci-lint runs an essential subset of all available Go linters:
+"     errcheck, gosimple, govet, ineffassign, staticcheck, unused. To enable
+"     all linters, use the `--enable-all` flag.
+"
+"     See: https://golangci-lint.run
+"
+" Python:
+"
+"   ruff
+"
+"     Ruff is an ultra-fast Python linter, formatter, and code quality tool,
+"     written in Rust. As of 2025, Ruff is the most popular linter and
+"     formatter for Python.
+"
+"     NOTE: For the fixers, 'ruff' will run `ruff check --fix`, which will
+"     attempt to apply fixes to resolve lint violations. `ruff_format` will
+"     run `ruff format`, which simply formats the code.
+"
+"     NOTE: Ruff uses a global ruff.toml located at
+"     $XDG_CONFIG_HOME/ruff/ruff.toml.
+"
+"   mypy
+"
+"     mypy is a static type checker for Python that analyzes code for
+"     type-related errors without executing it. It's designed to catch type
+"     mismatches, attribute errors, and other issues that would cause runtime
+"     errors. As of 2025, mypy is the most popular static type checker for
+"     Python.
+"
+" JavaScript:
+"
+"   eslint
+"
+"     ESLint is a popular static code analysis tool for JavaScript and
+"     TypeScript that identifies and reports problems in your code. It's
+"     designed to make code more consistent and avoid bugs. As of 2025, ESLint
+"     is the most commonly used JavaScript and TypeScript linter.
+"
+"   prettier
+"
+"     Prettier is an opinionated code formatter that automatically formats
+"     your code to ensure consistency across your entire codebase.  As of
+"     2025, Prettier is by far the most popular code formatter for JavaScript,
+"     TypeScript, and web development in general.
+"
+"     NOTE: Prettier uses a global .prettierrc located at
+"     $XDG_CONFIG_HOME/prettier/.prettierrc.
+"
+" TypeScript:
+"
+"   tsc
+"
+"     tsc (TypeScript Compiler) is the official TypeScript compiler that
+"     converts TypeScript code to JavaScript, but it also serves as a powerful
+"     type checker. When used for linting/analysis, it focuses purely on
+"     TypeScript's type system validation.
+"
+" Shell:
+"
+"   shfmt
+"
+"     shfmt is a shell script formatter that automatically formats shell
+"     scripts (bash, POSIX sh, mksh) for consistency and readability. As of
+"     2025, shfmt is the most popular tool for shell script formatting.
+"
+"   shellcheck
+"
+"     ShellCheck is a static analysis tool specifically designed for shell
+"     scripts that identifies bugs, portability issues, and suspicious
+"     constructs in bash, sh, and other shell scripts. It's considered
+"     essential for shell script development. As of 2025, shellcheck is the
+"     most popular tool for shell script linting.
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'go': ['goimports'],
+\   'python': ['ruff', 'ruff_format'],
+\   'javascript': ['eslint', 'prettier'],
+\   'typescript': ['eslint', 'prettier'],
+\   'sh': ['shfmt'],
+\   'css': ['prettier'],
+\   'scss': ['prettier'],
+\   'html': ['prettier'],
+\   'json': ['prettier']
+\}
+
+let g:ale_linters = {
+\   'go': ['golangci-lint'],
+\   'python': ['ruff', 'mypy'],
+\   'javascript': ['eslint'],
+\   'typescript': ['eslint', 'tsc'],
+\   'sh': ['shellcheck'],
+\   'markdown': ['cspell', 'vale']
+\}
+
+" Configure mypy.
+"
+" See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
+" let g:ale_python_mypy_options = '--follow-imports=silent'
+
+" Configure shfmt (see shftm --help).
+let g:ale_sh_shfmt_options = '-i 2 -ci'
+
+" Set background color for ALE info signs.
+highlight ALEInfoSign ctermfg=darkblue ctermbg=235
+
+" Set background color for ALE warning signs.
+highlight ALEWarningSign ctermfg=darkyellow ctermbg=235
+
+" Set background color for ALE error signs.
+highlight ALEErrorSign ctermfg=darkred ctermbg=235
+
+" Do not open a window (location list) if there are no errors or warnings.
+let g:ale_open_list = 1
+
+" Do not show errors or warnings with virtual-text (i.e., inline text).
+let g:ale_virtualtext_cursor = 'disabled'
+
+" Navigate between errors.
+nmap <silent> [e <Plug>(ale_previous_wrap)
+nmap <silent> ]e <Plug>(ale_next_wrap)
+
+" Only lint on enter and save.
+"   - Do not lint on text change.
+"   - Do not lint on insert leave.
+" This configuration enables better performance and fewer distractions.
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_insert_leave = 0
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-go Configuration
