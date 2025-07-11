@@ -219,6 +219,9 @@ let g:ale_virtualtext_cursor = 'disabled'
 nmap <silent> [e <Plug>(ale_previous_wrap)
 nmap <silent> ]e <Plug>(ale_next_wrap)
 
+" Show error details in preview window.
+nmap <Leader>ad <Plug>(ale_detail)
+
 " Only lint on enter and save.
 "   - Do not lint on text change.
 "   - Do not lint on insert leave.
