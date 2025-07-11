@@ -219,11 +219,11 @@ let g:ale_open_list = 1
 let g:ale_virtualtext_cursor = 'disabled'
 
 " Navigate between errors.
-nmap <silent> [e <Plug>(ale_previous_wrap)
-nmap <silent> ]e <Plug>(ale_next_wrap)
+nnoremap <silent> [e <Plug>(ale_previous_wrap)
+nnoremap <silent> ]e <Plug>(ale_next_wrap)
 
 " Show error details in preview window.
-nmap <Leader>ad <Plug>(ale_detail)
+nnoremap <silent> <Leader>ad <Plug>(ale_detail)
 
 " Only lint on enter and save.
 "   - Do not lint on text change.
@@ -233,10 +233,10 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
 
 " ALE commands.
-nmap <silent> <Leader>af :ALEFix<CR>
-nmap <silent> <Leader>ai :ALEInfo<CR>
-nmap <silent> <Leader>ar :ALEReset<CR>
-nmap <silent> <Leader>at :ALEToggle<CR>
+nnoremap <silent> <Leader>af :ALEFix<CR>
+nnoremap <silent> <Leader>ai :ALEInfo<CR>
+nnoremap <silent> <Leader>ar :ALEReset<CR>
+nnoremap <silent> <Leader>at :ALEToggle<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-go Configuration
@@ -271,8 +271,8 @@ let g:go_metalinter_enabled = []
 " mode Tabular attempts to guess the range.
 if exists(':Tabularize')
   " Manual alignment mappings for pipe characters (e.g., Markdown tables).
-  nmap <Leader><Bar> :Tabularize /<Bar><CR>
-  vmap <Leader><Bar> :Tabularize /<Bar><CR>
+  nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>
+  vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>
 endif
 
 " Auto-align on pipe insert (convenient for real-time table editing).
@@ -322,7 +322,7 @@ let g:vim_markdown_json_frontmatter = 1
 let g:vim_markdown_math = 1
 
 " Show table of contents.
-nmap <Leader>toc :Toc<CR>
+nnoremap <silent> <Leader>toc :Toc<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-polyglot Configuration
@@ -358,13 +358,12 @@ nmap <Leader>toc :Toc<CR>
 let g:ycm_show_diagnostics_ui = 0
 
 " Disable documentation popup.
-let g:ycm_auto_hover=''
+let g:ycm_auto_hover = ''
 
 " Enable semantic highlighting.
-" Semantic highlighting is the process whereby the buffer text is colored
-" according to the underlying semantic type of the symbol, rather than the
-" classic regex-based syntax highlighting.
-let g:ycm_enable_semantic_highlighting=1
+" Semantic highlighting colors buffer text according to the underlying semantic
+" type of the symbol, rather than classic regex-based syntax highlighting.
+let g:ycm_enable_semantic_highlighting = 1
 
 " Remap YCM completion to Ctrl + n instead of Ctrl + Space.
 " The 'ycm_key_invoke_completion' option controls the key mapping used to
@@ -378,45 +377,32 @@ let g:ycm_key_invoke_completion = '<C-n>'
 let g:ycm_disable_for_files_larger_than_kb = 512
 
 " Close preview window after completion is accepted.
-let g:ycm_autoclose_preview_window_after_completion=1
-
-" Map GoTo subcommand to <leader> + g.
-" The GoTo command tries to perform the *most sensible* GoTo operation it can.
-" Currently, this means that it tries to look up the symbol under the cursor
-" and jumps to its definition if possible. If the definition is not accessible
-" from the current translation unit, it jumps to the symbol's declaration.
-map <leader>g :YcmCompleter GoTo<CR>
-
-" GoTo (with vertical split).
-nnoremap <leader>gv :vsplit \| :YcmCompleter GoTo<CR>
-
-" GoTo (with horizontal split).
-nnoremap <leader>gs :split \| :YcmCompleter GoTo<CR>
+let g:ycm_autoclose_preview_window_after_completion = 1
 
 " Close completion menu with Ctrl + y or Enter.
 let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
 
 " YCM commands.
-
-" Navigation and Search
-nmap <leader>fs <Plug>(YCMFindSymbolInWorkspace)
-nmap <leader>fd <Plug>(YCMFindSymbolInDocument)
-
-" Hierarchies
-nmap <leader>yth <Plug>(YCMTypeHierarchy)
-nmap <leader>ych <Plug>(YCMCallHierarchy)
-
-" Go To and References
-nmap <leader>gr <Plug>(YCMGoToReferences)
-nmap <leader>gd <Plug>(YCMGoToDefinition)
-nmap <leader>gi <Plug>(YCMGoToImplementation)
-
-" Documentation and Help
-nmap <leader>yd <Plug>(YCMGetDoc)
-nmap K <Plug>(YCMGetDoc)
-
-" Refactoring
-nmap <leader>rn <Plug>(YCMRefactorRename)
+"
+" NOTE: The GoTo command tries to perform the *most sensible* GoTo operation
+" it can.  Currently, this means that it tries to look up the symbol under the
+" cursor and jumps to its definition if possible. If the definition is not
+" accessible from the current translation unit, it jumps to the symbol's
+" declaration.
+nnoremap <silent> <Leader>g  :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gs :split \| :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gv :vsplit \| :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gd <Plug>(YCMGoToDefinition)
+nnoremap <silent> <Leader>gi <Plug>(YCMGoToImplementation)
+nnoremap <silent> <Leader>gr <Plug>(YCMGoToReferences)
+nnoremap <silent> <Leader>fd <Plug>(YCMFindSymbolInDocument)
+nnoremap <silent> <Leader>fs <Plug>(YCMFindSymbolInWorkspace)
+nnoremap <silent> <Leader>yd <Plug>(YCMGetDoc)
+nnoremap <silent> <Leader>yt <Plug>(YCMGetType)
+nnoremap <silent> <Leader>rn <Plug>(YCMRefactorRename)
+nnoremap <silent> <Leader>ych <Plug>(YCMCallHierarchy)
+nnoremap <silent> <Leader>yth <Plug>(YCMTypeHierarchy)
+nnoremap <silent> K <Plug>(YCMGetDoc)
 
 " Function: BuildYCM(info)
 " Post-update hook for YouCompleteMe plugin installation.
@@ -445,7 +431,7 @@ function! BuildYCM(info)
 endfunction
 
 " Toggle YCM for the current buffer.
-nmap <silent> <Leader>ycmt :call ToggleYcm()<CR>
+nnoremap <silent> <Leader>ytg :call ToggleYcm()<CR>
 
 " Function: ToggleYcm()
 " Sets b:ycm_largefile directly, which has the effect of enabling or disabling
