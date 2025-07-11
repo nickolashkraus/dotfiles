@@ -272,7 +272,17 @@ endif
 " Auto-align on pipe insert (convenient for real-time table editing).
 inoremap <silent> <Bar> <Bar><Esc>:call <SID>align()<CR>a
 
+" Function: s:align()
+" Automatically aligns table columns when inserting pipe characters.
+"
+" This function detects when a pipe character is inserted in a table-like
+" context and automatically aligns the columns using Tabularize. It preserves
+" the cursor position relative to the table structure after alignment.
+"
 " Courtesy of Tim Pope (https://gist.github.com/tpope/287147).
+"
+" Args: None
+" Returns: None
 function! s:align()
   let p = '^\s*|\s.*\s|\s*$'
   if exists(':Tabularize') && getline('.') =~# '^\s*|' && \
