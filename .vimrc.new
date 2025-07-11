@@ -43,6 +43,9 @@ Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
 Plug 'sheerun/vim-polyglot'
 
+" Completion
+Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
+
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
 call plug#end()
@@ -332,3 +335,136 @@ nmap <Leader>toc :Toc<CR>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" YouCompleteMe Configuration
+"
+" YouCompleteMe (YCM) is a popular code completion engine for Vim. It provides
+" fast, intelligent autocompletion for multiple programming languages.
+"
+" NOTE: After installation, run:
+"
+"   python ./install.py --all
+"
+" If using a version of Python installed via pyenv, the '--enable-framework'
+" option is required:
+"
+"   PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install <version>
+"
+" See: https://github.com/ycm-core/YouCompleteMe
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Disable diagnostic display (errors and warnings) (use ALE instead).
+let g:ycm_show_diagnostics_ui = 0
+
+" Disable documentation popup.
+let g:ycm_auto_hover=''
+
+" Enable semantic highlighting.
+" Semantic highlighting is the process whereby the buffer text is colored
+" according to the underlying semantic type of the symbol, rather than the
+" classic regex-based syntax highlighting.
+let g:ycm_enable_semantic_highlighting=1
+
+" Remap YCM completion to Ctrl + n instead of Ctrl + Space.
+" The 'ycm_key_invoke_completion' option controls the key mapping used to
+" invoke the completion menu for semantic completion. This key mapping can be
+" used to trigger semantic completion anywhere, which can be useful when
+" searching for top-level functions and classes in the current file.
+" NOTE: Ctrl + Space opens Alfred.
+let g:ycm_key_invoke_completion = '<C-n>'
+
+" Defines the max size (in Kb) for a file to be considered for completion.
+let g:ycm_disable_for_files_larger_than_kb = 512
+
+" Close preview window after completion is accepted.
+let g:ycm_autoclose_preview_window_after_completion=1
+
+" Map GoTo subcommand to <leader> + g.
+" The GoTo command tries to perform the *most sensible* GoTo operation it can.
+" Currently, this means that it tries to look up the symbol under the cursor
+" and jumps to its definition if possible. If the definition is not accessible
+" from the current translation unit, it jumps to the symbol's declaration.
+map <leader>g :YcmCompleter GoTo<CR>
+
+" GoTo (with vertical split).
+nnoremap <leader>gv :vsplit \| :YcmCompleter GoTo<CR>
+
+" GoTo (with horizontal split).
+nnoremap <leader>gs :split \| :YcmCompleter GoTo<CR>
+
+" Close completion menu with Ctrl + y or Enter.
+let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
+
+" YCM commands.
+
+" Navigation and Search
+nmap <leader>fs <Plug>(YCMFindSymbolInWorkspace)
+nmap <leader>fd <Plug>(YCMFindSymbolInDocument)
+
+" Hierarchies
+nmap <leader>yth <Plug>(YCMTypeHierarchy)
+nmap <leader>ych <Plug>(YCMCallHierarchy)
+
+" Go To and References
+nmap <leader>gr <Plug>(YCMGoToReferences)
+nmap <leader>gd <Plug>(YCMGoToDefinition)
+nmap <leader>gi <Plug>(YCMGoToImplementation)
+
+" Documentation and Help
+nmap <leader>yd <Plug>(YCMGetDoc)
+nmap K <Plug>(YCMGetDoc)
+
+" Refactoring
+nmap <leader>rn <Plug>(YCMRefactorRename)
+
+" Function: BuildYCM(info)
+" Post-update hook for YouCompleteMe plugin installation.
+"
+" This function is called automatically by vim-plug when YouCompleteMe is
+" installed or updated. It runs the YCM installation script to compile the
+" necessary components for code completion functionality.
+"
+" A post-update hook is executed inside the directory of the plugin and only
+" run when the repository has changed, but you can force it to run
+" unconditionally with the bang-versions of the commands: PlugInstall! and
+" PlugUpdate!.
+"
+" See: https://github.com/junegunn/vim-plug#post-update-hooks
+"
+" Args:
+"   info (dict): Dictionary containing plugin information:
+"                - name: name of the plugin
+"                - status: 'installed', 'updated', or 'unchanged'
+"                - force: set on PlugInstall! or PlugUpdate!
+" Returns: None
+function! BuildYCM(info)
+  if a:info.status == 'installed' || a:info.force
+    !./install.py --all
+  endif
+endfunction
+
+" Toggle YCM for the current buffer.
+nmap <silent> <Leader>ycmt :call ToggleYcm()<CR>
+
+" Function: ToggleYcm()
+" Sets b:ycm_largefile directly, which has the effect of enabling or disabling
+" YCM.
+"
+"   let threshold = g:ycm_disable_for_files_larger_than_kb * 1024
+"   let b:ycm_largefile =
+"         \ threshold > 0 && getfsize( expand( a:buffer ) ) > threshold
+"
+" See: https://github.com/ycm-core/YouCompleteMe/blob/master/autoload/youcompleteme.vim
+"
+" Args: None
+" Returns: None
+function! ToggleYcm()
+  if b:ycm_largefile == 0
+    let b:ycm_largefile = 1
+    echo 'YCM has been disabled.'
+  else
+    let b:ycm_largefile = 0
+    echo 'YCM has been enabled.'
+  endif
+endfunction
