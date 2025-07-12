@@ -46,6 +46,10 @@ Plug 'sheerun/vim-polyglot'
 " Completion
 Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
 
+" Code Display
+Plug 'morhetz/gruvbox'
+
+
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
 call plug#end()
@@ -454,3 +458,25 @@ function! ToggleYcm()
     echo 'YCM has been enabled.'
   endif
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Gruvbox Configuration
+"
+" Gruvbox is a popular retro-inspired colorscheme for Vim and other text
+" editors. It's designed with warm, earthy tones that are easy on the eyes for
+" long coding sessions.
+"
+" See: https://github.com/morhetz/gruvbox
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Set background (light vs. dark mode).
+set background=dark
+
+" Set colorscheme (prepended with `silent!` to ignore errors if not yet
+" installed).
+silent! colorscheme gruvbox
+
+" Use 24-bit color (true-color).
+if (has('termguicolors'))
+  set termguicolors
+endif
