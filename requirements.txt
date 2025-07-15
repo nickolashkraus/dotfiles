@@ -18,3 +18,7 @@ powerline-status
 # extremely fast (written in Rust) and combines linting and formatting in one
 # tool.
 ruff
+
+# As of 2025, mypy is the most popular static type checker for Python. It is
+# used to check your code for type correctness before runtime.
+mypy
