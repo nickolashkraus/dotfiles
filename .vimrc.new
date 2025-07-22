@@ -81,10 +81,10 @@ set spellfile=$HOME/.vim/spell/en.utf-8.add
 nnoremap <Leader>sp :setlocal spell!<CR>
 
 " Spellcheck highlight groups.
-highlight SpellBad cterm=underline ctermfg=red
-highlight SpellCap cterm=underline ctermfg=blue
+highlight SpellBad   cterm=underline ctermfg=red
+highlight SpellCap   cterm=underline ctermfg=blue
 highlight SpellLocal cterm=underline ctermfg=cyan
-highlight SpellRare cterm=underline ctermfg=magenta
+highlight SpellRare  cterm=underline ctermfg=magenta
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Advanced Configuration
@@ -252,14 +252,10 @@ let g:ale_echo_msg_warning_str = 'W'
 let g:ale_echo_msg_error_str = 'E'
 " let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 
-" Set background color for ALE info signs.
-highlight ALEInfoSign ctermfg=darkblue ctermbg=235
-
-" Set background color for ALE warning signs.
+" Set colors for ALE signs.
+highlight ALEInfoSign    ctermfg=darkblue   ctermbg=235
 highlight ALEWarningSign ctermfg=darkyellow ctermbg=235
-
-" Set background color for ALE error signs.
-highlight ALEErrorSign ctermfg=darkred ctermbg=235
+highlight ALEErrorSign   ctermfg=darkred    ctermbg=235
 
 " Do not open a window (location list) if there are no errors or warnings.
 let g:ale_open_list = 1
