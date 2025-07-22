@@ -55,6 +55,18 @@ Plug 'morhetz/gruvbox'
 call plug#end()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Basic Configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Center search results after jumping.
+nnoremap n  nzzzv   " Next search result
+nnoremap N  Nzzzv   " Previous search result
+nnoremap *  *zzzv   " Search for word under cursor forward
+nnoremap #  #zzzv   " Search for word under cursor backward
+nnoremap g* g*zzzv  " Search for partial match forward
+nnoremap g# g#zzzv  " Search for partial match backward
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
 "
 " ALE (Asynchronous Lint Engine) is a popular Vim plugin that provides
