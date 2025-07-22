@@ -591,8 +591,3 @@ autocmd BufNewFile,BufRead *.vim:
 
 command! CopyRelPath let @+ = expand('%')
 nnoremap <leader>cp :CopyRelPath<CR>
-
-" Search should retain in the center of the window
-" Spellchecking
-" Alphabetize selected text
-" Autoformatting should be configured via ALE (see fixers)
