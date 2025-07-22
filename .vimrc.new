@@ -92,6 +92,11 @@ nnoremap <leader>sb zb  " Remove word from dictionary
 command! CopyRelPath let @+ = expand('%')
 nnoremap <leader>cp :CopyRelPath<CR>
 
+" Alphabetize selected text (normal, remove duplicates, reverse).
+vnoremap <leader>abc  :sort<CR>   " Alphabetize selected text
+vnoremap <leader>abcu :sort u<CR> " Alphabetize and remove duplicates
+vnoremap <leader>abc! :sort!<CR>  " Reverse alphabetize
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
 "
