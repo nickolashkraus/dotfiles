@@ -85,6 +85,14 @@ nnoremap <leader>sg zg  " Add word to dictionary
 nnoremap <leader>sb zb  " Remove word from dictionary
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Advanced Configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Copy the relative path of the current buffer to the system clipboard.
+command! CopyRelPath let @+ = expand('%')
+nnoremap <leader>cp :CopyRelPath<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
 "
 " ALE (Asynchronous Lint Engine) is a popular Vim plugin that provides
