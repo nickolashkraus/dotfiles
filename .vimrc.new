@@ -71,22 +71,20 @@ nnoremap g* g*zzzv  " Search for partial match forward
 nnoremap g# g#zzzv  " Search for partial match backward
 
 " Configure spellchecking.
+"   ]s  Next misspelled word
+"   [s  Previous misspelled word
+"   z=  Suggest corrections
+"   zg  Add word to dictionary
+"   zb  Remove word from dictionary
 set spelllang=en_us
 set spellfile=$HOME/.vim/spell/en.utf-8.add
 nnoremap <Leader>sp :setlocal spell!<CR>
 
 " Spellcheck highlight groups.
-hi SpellBad cterm=underline ctermfg=red
-hi SpellCap cterm=underline ctermfg=blue
-hi SpellLocal cterm=underline ctermfg=cyan
-hi SpellRare cterm=underline ctermfg=magenta
-
-" Spellcheck mappings.
-nnoremap <leader>sn ]s  " Next misspelled word
-nnoremap <leader>sp [s  " Previous misspelled word
-nnoremap <leader>sa z=  " Suggest corrections
-nnoremap <leader>sg zg  " Add word to dictionary
-nnoremap <leader>sb zb  " Remove word from dictionary
+highlight SpellBad cterm=underline ctermfg=red
+highlight SpellCap cterm=underline ctermfg=blue
+highlight SpellLocal cterm=underline ctermfg=cyan
+highlight SpellRare cterm=underline ctermfg=magenta
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Advanced Configuration
