@@ -47,6 +47,7 @@ Plug 'sheerun/vim-polyglot'
 Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
 
 " Code Display
+Plug 'airblade/vim-gitgutter'
 Plug 'morhetz/gruvbox'
 
 
@@ -499,6 +500,28 @@ function! ToggleYcm()
     echo 'YCM has been enabled.'
   endif
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-gitgutter Configuration
+"
+" vim-gitgutter is a popular Vim plugin that visually integrates Git diff
+" information with the buffer's gutter (i.e., the sign column to the left of
+" the line numbers).
+"
+" Mappings:
+"   ]c          Jump to next hunk
+"   [c          Jump to previous hunk
+"   <leader>hp  Preview hunk
+"   <leader>hs  Stage hunk
+"   <leader>hu  Undo  hunk
+"
+" See: https://github.com/airblade/vim-gitgutter
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+highlight GitGutterAdd          ctermfg=darkgreen  ctermbg=235
+highlight GitGutterChange       ctermfg=darkyellow ctermbg=235
+highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
+highlight GitGutterDelete       ctermfg=darkred    ctermbg=235
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Gruvbox Configuration
