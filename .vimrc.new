@@ -226,6 +226,7 @@ let g:ale_fixers = {
 \   'yml': ['prettier'],
 \   'xml': ['xmllint'],
 \   'dockerfile': ['hadolint'],
+\   'terraform': ['terraform'],
 \}
 
 let g:ale_linters = {
@@ -237,6 +238,7 @@ let g:ale_linters = {
 \   'markdown': ['cspell', 'vale'],
 \   'yaml': ['yamllint'],
 \   'dockerfile': ['hadolint'],
+\   'terraform': ['terraform', 'tflint', 'tfsec'],
 \}
 
 " Configure mypy.
