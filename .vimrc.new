@@ -58,6 +58,10 @@ call plug#end()
 " Basic Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" Set updatetime to 100 ms (default is 4000 ms). Recommended by several
+" plugins.
+set updatetime=100
+
 " Center search results after jumping.
 nnoremap n  nzzzv   " Next search result
 nnoremap N  Nzzzv   " Previous search result
