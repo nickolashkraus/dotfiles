@@ -253,7 +253,7 @@ let g:ale_linters = {
 " See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
 " let g:ale_python_mypy_options = '--follow-imports=silent'
 
-" Configure shfmt (see shftm --help).
+" Configure shfmt (see shfmt --help).
 let g:ale_sh_shfmt_options = '-i 2 -ci'
 
 " Configure message format.
