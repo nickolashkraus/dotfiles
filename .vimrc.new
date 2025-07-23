@@ -36,27 +36,43 @@ let g:polyglot_disabled = ['markdown']
 " See: https://github.com/junegunn/vim-plug
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin()
+
 " Language
 Plug 'dense-analysis/ale'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
 Plug 'sheerun/vim-polyglot'
 
 " Completion
+Plug 'jiangmiao/auto-pairs'
 Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
 
 " Code Display
 Plug 'morhetz/gruvbox'
 
 " Integrations
-Plug 'godlygeek/tabular'
 Plug 'airblade/vim-gitgutter'
+Plug 'junegunn/fzf.vim'
+Plug 'sjl/gundo.vim'
+Plug 'vim-test/vim-test'
 
 " Interface
+Plug 'preservim/nerdtree'
+Plug 'xuyuanp/nerdtree-git-plugin'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
+" Commands
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-surround'
+Plug 'junegunn/vim-easy-align'
+Plug 'svermeulen/vim-easyclip'
+
 " Other
+Plug 'tpope/vim-sensible'
+Plug 'sjl/vitality.vim'
 
 " NOTE: plug#end() automatically executes `filetype plugin indent on` and
 " `syntax enable`.
