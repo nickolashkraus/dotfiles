@@ -44,12 +44,12 @@ Plugin 'jiangmiao/auto-pairs'
 Plugin 'junegunn/fzf'
 Plugin 'mileszs/ack.vim'
 Plugin 'morhetz/gruvbox'
-Plugin 'preservim/nerdcommenter'
 Plugin 'preservim/nerdtree'
 Plugin 'preservim/vim-markdown'
 Plugin 'pseewald/vim-anyfold'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'sjl/vitality.vim'
+Plugin 'tpope/vim-commentary'
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-sensible'
 Plugin 'tpope/vim-sleuth'
@@ -470,12 +470,6 @@ let g:fzf_colors = {
       \ 'spinner':    ['fg', 'GruvboxBlue'],
       \ 'header':     ['fg', 'GruvboxBg1']
       \ }
-
-" nerdcommenter                                                            {{{2
-" -----------------------------------------------------------------------------
-
-" add spaces after comment delimiters by default
-let g:NERDSpaceDelims = 1
 
 " vim-gitgutter                                                            {{{2
 " -----------------------------------------------------------------------------
