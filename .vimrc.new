@@ -554,3 +554,43 @@ silent! colorscheme gruvbox
 if (has('termguicolors'))
   set termguicolors
 endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-airline Configuration
+"
+" vim-airline is a lightweight status/tabline plugin for Vim that enhances the
+" appearance and functionality of the default statusline.
+"
+" See: https://github.com/vim-airline/vim-airline
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Enable Powerline fonts.
+let g:airline_powerline_fonts = 1
+
+" Disable ALE integration.
+let g:airline#extensions#ale#enabled = 0
+
+" Disable detection of whitespace errors.
+let g:airline#extensions#whitespace#enabled = 0
+
+" Enable branch information (requires vim-fugitive).
+let g:airline#extensions#branch#enabled = 1
+
+" Enable hunk information (requires vim-gitgutter).
+let g:airline#extensions#hunks#enabled = 1
+
+" Enable NERDTree integration. See NERDTreeStatusline.
+let g:airline#extensions#nerdtree_statusline = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-airline-themes Configuration
+"
+" vim-airline-themes is a companion plugin to vim-airline that provides a
+" large collection of predefined color themes specifically for the airline
+" statusline.
+"
+" See: https://github.com/vim-airline/vim-airline-themes
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Use Gruvbox theme.
+let g:airline_theme = 'gruvbox'
