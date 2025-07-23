@@ -511,6 +511,7 @@ endfunction
 " the line numbers).
 "
 " Mappings:
+"
 "   ]c          Jump to next hunk
 "   [c          Jump to previous hunk
 "   <leader>hp  Preview hunk
