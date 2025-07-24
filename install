@@ -351,3 +351,28 @@ echo -e "${white}#############################${reset}" >&2
 check_file_exists "${dotfiles}/requirements.txt" || exit 1
 check_command_exists "pip" || exit 1
 pip install --upgrade -r "${dotfiles}/requirements.txt"
+
+###############################################################################
+# Go Binaries
+###############################################################################
+echo -e "${white}#########################${reset}" >&2
+echo -e "${white}Installing Go binaries...${reset}" >&2
+echo -e "${white}#########################${reset}" >&2
+go install golang.org/x/tools/cmd/goimports@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install go.uber.org/mock/mockgen@latest
+
+###############################################################################
+# npm Packages
+###############################################################################
+echo -e "${white}##########################${reset}" >&2
+echo -e "${white}Installing npm Packages...${reset}" >&2
+echo -e "${white}##########################${reset}" >&2
+npm install -g @anthropic-ai/claude-code
+npm install -g @google/gemini-cli
+npm install -g @openai/codex
+npm install -g cspell
+npm install -g eslint
+npm install -g prettier
+npm install -g sort-package-json
+npm install -g typescript
