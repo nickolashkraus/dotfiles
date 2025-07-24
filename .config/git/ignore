@@ -24,3 +24,6 @@
 
 # Local configuration file for Claude Code.
 **/.claude/settings.local.json
+
+# Local task file for coding agents.
+.task.md
