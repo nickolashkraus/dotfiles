@@ -259,17 +259,6 @@ ln -s "${dotfiles}/.config/powerline/colors.json" "${XDG_CONFIG_HOME}/powerline/
 ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/config.json"
 
 ###############################################################################
-# Prettier Configuration
-#
-# Required Files:
-#   * .config/prettier/.prettierrc
-###############################################################################
-check_file_exists "${dotfiles}/.config/prettier/.prettierrc" || exit 1
-rm -rf "${XDG_CONFIG_HOME}/prettier" || true
-mkdir -p "${XDG_CONFIG_HOME}/prettier"
-ln -s "${dotfiles}/.config/prettier/.prettierrc" "${XDG_CONFIG_HOME}/prettier/.prettierrc"
-
-###############################################################################
 # skhd Configuration
 #
 # Required Files:
