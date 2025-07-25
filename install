@@ -4,7 +4,7 @@
 #   Bootstraps this machine using the configuration files in this repository.
 #     - Creates symbolic links for configuration files.
 #     - Installs Homebrew packages via Brewfile.
-#     - Installs Python packages via requirements.txt.
+#     - Installs Python packages, Go binaries, and npm packages.
 #
 # USAGE
 #   install [OPTIONS]
@@ -342,15 +342,16 @@ brew bundle --file="${dotfiles}/Brewfile"
 ###############################################################################
 # Python Packages
 #
-# Required Files:
-#   * requirements.txt
+# NOTE: pipx has effectively become the de facto standard for managing global
+# Python CLI tools in 2025.
 ###############################################################################
 echo -e "${white}#############################${reset}" >&2
 echo -e "${white}Installing Python packages...${reset}" >&2
 echo -e "${white}#############################${reset}" >&2
-check_file_exists "${dotfiles}/requirements.txt" || exit 1
-check_command_exists "pip" || exit 1
-pip install --upgrade -r "${dotfiles}/requirements.txt"
+check_command_exists "pipx" || exit 1
+pipx install powerline-status
+pipx install ruff
+pipx install mypy
 
 ###############################################################################
 # Go Binaries
@@ -358,6 +359,7 @@ pip install --upgrade -r "${dotfiles}/requirements.txt"
 echo -e "${white}#########################${reset}" >&2
 echo -e "${white}Installing Go binaries...${reset}" >&2
 echo -e "${white}#########################${reset}" >&2
+check_command_exists "go" || exit 1
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install go.uber.org/mock/mockgen@latest
