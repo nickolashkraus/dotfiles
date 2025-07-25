@@ -585,3 +585,45 @@ autocmd BufNewFile,BufRead *.vim:
 
 command! CopyRelPath let @+ = expand('%')
 nnoremap <leader>cp :CopyRelPath<CR>
+
+function! s:CopyGitHubLink() range
+  " 1. Get the remote URL
+  let l:remote = system('git config --get remote.origin.url')->trim()
+
+  " 2. Normalize GitHub URL (handles git@ and https remotes)
+  if l:remote =~? '^git@'
+    let l:remote = substitute(l:remote, '^git@github.com:', 'https://github.com/', '')
+  endif
+  let l:remote = substitute(l:remote, '\.git$', '', '')
+
+  " 3. Determine the repo's default branch (main or master)
+  let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
+  let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
+
+  " 4. Get the repo root and relative file path
+  let l:root = system('git rev-parse --show-toplevel')->trim()
+  let l:relpath = expand('%:p')[len(l:root)+1:]
+
+  " 5. Build base URL
+  let l:url = l:remote . '/blob/' . l:branch . '/' . l:relpath
+
+  " 6. Add line numbers only in visual mode
+  if mode() ==# 'v' || mode() ==# 'V' || mode() ==# "\<C-v>"
+    let l:start = line("'<")
+    let l:end = line("'>")
+    if l:start == l:end
+      let l:url .= '#L' . l:start
+    else
+      let l:url .= '#L' . l:start . '-L' . l:end
+    endif
+  endif
+
+  " 7. Copy to clipboard and echo confirmation
+  let @+ = l:url
+  echo 'Copied: ' . l:url
+endfunction
+
+" Create commands and mappings
+command! -range CopyGitHubLink <line1>,<line2>call s:CopyGitHubLink()
+nnoremap <leader>cpgh :CopyGitHubLink<CR>
+vnoremap <leader>cpgh :CopyGitHubLink<CR>
