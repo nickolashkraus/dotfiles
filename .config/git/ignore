@@ -27,3 +27,6 @@
 
 # Local task file for coding agents.
 .task.md
+
+# pyenv Python version file.
+.python-version
