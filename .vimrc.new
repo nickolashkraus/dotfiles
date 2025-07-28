@@ -128,6 +128,10 @@ set pastetoggle=<F10>
 " plugins.
 set updatetime=100
 
+" Show vertical column at 80th character.
+highlight SignColumn ctermbg=235
+set colorcolumn=80
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Advanced Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
