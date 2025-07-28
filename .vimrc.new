@@ -270,6 +270,10 @@ let g:ale_linters = {
 " See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
 " let g:ale_python_mypy_options = '--follow-imports=silent'
 
+" Configure Ruff.
+" Disable E501 (line too long).
+" let g:ale_python_ruff_options = '--ignore=E501'
+
 " Configure shfmt (see shfmt --help).
 let g:ale_sh_shfmt_options = '-i 2 -ci'
 
