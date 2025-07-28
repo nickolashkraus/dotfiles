@@ -53,6 +53,7 @@ Plug 'morhetz/gruvbox'
 
 " Integrations
 Plug 'airblade/vim-gitgutter'
+Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'sjl/gundo.vim'
 Plug 'vim-test/vim-test'
