@@ -197,6 +197,25 @@ highlight SpellCap   cterm=underline ctermfg=blue
 highlight SpellLocal cterm=underline ctermfg=cyan
 highlight SpellRare  cterm=underline ctermfg=magenta
 
+" Configure autocommands.
+augroup vimrc
+  autocmd!
+
+  " Configure filetype-specific automatic formatting.
+  "   t  Auto-wrap text at textwidth.
+  autocmd FileType markdown,text,gitcommit setlocal formatoptions=trcqn1j
+
+  " Configure filetype-specific spellchecking.
+  autocmd FileType markdown,text,gitcommit setlocal spell
+
+  " Automatically write all buffers on focus loss / buffer switch.
+  autocmd FocusLost,BufLeave * silent! wa
+
+  " Open packages installed via Homebrew in readonly, nomodifiable mode
+  autocmd BufReadPre,BufNewFile /opt/homebrew/Cellar/* setlocal readonly nomodifiable
+
+augroup END
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
 "
