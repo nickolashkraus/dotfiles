@@ -542,9 +542,9 @@ endfunction
 "
 "   ]c          Jump to next hunk
 "   [c          Jump to previous hunk
-"   <leader>hp  Preview hunk
-"   <leader>hs  Stage hunk
-"   <leader>hu  Undo  hunk
+"   <Leader>hp  Preview hunk
+"   <Leader>hs  Stage hunk
+"   <Leader>hu  Undo  hunk
 "
 " See: https://github.com/airblade/vim-gitgutter
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
