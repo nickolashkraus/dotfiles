@@ -83,9 +83,91 @@ call plug#end()
 " Basic Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" Set character encoding.
+set encoding=utf-8
+scriptencoding utf-8
+
+" Set split behavior.
+set splitbelow  " Horizontal split (:split, :sp) below current pane.
+set splitright  " Vertical split (:vsplit, :vs) right of current pane.
+
+" Show line numbers.
+set number
+
+" Configure indentation settings.
+set tabstop=2     " Width of a tab character (in spaces).
+set shiftwidth=2  " Indent width (in spaces).
+set expandtab     " Use spaces instead of tabs.
+
+" Configure status line.
+set laststatus=2  " Always show the status line.
+set noshowmode    " Removes duplicate mode message (use vim-airline instead).
+
+" Set pmenu (pop-up menu) color.
+highlight Pmenu ctermfg=gray ctermbg=darkgray
+
+" Configure automatic formatting.
+"   r  Automatically insert the current comment leader after hitting <Enter>.
+"   c  Auto-wrap comments using 'textwidth'. Insert the current comment leader.
+"   q  Allow formatting of comments with 'gq'.
+"   n  When formatting text, recognize numbered lists.
+"   1  Don't break a line after a one-letter word.
+"   j  Remove a comment leader when joining lines.
+set formatoptions=rcqn1j
+
+" Set IncSearch color (166 = orange).
+highlight IncSearch ctermfg=235 ctermbg=166
+
+" Set Error color (167 = bright red).
+highlight Error ctermfg=235 ctermbg=167
+
+" Toggle 'set paste' with <F10>.
+set pastetoggle=<F10>
+
 " Set updatetime to 100 ms (default is 4000 ms). Recommended by several
 " plugins.
 set updatetime=100
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Advanced Configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Remap window selection (Ctrl + [hjkl]).
+nnoremap <C-H> <C-W><C-H>
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+
+" Remap <Leader> key to <Space>.
+nnoremap <space> <nop>
+let g:mapleader = "\<Space>"
+
+" Remap Ctrl + i (go to newer entry in jump list) to <Leader> + i.
+nnoremap <Leader>i <C-I>
+
+" Remap Ctrl + o (go to older entry in jump list) to <Leader> + o.
+nnoremap <Leader>o <C-O>
+
+" Remap <Leader>y/<Leader>p to copy/paste to the + register (system clipboard).
+nnoremap <Leader>y "+y
+vnoremap <Leader>y "+y
+nnoremap <Leader>p "+p
+vnoremap <Leader>p "+p
+
+" Remap 'Q' to playback the recording put into the q register.
+noremap Q @q
+
+" Substitute all occurrences of the word under the cursor.
+nnoremap <Leader>s :%s/\<<C-r><C-w>\>//g<Left><Left>
+
+" Copy the relative path of the current buffer to the system clipboard.
+command! CopyRelPath let @+ = expand('%')
+nnoremap <Leader>cp :CopyRelPath<CR>
+
+" Alphabetize selected text (normal, remove duplicates, reverse).
+vnoremap <Leader>abc  :sort<CR>   " Alphabetize selected text
+vnoremap <Leader>abcu :sort u<CR> " Alphabetize and remove duplicates
+vnoremap <Leader>abc! :sort!<CR>  " Reverse alphabetize
 
 " Center search results after jumping.
 nnoremap n  nzzzv   " Next search result
@@ -110,19 +192,6 @@ highlight SpellBad   cterm=underline ctermfg=red
 highlight SpellCap   cterm=underline ctermfg=blue
 highlight SpellLocal cterm=underline ctermfg=cyan
 highlight SpellRare  cterm=underline ctermfg=magenta
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Advanced Configuration
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Copy the relative path of the current buffer to the system clipboard.
-command! CopyRelPath let @+ = expand('%')
-nnoremap <leader>cp :CopyRelPath<CR>
-
-" Alphabetize selected text (normal, remove duplicates, reverse).
-vnoremap <leader>abc  :sort<CR>   " Alphabetize selected text
-vnoremap <leader>abcu :sort u<CR> " Alphabetize and remove duplicates
-vnoremap <leader>abc! :sort!<CR>  " Reverse alphabetize
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
