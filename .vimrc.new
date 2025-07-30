@@ -60,7 +60,7 @@ Plug 'vim-test/vim-test'
 
 " Interface
 Plug 'preservim/nerdtree'
-Plug 'xuyuanp/nerdtree-git-plugin'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
@@ -533,13 +533,13 @@ let g:ycm_auto_hover = ''
 " type of the symbol, rather than classic regex-based syntax highlighting.
 let g:ycm_enable_semantic_highlighting = 1
 
-" Remap YCM completion to Ctrl + n instead of Ctrl + Space.
+" Remap YCM completion to Ctrl + j instead of Ctrl + Space.
 " The 'ycm_key_invoke_completion' option controls the key mapping used to
 " invoke the completion menu for semantic completion. This key mapping can be
 " used to trigger semantic completion anywhere, which can be useful when
 " searching for top-level functions and classes in the current file.
 " NOTE: Ctrl + Space opens Alfred.
-let g:ycm_key_invoke_completion = '<C-n>'
+let g:ycm_key_invoke_completion = '<C-j>'
 
 " Defines the max size (in Kb) for a file to be considered for completion.
 let g:ycm_disable_for_files_larger_than_kb = 512
@@ -667,6 +667,58 @@ silent! colorscheme gruvbox
 if (has('termguicolors'))
   set termguicolors
 endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NERDTree
+"
+" NERDTree is a popular file system explorer plugin for the Vim text editor.
+" It provides a tree-style navigation panel that displays your project's
+" directory structure in a sidebar, making it easier to browse and manage
+" files without leaving Vim.
+"
+" See: https://github.com/preservim/nerdtree
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Show hidden files by default.
+let g:NERDTreeShowHidden = 1
+
+" Ignore specific files.
+let g:NERDTreeIgnore=[
+  '__pycache__$[[dir]]',
+  '\.DS_Store$',
+  '\.mypy_cache$[[dir]]',
+  '\.pyc$',
+  '\.pytest_cache$[[dir]]',
+  '\.swo$',
+  '\.swp$',
+  '\~$'
+]
+
+" Do not show 'Bookmarks' and 'Press ? for help' text.
+let g:NERDTreeMinimalUI = 1
+
+" Set window width.
+let g:NERDTreeWinSize = 35
+
+" Toggle NERDTree (if closed, open it; if open, close it).
+nnoremap <C-n> :NERDTreeToggle<CR>
+
+" Find the file for the active buffer in the NERDTree window.
+nnoremap <C-f> :NERDTreeFind<CR>
+
+" Use case-sensitive sort of nodes.
+let g:NERDTreeCaseSensitiveSort = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" nerdtree-git-plugin
+"
+" nerdtree-git-plugin is an extension for NERDTree that shows Git status flags
+" for files and directories directly in the file tree.
+"
+" See: https://github.com/Xuyuanp/nerdtree-git-plugin
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-airline Configuration
