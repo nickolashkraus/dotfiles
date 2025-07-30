@@ -63,12 +63,6 @@ ctrl - return : yabai -m query --windows \
                 | jq -r 'map(select(.app == "iTerm2")) as $w | select($w | length == 2 and ($w[0].display != $w[1].display)) | if $w[0]["has-focus"] then $w[1].id else $w[0].id end' \
                 | xargs -r yabai -m window --focus
 
-# Focus and show Firefox (bring floating window to front).
-ctrl - f : yabai -m window --focus $(yabai -m query --windows \
-           | jq -r '.[] | select(.app == "Firefox") | .id') \
-           && yabai -m window --layer above $(yabai -m query --windows \
-           | jq -r '.[] | select(.app == "Firefox") | .id')
-
 # Focus iTerm2 window on display 2.
 ctrl - 1 : yabai -m window --focus $(yabai -m query --windows \
            | jq -r '.[] | select(.app == "iTerm2" and .display == 2) | .id')
@@ -78,3 +72,9 @@ ctrl - 2 : yabai -m window --focus $(yabai -m query --windows \
            | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id') \
            && yabai -m window --layer above $(yabai -m query --windows \
            | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id')
+
+# Focus and show Firefox (bring floating window to front).
+ctrl - 3 : yabai -m window --focus $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "Firefox") | .id') \
+           && yabai -m window --layer above $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "Firefox") | .id')
