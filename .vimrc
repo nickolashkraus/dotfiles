@@ -356,7 +356,7 @@ let g:NERDTreeWinSize = 35
 let g:ycm_disable_for_files_larger_than_kb = 512
 
 " toggle YCM with <F2>
-noremap <F2> :call ToggleYcm()<CR>
+" noremap <F2> :call ToggleYcm()<CR>
 
 " Function: ToggleYcm()
 " Sets b:ycm_largefile directly, thereby enabling or disabling YCM.
@@ -585,3 +585,50 @@ autocmd BufNewFile,BufRead *.vim:
 
 command! CopyRelPath let @+ = expand('%')
 nnoremap <leader>cp :CopyRelPath<CR>
+
+function! s:CopyGitHubLink() range
+  " 1. Get the remote URL
+  let l:remote = system('git config --get remote.origin.url')->trim()
+
+  " 2. Normalize GitHub URL (handles SSH and HTTPS remotes)
+  if l:remote =~? '^git@'
+    " Convert SSH to https://
+    let l:remote = substitute(l:remote, '^git@[^:]*github\.com:', 'https://github.com/', '')
+  else
+    " Ensure any workiva.github.com → github.com for https remotes
+    let l:remote = substitute(l:remote, '://[^/]*github\.com', '://github.com', '')
+  endif
+
+  " Strip trailing .git if present
+  let l:remote = substitute(l:remote, '\.git$', '', '')
+
+  " 3. Determine the repo's default branch (main or master)
+  let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
+  let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
+
+  " 4. Get the repo root and relative file path
+  let l:root = system('git rev-parse --show-toplevel')->trim()
+  let l:relpath = expand('%:p')[len(l:root)+1:]
+
+  " 5. Build base URL
+  let l:url = l:remote . '/blob/' . l:branch . '/' . l:relpath
+
+  " 6. Add line numbers if range was provided (i.e., called from visual mode)
+  if a:firstline != a:lastline || a:firstline != line('.')
+    " Range was explicitly provided or is different from current line
+    if a:firstline == a:lastline
+      let l:url .= '#L' . a:firstline
+    else
+      let l:url .= '#L' . a:firstline . '-L' . a:lastline
+    endif
+  endif
+
+  " 7. Copy to clipboard and show confirmation
+  let @+ = l:url
+  echo 'Copied: ' . l:url
+endfunction
+
+" Command + mappings
+command! -range CopyGitHubLink <line1>,<line2>call s:CopyGitHubLink()
+nnoremap <leader>cpgh :CopyGitHubLink<CR>
+vnoremap <leader>cpgh :CopyGitHubLink<CR>
