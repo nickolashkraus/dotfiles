@@ -586,49 +586,127 @@ autocmd BufNewFile,BufRead *.vim:
 command! CopyRelPath let @+ = expand('%')
 nnoremap <leader>cp :CopyRelPath<CR>
 
-function! s:CopyGitHubLink() range
-  " 1. Get the remote URL
-  let l:remote = system('git config --get remote.origin.url')->trim()
+" Function: GetGitHubURL()
+" Get the GitHub URL of the file for the current buffer.
+"
+" Args: None
+" Returns: GitHub URL (string), or empty string on error
+function! GetGitHubURL()
+  " Check if inside Git repository.
+  if system('git rev-parse --is-inside-work-tree 2>/dev/null')->trim() !=# 'true'
+    echoerr 'Not inside a Git repository'
+    return ''
+  endif
 
-  " 2. Normalize GitHub URL (handles SSH and HTTPS remotes)
+  " Get remote URL.
+  let l:remote = system('git config --get remote.origin.url 2>/dev/null')->trim()
+  if v:shell_error != 0 || empty(l:remote)
+    echoerr 'No remote origin found'
+    return ''
+  endif
+
+  " Normalize GitHub URL (handles SSH and HTTPS remotes).
   if l:remote =~? '^git@'
-    " Convert SSH to https://
     let l:remote = substitute(l:remote, '^git@[^:]*github\.com:', 'https://github.com/', '')
   else
-    " Ensure any workiva.github.com → github.com for https remotes
     let l:remote = substitute(l:remote, '://[^/]*github\.com', '://github.com', '')
   endif
 
-  " Strip trailing .git if present
+  " Strip trailing .git if present.
   let l:remote = substitute(l:remote, '\.git$', '', '')
 
-  " 3. Determine the repo's default branch (main or master)
+  " Determine the repository's default branch (main or master).
   let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
   let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
 
-  " 4. Get the repo root and relative file path
-  let l:root = system('git rev-parse --show-toplevel')->trim()
-  let l:relpath = expand('%:p')[len(l:root)+1:]
-
-  " 5. Build base URL
-  let l:url = l:remote . '/blob/' . l:branch . '/' . l:relpath
-
-  " 6. Add line numbers if range was provided (i.e., called from visual mode)
-  if a:firstline != a:lastline || a:firstline != line('.')
-    " Range was explicitly provided or is different from current line
-    if a:firstline == a:lastline
-      let l:url .= '#L' . a:firstline
-    else
-      let l:url .= '#L' . a:firstline . '-L' . a:lastline
-    endif
+  if empty(l:branch)
+    echoerr 'Could not determine default branch'
+    return ''
   endif
 
-  " 7. Copy to clipboard and show confirmation
+  " Get the repository's root and relative file path.
+  let l:root = system('git rev-parse --show-toplevel 2>/dev/null')->trim()
+  if v:shell_error != 0
+    echoerr 'Could not determine repository root'
+    return ''
+  endif
+
+  let l:relpath = expand('%:p')[len(l:root)+1:]
+
+  " Build and return URL.
+  let l:url = l:remote . '/blob/' . l:branch . '/' . l:relpath
+  return l:url
+endfunction
+
+" Function: s:CopyGitHubURL()
+" Copy the GitHub URL of the current buffer to the system clipboard.
+"
+" This function generates a GitHub permalink for the current file and copies it
+" to the system clipboard.
+"
+" Examples:
+"   https://github.com/user/repo/blob/main/src/file.py
+"
+" Args: None
+" Returns: None
+function! s:CopyGitHubURL()
+  " Get GitHub URL of the file.
+  let l:url = GetGitHubURL()
+
+  " Do not copy empty URLs, error already shown.
+  if empty(l:url)
+    return
+  endif
+
+  " Copy to clipboard and show confirmation.
   let @+ = l:url
   echo 'Copied: ' . l:url
 endfunction
 
-" Command + mappings
-command! -range CopyGitHubLink <line1>,<line2>call s:CopyGitHubLink()
-nnoremap <leader>cpgh :CopyGitHubLink<CR>
-vnoremap <leader>cpgh :CopyGitHubLink<CR>
+command! CopyGitHubURL call s:CopyGitHubURL()
+nnoremap <leader>cpgh :CopyGitHubURL<CR>
+
+" Function: s:CopyGitHubURLWithRange() range
+" Copy the GitHub URL of the current buffer to the system clipboard.
+"
+" This function generates a GitHub permalink for the current file and copies it
+" to the system clipboard. When called with a visual selection, it includes
+" line range anchors in the URL (e.g., #L13-L37).
+"
+" Requires the current buffer to be within a Git repository with a GitHub
+" remote origin. Git must be available in the system PATH.
+"
+" Examples:
+"   Normal mode: https://github.com/user/repo/blob/main/src/file.py#L13
+"   Visual mode: https://github.com/user/repo/blob/main/src/file.py#L13-L37
+"
+" Args:
+"   range: Line range from visual selection (a:firstline, a:lastline).
+"          When called from normal mode, both values equal the current line.
+"          When called from visual mode, contains the selected line range.
+"
+" Returns: None
+function! s:CopyGitHubURLWithRange() range
+  " Get GitHub URL of the file.
+  let l:url = GetGitHubURL()
+
+  " Do not copy empty URLs, error already shown.
+  if empty(l:url)
+    return
+  endif
+
+  " Add line numbers if called with a range (visual mode or explicit range).
+  if a:firstline == a:lastline
+    let l:url .= '#L' . a:firstline
+  else
+    let l:url .= '#L' . a:firstline . '-L' . a:lastline
+  endif
+
+  " Copy to clipboard and show confirmation.
+  let @+ = l:url
+  echo 'Copied: ' . l:url
+endfunction
+
+command! -range CopyGitHubURLWithRange <line1>,<line2>call s:CopyGitHubURLWithRange()
+nnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
+vnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
