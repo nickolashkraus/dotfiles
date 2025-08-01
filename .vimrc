@@ -42,6 +42,7 @@ Plugin 'fatih/vim-go'
 Plugin 'hashivim/vim-terraform'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'junegunn/fzf'
+Plugin 'junegunn/fzf.vim'
 Plugin 'mileszs/ack.vim'
 Plugin 'morhetz/gruvbox'
 Plugin 'preservim/nerdtree'
@@ -340,7 +341,7 @@ nnoremap <C-f> :NERDTreeFind<CR>
 let g:NERDTreeShowHidden=1
 
 " ignore specific files
-let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$', '\.mypy_cache$', '\.pytest_cache$', '__pycache__$']
+let g:NERDTreeIgnore=['\.pyc$', '\~$', '\.swp$', '\.mypy_cache$', '\.pytest_cache$', '__pycache__$', '.git$[[dir]]']
 
 " set sorting of nodes to be case-sensitive
 let g:NERDTreeCaseSensitiveSort=2
