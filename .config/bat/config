@@ -1,0 +1,24 @@
+###############################################################################
+# bat Configuration
+#
+# DESCRIPTION
+#   Configuration file for bat.
+#
+#   bat is a command-line tool that serves as a modern replacement for the
+#   traditional Unix cat command. It's designed to display file contents with
+#   enhanced features that make it much more user-friendly.
+#
+#   See: https://github.com/sharkdp/bat
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/bat/config:
+#
+#     ln -s .config/bat/config $XDG_CONFIG_HOME/bat/config
+###############################################################################
+
+# Set the theme for syntax highlighting. Use '--list-themes' to see all available
+# themes.
+--theme="gruvbox-dark"
+
+# Map a glob pattern to an existing syntax name. The glob pattern is matched on
+# the full path and the filename.

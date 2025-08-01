@@ -179,6 +179,17 @@ rm -f "${HOME}/.ssh/config" || true
 ln -s "${dotfiles}/.ssh/config" "${HOME}/.ssh/config"
 
 ###############################################################################
+# bat Configuration
+#
+# Required Files:
+#   * .config/bat/config
+###############################################################################
+check_file_exists "${dotfiles}/.config/bat/config" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/bat" || true
+mkdir -p "${XDG_CONFIG_HOME}/bat"
+ln -s "${dotfiles}/.config/bat/config" "${XDG_CONFIG_HOME}/bat/config"
+
+###############################################################################
 # JankyBorders Configuration
 #
 # Required Files:
