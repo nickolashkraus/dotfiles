@@ -270,6 +270,26 @@ ln -s "${dotfiles}/.config/powerline/colors.json" "${XDG_CONFIG_HOME}/powerline/
 ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/config.json"
 
 ###############################################################################
+# Shell Configuration
+#
+# Required Files:
+#   * .config/shell/aliases.sh
+#   * .config/shell/exports.sh
+#   * .config/shell/functions.sh
+#   * .config/shell/utilities.sh.sh
+###############################################################################
+check_file_exists "${dotfiles}/.config/shell/aliases.sh" || exit 1
+check_file_exists "${dotfiles}/.config/shell/exports.sh" || exit 1
+check_file_exists "${dotfiles}/.config/shell/functions.sh" || exit 1
+check_file_exists "${dotfiles}/.config/shell/utilities.sh.sh" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/shell" || true
+mkdir -p "${XDG_CONFIG_HOME}/shell"
+ln -s "${dotfiles}/.config/shell/aliases.sh" "${XDG_CONFIG_HOME}/shell/aliases.sh"
+ln -s "${dotfiles}/.config/shell/exports.sh" "${XDG_CONFIG_HOME}/shell/exports.sh"
+ln -s "${dotfiles}/.config/shell/functions.sh" "${XDG_CONFIG_HOME}/shell/functions.sh"
+ln -s "${dotfiles}/.config/shell/utilities.sh.sh" "${XDG_CONFIG_HOME}/shell/utilities.sh.sh"
+
+###############################################################################
 # skhd Configuration
 #
 # Required Files:
@@ -312,18 +332,6 @@ check_file_exists "${dotfiles}/.config/yamllint/config" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/yamllint" || true
 mkdir -p "${XDG_CONFIG_HOME}/yamllint"
 ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
-
-###############################################################################
-# Oh My Zsh Aliases
-#
-# Required Files:
-#   * aliases.zsh
-###############################################################################
-check_file_exists "${dotfiles}/aliases.zsh" || exit 1
-check_dir_exists "${HOME}/.oh-my-zsh" || exit 1
-mkdir -p "${ZSH_CUSTOM}"
-rm -f "${ZSH_CUSTOM}/aliases.zsh" || true
-ln -s "${dotfiles}/aliases.zsh" "${ZSH_CUSTOM}/aliases.zsh"
 
 ###############################################################################
 # Oh My Zsh Theme
