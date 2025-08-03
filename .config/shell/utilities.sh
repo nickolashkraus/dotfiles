@@ -45,3 +45,24 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 #
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
 source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
+
+###############################################################################
+# Go
+###############################################################################
+
+# Add the Go binaries directory ($GOPATH/bin) to $PATH.
+#
+# When you build Go programs with `go install`, the compiled executables go
+# into $GOPATH/bin. By default, Go uses $HOME/go for $GOPATH.
+export PATH=$PATH:${GOPATH:-$HOME/go}/bin
+
+###############################################################################
+# Java
+###############################################################################
+
+# openjdk@24 is marked as keg-only, so it isn't symlinked to `brew --prefix`.
+# This is because it's an alternative version of the main OpenJDK formula.
+export PATH="$(brew --prefix)/opt/openjdk@24/bin:$PATH"
+
+# For compilers to find openjdk@24, CPPFLAGS is set.
+export CPPFLAGS="-I/opt/homebrew/opt/openjdk@24/include"
