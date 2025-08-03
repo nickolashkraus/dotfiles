@@ -17,3 +17,15 @@
 #
 #     ln -s .config/shell/utilities.sh $XDG_CONFIG_HOME/shell/utilities.sh
 ###############################################################################
+
+###############################################################################
+# Homebrew
+#
+# Homebrew is a package manager for macOS and Linux that makes it easy to
+# install, manage, and update software from the command line.
+#
+# See: https://brew.sh
+###############################################################################
+
+# Set up Homebrew.
+eval "$(/opt/homebrew/bin/brew shellenv)"
