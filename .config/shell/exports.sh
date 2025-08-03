@@ -3,7 +3,7 @@
 # Shell Environment Variables
 #
 # DESCRIPTION
-#   My personal environment variables.
+#   My personal shell environment variables.
 #
 #   A shell environment variable is a named value that stores information the
 #   shell and programs can access. These variables affect how the shell and
