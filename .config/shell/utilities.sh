@@ -29,3 +29,19 @@
 
 # Set up Homebrew.
 eval "$(/opt/homebrew/bin/brew shellenv)"
+
+###############################################################################
+# Gruvbox
+#
+# Gruvbox is a popular retro-inspired colorscheme for Vim and other text
+# editors. It's designed with warm, earthy tones that are easy on the eyes for
+# long coding sessions.
+#
+# See: https://github.com/morhetz/gruvbox
+###############################################################################
+
+# Run script to override the system default 256-color palette with the precise
+# Gruvbox color palette.
+#
+# See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
+source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
