@@ -66,3 +66,33 @@ export PATH="$(brew --prefix)/opt/openjdk@24/bin:$PATH"
 
 # For compilers to find openjdk@24, CPPFLAGS is set.
 export CPPFLAGS="-I/opt/homebrew/opt/openjdk@24/include"
+
+###############################################################################
+# nvm
+#
+# nvm (Node Version Manager) is a tool that lets you install, manage, and
+# switch between multiple versions of Node.js on the same machine.
+#
+# See: https://github.com/nvm-sh/nvm
+###############################################################################
+
+# WARNING: Managing nvm via Homebrew is not supported.
+export NVM_DIR="$HOME/.nvm"
+[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && \
+  \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
+[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && \
+  \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
+
+###############################################################################
+# pyenv
+#
+# pyenv is a Python version manager that lets you install, manage, and switch
+# between multiple versions of Python on the same machine.
+#
+# See: https://github.com/pyenv/pyenv
+###############################################################################
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
