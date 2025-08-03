@@ -276,18 +276,18 @@ ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/
 #   * .config/shell/aliases.sh
 #   * .config/shell/exports.sh
 #   * .config/shell/functions.sh
-#   * .config/shell/utilities.sh.sh
+#   * .config/shell/utilities.sh
 ###############################################################################
 check_file_exists "${dotfiles}/.config/shell/aliases.sh" || exit 1
 check_file_exists "${dotfiles}/.config/shell/exports.sh" || exit 1
 check_file_exists "${dotfiles}/.config/shell/functions.sh" || exit 1
-check_file_exists "${dotfiles}/.config/shell/utilities.sh.sh" || exit 1
+check_file_exists "${dotfiles}/.config/shell/utilities.sh" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/shell" || true
 mkdir -p "${XDG_CONFIG_HOME}/shell"
 ln -s "${dotfiles}/.config/shell/aliases.sh" "${XDG_CONFIG_HOME}/shell/aliases.sh"
 ln -s "${dotfiles}/.config/shell/exports.sh" "${XDG_CONFIG_HOME}/shell/exports.sh"
 ln -s "${dotfiles}/.config/shell/functions.sh" "${XDG_CONFIG_HOME}/shell/functions.sh"
-ln -s "${dotfiles}/.config/shell/utilities.sh.sh" "${XDG_CONFIG_HOME}/shell/utilities.sh.sh"
+ln -s "${dotfiles}/.config/shell/utilities.sh" "${XDG_CONFIG_HOME}/shell/utilities.sh"
 
 ###############################################################################
 # skhd Configuration
