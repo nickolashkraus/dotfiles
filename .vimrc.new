@@ -53,7 +53,7 @@ Plug 'morhetz/gruvbox'
 
 " Integrations
 Plug 'airblade/vim-gitgutter'
-Plug 'junegunn/fzf'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'sjl/gundo.vim'
 Plug 'vim-test/vim-test'
@@ -885,3 +885,95 @@ let g:airline#extensions#nerdtree_statusline = 1
 
 " Use Gruvbox theme.
 let g:airline_theme = 'gruvbox'
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" fzf Configuration
+"
+" fzf is a general-purpose command-line fuzzy finder. It helps you quickly
+" search and select items from a list using a fast, interactive fuzzy search
+" interface. It's written in Go and works in any Unix-like terminal
+" environment.
+"
+" NOTE: fzf is installed via Homebrew. The junegunn/fzf Vim plugin will pick
+" up the fzf binary if it is available on the system path. If fzf is not found
+" on $PATH, it will ask to download the latest binary.
+"
+" See:
+"   - https://github.com/junegunn/fzf
+"   - https://junegunn.github.io/fzf
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" fzf.vim Configuration
+"
+" fzf.vim wraps fzf functionality into Vim commands and key mappings.
+"
+" See: https://github.com/junegunn/fzf.vim
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Initialize configuration dictionary.
+let g:fzf_vim = {}
+
+" Set fzf layout.
+let g:fzf_layout = {'down': '40%'}
+let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
+
+" Set key bindings for opening selected files.
+let g:fzf_action = {
+      \ 'ctrl-t': 'tab split',
+      \ 'ctrl-s': 'split',
+      \ 'ctrl-v': 'vsplit' }
+
+" Search files with Ctrl - p.
+map <C-P> :Files<CR>
+
+" Set fzf colorscheme.
+"
+"   fg:      #ebdbb2 - fg1
+"   fg+:     #d5c4a1 - fg2
+"   bg:      #282828 - bg0
+"   bg+:     #3c3836 - bg1
+"   hl:      #fabd2f - yellow (bright)
+"   hl+:     #d79921 - yellow (neutral)
+"   info:    #665c54 - bg3
+"   marker:  #83a598 - blue (bright)
+"   prompt:  #665c54 - bg3
+"   spinner: #665c54 - bg3
+"   pointer: #83a598 - blue (bright)
+"   header:  #665c54 - bg3
+"   border:  #3c3836 - bg1
+"   label:   #665c54 - bg3
+"   query:   #ebdbb2 - fg1
+"
+" See:
+"   - https://github.com/junegunn/fzf/wiki/Color-schemes
+"   - https://vitormv.github.io/fzf-themes
+let g:fzf_colors = {
+      \ 'fg':         ['fg', 'GruvboxFg1'],
+      \ 'fg+':        ['fg', 'CursorLine', 'CursorColumn', 'GruvboxFg2'],
+      \ 'bg':         ['bg', 'GruvboxBg0'],
+      \ 'bg+':        ['bg', 'CursorLine', 'CursorColumn'],
+      \ 'preview-fg': ['fg', 'GruvboxFg1'],
+      \ 'preview-bg': ['bg', 'GruvboxBg0'],
+      \ 'hl':         ['fg', 'GruvboxYellow'],
+      \ 'hl+':        ['fg', 'GruvboxYellowBold'],
+      \ 'info':       ['fg', 'GruvboxBg3'],
+      \ 'marker':     ['fg', 'GruvboxBlue'],
+      \ 'prompt':     ['fg', 'GruvboxBg3'],
+      \ 'spinner':    ['fg', 'GruvboxBg3'],
+      \ 'pointer':    ['fg', 'GruvboxBlue'],
+      \ 'header':     ['fg', 'GruvboxBg3'],
+      \ 'border':     ['fg', 'GruvboxBg1'],
+      \ 'gutter':     ['fg', 'GruvboxBg1'],
+      \ 'label':      ['fg', 'GruvboxBg3'],
+      \ 'query':      ['fg', 'GruvboxFg1'],
+      \ }
+
+" Hide statusline when fzf starts in a terminal buffer.
+autocmd! FileType fzf set laststatus=0 noshowmode noruler
+  \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+
+" Do not open files in NERDTree buffer.
+nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
