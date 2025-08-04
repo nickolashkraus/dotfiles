@@ -131,17 +131,13 @@ function check_command_exists() {
 # $HOME Configuration
 #
 # Required Files:
-#   * .agignore
 #   * .vimrc
 #   * .zshrc
 ###############################################################################
-check_file_exists "${dotfiles}/.agignore" || exit 1
 check_file_exists "${dotfiles}/.vimrc" || exit 1
 check_file_exists "${dotfiles}/.zshrc" || exit 1
-rm -f "${HOME}/.agignore" || true
 rm -f "${HOME}/.vimrc" || true
 rm -f "${HOME}/.zshrc" || true
-ln -s "${dotfiles}/.agignore" "${HOME}/.agignore"
 ln -s "${dotfiles}/.vimrc" "${HOME}/.vimrc"
 ln -s "${dotfiles}/.zshrc" "${HOME}/.zshrc"
 
