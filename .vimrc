@@ -70,7 +70,6 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'junegunn/vim-easy-align'
-Plug 'svermeulen/vim-easyclip'
 
 " Other
 Plug 'tpope/vim-sensible'
