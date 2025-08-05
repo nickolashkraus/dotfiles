@@ -799,10 +799,11 @@ endfunction
 " See: https://github.com/airblade/vim-gitgutter
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-highlight GitGutterAdd          ctermfg=darkgreen  ctermbg=235
-highlight GitGutterChange       ctermfg=darkyellow ctermbg=235
-highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
-highlight GitGutterDelete       ctermfg=darkred    ctermbg=235
+" Set vim-gitgutter sign colors.
+highlight GitGutterAdd          ctermfg=100 ctermbg=235 guifg=#79740e guibg=#282828
+highlight GitGutterChange       ctermfg=136 ctermbg=235 guifg=#b57614 guibg=#282828
+highlight GitGutterChangeDelete ctermfg=136 ctermbg=235 guifg=#b57614 guibg=#282828
+highlight GitGutterDelete       ctermfg=88  ctermbg=235 guifg=#9d0006 guibg=#282828
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " NERDTree
