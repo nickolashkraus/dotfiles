@@ -137,11 +137,8 @@ set noshowmode    " Removes duplicate mode message (use vim-airline instead).
 "   j  Remove a comment leader when joining lines.
 set formatoptions=rcqn1j
 
-" Set IncSearch color (166 = orange).
-highlight IncSearch ctermfg=235 ctermbg=166
-
-" Set Error color (167 = bright red).
-highlight Error ctermfg=235 ctermbg=167
+" Set IncSearch color.
+highlight IncSearch cterm=bold ctermfg=166 ctermbg=235 guifg=#d65d0e guibg=#282828
 
 " Toggle 'set paste' with <F10>.
 set pastetoggle=<F10>
