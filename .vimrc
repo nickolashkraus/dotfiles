@@ -80,6 +80,31 @@ Plug 'sjl/vitality.vim'
 call plug#end()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Gruvbox Configuration
+"
+" Gruvbox is a popular retro-inspired colorscheme for Vim and other text
+" editors. It's designed with warm, earthy tones that are easy on the eyes for
+" long coding sessions.
+"
+" NOTE: The Gruvbox configuration must come before custom color
+" configurations.
+"
+" See: https://github.com/morhetz/gruvbox
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Set background (light vs. dark mode).
+set background=dark
+
+" Set colorscheme (prepended with `silent!` to ignore errors if not yet
+" installed).
+silent! colorscheme gruvbox
+
+" Use 24-bit color (true-color).
+if (has('termguicolors'))
+  set termguicolors
+endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Basic Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -770,28 +795,6 @@ highlight GitGutterAdd          ctermfg=darkgreen  ctermbg=235
 highlight GitGutterChange       ctermfg=darkyellow ctermbg=235
 highlight GitGutterChangeDelete ctermfg=darkyellow ctermbg=235
 highlight GitGutterDelete       ctermfg=darkred    ctermbg=235
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Gruvbox Configuration
-"
-" Gruvbox is a popular retro-inspired colorscheme for Vim and other text
-" editors. It's designed with warm, earthy tones that are easy on the eyes for
-" long coding sessions.
-"
-" See: https://github.com/morhetz/gruvbox
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Set background (light vs. dark mode).
-set background=dark
-
-" Set colorscheme (prepended with `silent!` to ignore errors if not yet
-" installed).
-silent! colorscheme gruvbox
-
-" Use 24-bit color (true-color).
-if (has('termguicolors'))
-  set termguicolors
-endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " NERDTree
