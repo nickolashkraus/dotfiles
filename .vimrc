@@ -46,7 +46,7 @@ Plug 'sheerun/vim-polyglot'
 
 " Completion
 Plug 'jiangmiao/auto-pairs'
-Plug 'ycm-core/YouCompleteMe', { 'do': function('BuildYCM') }
+Plug 'ycm-core/YouCompleteMe', { 'do': {info -> BuildYCM(info)} }
 
 " Code Display
 Plug 'morhetz/gruvbox'
