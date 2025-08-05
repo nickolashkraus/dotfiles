@@ -318,17 +318,26 @@ nnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
 vnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
 
 " Alphabetize selected text (normal, remove duplicates, reverse).
-vnoremap <Leader>abc  :sort<CR>   " Alphabetize selected text
-vnoremap <Leader>abcu :sort u<CR> " Alphabetize and remove duplicates
-vnoremap <Leader>abc! :sort!<CR>  " Reverse alphabetize
+"   abc   Alphabetize selected text
+"   abcu  Alphabetize and remove duplicates
+"   abc!  Reverse alphabetize
+vnoremap <Leader>abc  :sort<CR>
+vnoremap <Leader>abcu :sort u<CR>
+vnoremap <Leader>abc! :sort!<CR>
 
 " Center search results after jumping.
-nnoremap n  nzzzv   " Next search result
-nnoremap N  Nzzzv   " Previous search result
-nnoremap *  *zzzv   " Search for word under cursor forward
-nnoremap #  #zzzv   " Search for word under cursor backward
-nnoremap g* g*zzzv  " Search for partial match forward
-nnoremap g# g#zzzv  " Search for partial match backward
+"   n   Next search result
+"   N   Previous search result
+"   *   Search for word under cursor forward
+"   #   Search for word under cursor backward
+"   g*  Search for partial match forward
+"   g#  Search for partial match backward
+nnoremap n  nzz
+nnoremap N  Nzz
+nnoremap *  *zz
+nnoremap #  #zz
+nnoremap g* g*zz
+nnoremap g# g#zz
 
 " Configure spellchecking.
 "   ]s  Next misspelled word
