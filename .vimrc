@@ -140,6 +140,9 @@ set formatoptions=rcqn1j
 " Set IncSearch color.
 highlight IncSearch cterm=bold ctermfg=166 ctermbg=235 guifg=#d65d0e guibg=#282828
 
+" Set SignColumn color.
+highlight SignColumn ctermbg=235 guibg=#282828
+
 " Toggle 'set paste' with <F10>.
 set pastetoggle=<F10>
 
@@ -148,7 +151,6 @@ set pastetoggle=<F10>
 set updatetime=100
 
 " Show vertical column at 80th character.
-highlight SignColumn ctermbg=235
 set colorcolumn=80
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
