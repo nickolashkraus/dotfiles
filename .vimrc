@@ -153,6 +153,9 @@ set updatetime=100
 " Show vertical column at 80th character.
 set colorcolumn=80
 
+" Start editing with all folds open.
+set foldlevelstart=99
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Advanced Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
