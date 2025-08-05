@@ -821,15 +821,15 @@ let g:NERDTreeShowHidden = 1
 
 " Ignore specific files.
 let g:NERDTreeIgnore=[
-  '__pycache__$[[dir]]',
-  '\.DS_Store$',
-  '\.mypy_cache$[[dir]]',
-  '\.pyc$',
-  '\.pytest_cache$[[dir]]',
-  '\.swo$',
-  '\.swp$',
-  '\~$'
-]
+      \ '__pycache__$[[dir]]',
+      \ '\.DS_Store$[[file]]',
+      \ '\.mypy_cache$[[dir]]',
+      \ '\.pyc$[[file]]',
+      \ '\.pytest_cache$[[dir]]',
+      \ '\.swo$[[file]]',
+      \ '\.swp$[[file]]',
+      \ '\~$[[file]]'
+      \ ]
 
 " Do not show 'Bookmarks' and 'Press ? for help' text.
 let g:NERDTreeMinimalUI = 1
