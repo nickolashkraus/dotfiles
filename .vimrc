@@ -128,9 +128,6 @@ set expandtab     " Use spaces instead of tabs.
 set laststatus=2  " Always show the status line.
 set noshowmode    " Removes duplicate mode message (use vim-airline instead).
 
-" Set pmenu (pop-up menu) color.
-highlight Pmenu ctermfg=gray ctermbg=darkgray
-
 " Configure automatic formatting.
 "   r  Automatically insert the current comment leader after hitting <Enter>.
 "   c  Auto-wrap comments using 'textwidth'. Insert the current comment leader.
