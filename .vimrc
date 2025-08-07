@@ -350,7 +350,7 @@ nnoremap g# g#zz
 "   zg  Add word to dictionary
 "   zb  Remove word from dictionary
 set spelllang=en_us
-set spellfile=$HOME/.vim/spell/en.utf-8.add
+set spellfile=$HOME/.config/vim/spell/en.utf-8.add
 nnoremap <Leader>sp :setlocal spell!<CR>
 
 " Set spellcheck colors.
