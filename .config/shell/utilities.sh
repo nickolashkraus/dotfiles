@@ -100,7 +100,7 @@ export FZF_CTRL_T_OPTS="
 
 # Additional options for Alt - c.
 export FZF_ALT_C_OPTS="
-  --preview 'tree -C {}'
+--preview 'tree -C {}'
 "
 
 # Configure fzf theme.
