@@ -939,7 +939,9 @@ endfunction
 "
 " fzf.vim wraps fzf functionality into Vim commands and key mappings.
 "
-" See: https://github.com/junegunn/fzf.vim
+" See:
+"   - https://github.com/junegunn/fzf.vim
+"   - https://github.com/junegunn/fzf/blob/master/README-VIM.md
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Initialize configuration dictionary.
@@ -949,8 +951,16 @@ let g:fzf_vim = {}
 let g:fzf_layout = {'down': '40%'}
 let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
 
+" Generate a quickfix list from selected lines.
+function! s:generate_quickfix_list(lines)
+  call setqflist(map(copy(a:lines), '{ "filename": v:val, "lnum": 1 }'))
+  copen
+  cc
+endfunction
+
 " Set key bindings for opening selected files.
 let g:fzf_action = {
+      \ 'ctrl-q': function('s:generate_quickfix_list'),
       \ 'ctrl-t': 'tab split',
       \ 'ctrl-s': 'split',
       \ 'ctrl-v': 'vsplit' }
@@ -1001,8 +1011,38 @@ let g:fzf_colors = {
       \ }
 
 " Hide statusline when fzf starts in a terminal buffer.
+"
+" See: https://github.com/junegunn/fzf/blob/master/README-VIM.md#hide-statusline
 autocmd! FileType fzf set laststatus=0 noshowmode noruler
   \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
 
 " Do not open files in NERDTree buffer.
 nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
+
+" Set terminal colors.
+"
+" The terminal_ansi_colors array uses the standard ANSI color order:
+"
+"   let g:terminal_ansi_colors = [
+"         \ 'color0',  'color1',  'color2',  'color3',
+"         \ 'color4',  'color5',  'color6',  'color7',
+"         \ 'color8',  'color9',  'color10', 'color11',
+"         \ 'color12', 'color13', 'color14', 'color15'
+"         \]
+"
+" which corresponds to:
+"
+"   let g:terminal_ansi_colors = [
+"         \ 'black',        'red',           'green',        'yellow',
+"         \ 'blue',         'purple',        'cyan',         'white',
+"         \ 'bright_black', 'bright_red',    'bright_green', 'bright_yellow',
+"         \ 'bright_blue',  'bright_purple', 'bright_aqua',  'bright_white'
+"         \]
+"
+" See: https://github.com/junegunn/fzf/blob/master/README-VIM.md#fzf-inside-terminal-buffer
+let g:terminal_ansi_colors = [
+      \ '#282828', '#cc241d', '#98971a', '#d79921',
+      \ '#458588', '#b16286', '#689d6a', '#a89984',
+      \ '#928374', '#fb4934', '#b8bb26', '#fabd2f',
+      \ '#83a598', '#d3869b', '#8ec07c', '#ebdbb2'
+      \]
