@@ -519,6 +519,13 @@ let g:ale_linters = {
 \   'terraform': ['terraform', 'tflint', 'tfsec'],
 \}
 
+let g:ale_linters_ignore = {
+\   'markdown': ['cspell', 'vale'],
+\   'text': ['cspell', 'vale'],
+\   'javascript': ['cspell'],
+\   'typescript': ['cspell'],
+\}
+
 " Configure mypy.
 "
 " See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
