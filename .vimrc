@@ -545,9 +545,9 @@ let g:ale_echo_msg_error_str = 'E'
 " let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 
 " Set ALE sign colors.
-highlight ALEInfoSign    ctermfg=24  ctermbg=235 guifg=#076678 guibg=#282828
-highlight ALEWarningSign ctermfg=136 ctermbg=235 guifg=#b57614 guibg=#282828
-highlight ALEErrorSign   ctermfg=88  ctermbg=235 guifg=#9d0006 guibg=#282828
+highlight ALEInfoSign    ctermfg=109 ctermbg=235 guifg=#83a598 guibg=#282828
+highlight ALEWarningSign ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
+highlight ALEErrorSign   ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
 " Do not open a window (location list) if there are no errors or warnings.
 let g:ale_open_list = 1
