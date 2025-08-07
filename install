@@ -17,6 +17,7 @@
 
 # Colors
 red='\033[0;31m'
+green='\033[0;32m'
 yellow='\033[0;33m'
 white='\033[0;37m'
 reset='\033[0m'
@@ -33,9 +34,20 @@ function usage() {
 # Parse command line arguments.
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -h|--help) usage; exit 0 ;;
-    -*) echo "Unknown option: $1" >&2; usage; exit 1 ;;
-    *) echo "Unknown argument: $1" >&2; usage; exit 1 ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
   esac
 done
 
@@ -308,6 +320,17 @@ mkdir -p "${XDG_CONFIG_HOME}/tmux"
 ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
 
 ###############################################################################
+# Vim Configuration
+#
+# Required Files:
+#   * .config/vim/spell/en.utf-8.add
+###############################################################################
+check_file_exists "${dotfiles}/.config/vim/spell/en.utf-8.add" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/vim" || true
+mkdir -p "${XDG_CONFIG_HOME}/vim/spell"
+ln -s "${dotfiles}/.config/vim/spell/en.utf-8.add" "${XDG_CONFIG_HOME}/vim/spell/en.utf-8.add"
+
+###############################################################################
 # yabai Configuration
 #
 # Required Files:
@@ -353,6 +376,7 @@ echo -e "${white}###############################${reset}" >&2
 check_file_exists "${dotfiles}/Brewfile" || exit 1
 check_command_exists "brew" || exit 1
 brew bundle --file="${dotfiles}/Brewfile"
+echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
 # Python Packages
@@ -367,6 +391,7 @@ check_command_exists "pipx" || exit 1
 pipx install powerline-status
 pipx install ruff
 pipx install mypy
+echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
 # Go Binaries
@@ -378,6 +403,7 @@ check_command_exists "go" || exit 1
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install go.uber.org/mock/mockgen@latest
+echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
 # npm Packages
@@ -393,3 +419,4 @@ npm install -g eslint
 npm install -g prettier
 npm install -g sort-package-json
 npm install -g typescript
+echo -e "${green}Done!\n${reset}" >&2
