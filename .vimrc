@@ -130,12 +130,13 @@ set noshowmode    " Removes duplicate mode message (use vim-airline instead).
 
 " Configure automatic formatting.
 "   r  Automatically insert the current comment leader after hitting <Enter>.
+"   o  Automatically insert the current comment leader after hitting 'o' or 'O'.
 "   c  Auto-wrap comments using 'textwidth'. Insert the current comment leader.
 "   q  Allow formatting of comments with 'gq'.
 "   n  When formatting text, recognize numbered lists.
 "   1  Don't break a line after a one-letter word.
 "   j  Remove a comment leader when joining lines.
-set formatoptions=rcqn1j
+set formatoptions=rocqn1j
 
 " Set IncSearch color.
 highlight IncSearch cterm=bold ctermfg=166 ctermbg=235 guifg=#d65d0e guibg=#282828
