@@ -831,11 +831,12 @@ let g:NERDTreeShowHidden = 1
 
 " Ignore specific files.
 let g:NERDTreeIgnore=[
+      \ '\.git$[[dir]]',
+      \ '\.mypy_cache$[[dir]]',
+      \ '\.pytest_cache$[[dir]]',
       \ '__pycache__$[[dir]]',
       \ '\.DS_Store$[[file]]',
-      \ '\.mypy_cache$[[dir]]',
       \ '\.pyc$[[file]]',
-      \ '\.pytest_cache$[[dir]]',
       \ '\.swo$[[file]]',
       \ '\.swp$[[file]]',
       \ '\~$[[file]]'
