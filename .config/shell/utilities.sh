@@ -44,7 +44,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # Gruvbox color palette.
 #
 # See: https://github.com/morhetz/gruvbox/wiki/Terminal-specific
-source "$HOME/.vim/bundle/gruvbox/gruvbox_256palette.sh"
+source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
 
 ###############################################################################
 # fzf
@@ -77,25 +77,25 @@ export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*" --glob
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Default fzf options.
-export FZF_DEFAULT_OPTS=' --height 40% --preview-window right:50%'
+export FZF_DEFAULT_OPTS='--height 40% --preview-window right:50%'
 
 # Additional options for Ctrl - r.
 #
 # Press Ctrl - y to copy the selected command to the system clipboard.
 export FZF_CTRL_R_OPTS="
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press Ctrl - y to copy the selected command to the system clipboard.'
+--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+--color header:italic
+--header 'Press Ctrl - y to copy the selected command to the system clipboard.'
 "
 
 # Additional options for Ctrl - t.
 #
 # Press Ctrl - / to toggle file preview.
 export FZF_CTRL_T_OPTS="
-  --preview 'bat -n --color=always {}'
-  --bind 'ctrl-/:change-preview-window(hidden|)'
-  --color header:italic
-  --header 'Press Ctrl - / to toggle file preview.'
+--preview 'bat -n --color=always {}'
+--bind 'ctrl-/:change-preview-window(hidden|)'
+--color header:italic
+--header 'Press Ctrl - / to toggle file preview.'
 "
 
 # Additional options for Alt - c.
@@ -125,13 +125,13 @@ export FZF_ALT_C_OPTS="
 #   - https://github.com/junegunn/fzf/wiki/Color-schemes
 #   - https://vitormv.github.io/fzf-themes
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
-  --color=fg:#ebdbb2,fg+:#d5c4a1,bg:#282828,bg+:#3c3836
-  --color=hl:#fabd2f,hl+:#d79921,info:#665c54,marker:#83a598
-  --color=prompt:#665c54,spinner:#665c54,pointer:#83a598,header:#665c54
-  --color=border:#3c3836,label:#665c54,query:#ebdbb2
-  --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
-  --marker=">" --pointer="▌" --separator="─" --scrollbar="│"
-  --layout="reverse"'
+--color=fg:#ebdbb2,fg+:#d5c4a1,bg:#282828,bg+:#3c3836
+--color=hl:#fabd2f,hl+:#d79921,info:#665c54,marker:#83a598
+--color=prompt:#665c54,spinner:#665c54,pointer:#83a598,header:#665c54
+--color=border:#3c3836,label:#665c54,query:#ebdbb2
+--border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
+--marker=">" --pointer="▌" --separator="─" --scrollbar="│"
+--layout="reverse"'
 
 ###############################################################################
 # Go
@@ -173,9 +173,9 @@ source "$HOME/.docker/init-zsh.sh" || true
 
 # WARNING: Managing nvm via Homebrew is not supported.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && \
+[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] &&
   \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
-[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && \
+[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] &&
   \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
 
 ###############################################################################
