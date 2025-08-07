@@ -721,6 +721,19 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x61-0x80000-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Apply Mode</key>
+					<integer>0</integer>
+					<key>Escaping</key>
+					<integer>2</integer>
+					<key>Text</key>
+					<string>a</string>
+					<key>Version</key>
+					<integer>2</integer>
+				</dict>
 				<key>0x63-0x80000-0x8</key>
 				<dict>
 					<key>Action</key>
@@ -731,6 +744,19 @@
 					<integer>2</integer>
 					<key>Text</key>
 					<string>c</string>
+					<key>Version</key>
+					<integer>2</integer>
+				</dict>
+				<key>0x64-0x80000-0x2</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Apply Mode</key>
+					<integer>0</integer>
+					<key>Escaping</key>
+					<integer>2</integer>
+					<key>Text</key>
+					<string>d</string>
 					<key>Version</key>
 					<integer>2</integer>
 				</dict>
@@ -822,6 +848,8 @@
 			<string>xterm-256color</string>
 			<key>Transparency</key>
 			<real>0.0</real>
+			<key>Treat Option as Alt</key>
+			<true/>
 			<key>Unlimited Scrollback</key>
 			<false/>
 			<key>Use Bold Font</key>
