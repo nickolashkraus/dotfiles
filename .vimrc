@@ -141,6 +141,9 @@ set formatoptions=rocqn1j
 " Set IncSearch color.
 highlight IncSearch cterm=bold ctermfg=166 ctermbg=235 guifg=#d65d0e guibg=#282828
 
+" Set Error color.
+highlight Error cterm=bold ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
+
 " Set SignColumn color.
 highlight SignColumn ctermbg=235 guibg=#282828
 
