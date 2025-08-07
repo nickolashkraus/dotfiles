@@ -810,10 +810,10 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Set vim-gitgutter sign colors.
-highlight GitGutterAdd          ctermfg=100 ctermbg=235 guifg=#79740e guibg=#282828
-highlight GitGutterChange       ctermfg=136 ctermbg=235 guifg=#b57614 guibg=#282828
-highlight GitGutterChangeDelete ctermfg=136 ctermbg=235 guifg=#b57614 guibg=#282828
-highlight GitGutterDelete       ctermfg=88  ctermbg=235 guifg=#9d0006 guibg=#282828
+highlight GitGutterAdd          ctermfg=142 ctermbg=235 guifg=#b8bb26 guibg=#282828
+highlight GitGutterChange       ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
+highlight GitGutterChangeDelete ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
+highlight GitGutterDelete       ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " NERDTree
