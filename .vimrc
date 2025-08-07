@@ -354,10 +354,10 @@ set spellfile=$HOME/.config/vim/spell/en.utf-8.add
 nnoremap <Leader>sp :setlocal spell!<CR>
 
 " Set spellcheck colors.
-highlight SpellBad   cterm=underline ctermfg=88 ctermbg=235 gui=underline guifg=#9d0006 guibg=#282828 guisp=#9d0006
-highlight SpellCap   cterm=underline ctermfg=24 ctermbg=235 gui=underline guifg=#076678 guibg=#282828 guisp=#076678
-highlight SpellLocal cterm=underline ctermfg=66 ctermbg=235 gui=underline guifg=#427b58 guibg=#282828 guisp=#427b58
-highlight SpellRare  cterm=underline ctermfg=96 ctermbg=235 gui=underline guifg=#8f3f71 guibg=#282828 guisp=#8f3f71
+highlight SpellBad   cterm=underline ctermfg=167 ctermbg=235 gui=underline guifg=#fb4934 guibg=#282828 guisp=#fb4934
+highlight SpellCap   cterm=underline ctermfg=109 ctermbg=235 gui=underline guifg=#83a598 guibg=#282828 guisp=#83a598
+highlight SpellLocal cterm=underline ctermfg=108 ctermbg=235 gui=underline guifg=#8ec07c guibg=#282828 guisp=#8ec07c
+highlight SpellRare  cterm=underline ctermfg=175 ctermbg=235 gui=underline guifg=#d3869b guibg=#282828 guisp=#d3869b
 
 " Configure autocommands.
 augroup vimrc
