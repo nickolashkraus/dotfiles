@@ -908,6 +908,13 @@ let g:airline#extensions#nerdtree_statusline = 1
 " Use Gruvbox theme.
 let g:airline_theme = 'gruvbox'
 
+" Patch Gruvbox theme.
+let g:airline_theme_patch_func = 'AirlineThemePatch'
+function! AirlineThemePatch(palette)
+  let a:palette.normal.airline_a = ['#282828', '#7c6f64', 235, 243]
+  let a:palette.normal.airline_z = ['#282828', '#7c6f64', 235, 243]
+endfunction
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " fzf Configuration
 "
