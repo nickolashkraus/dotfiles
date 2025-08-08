@@ -380,6 +380,17 @@ augroup vimrc
 augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" auto-pairs
+"
+" auto-pairs is a popular Vim plugin that automatically inserts or deletes
+" brackets, parentheses, and quotes in pairs.
+"
+" See: https://github.com/jiangmiao/auto-pairs
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " ALE Configuration
 "
 " ALE (Asynchronous Lint Engine) is a popular Vim plugin that provides
