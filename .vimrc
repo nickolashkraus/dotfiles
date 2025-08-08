@@ -1017,7 +1017,7 @@ let g:NERDTreeCaseSensitiveSort = 1
 " No further configuration.
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-airline Configuration
+" vim-airline
 "
 " vim-airline is a lightweight status/tabline plugin for Vim that enhances the
 " appearance and functionality of the default statusline.
@@ -1044,7 +1044,7 @@ let g:airline#extensions#hunks#enabled = 1
 let g:airline#extensions#nerdtree_statusline = 1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-airline-themes Configuration
+" vim-airline-themes
 "
 " vim-airline-themes is a companion plugin to vim-airline that provides a
 " large collection of predefined color themes specifically for the airline
