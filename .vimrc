@@ -964,6 +964,29 @@ let g:terminal_ansi_colors = [
       \]
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" gundo.vim
+"
+" gundo.vim is a Vim plugin (originally by Steve Losh) that provides a visual
+" interface for navigating Vim's powerful but complex undo tree.
+"
+" See: https://github.com/sjl/gundo.vim
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-test
+"
+" vim-test is a popular Vim plugin that provides a unified interface for
+" running tests from various testing frameworks directly within Vim. It's
+" designed to work across multiple programming languages and testing tools.
+"
+" See: https://github.com/vim-test/vim-test
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " NERDTree
 "
 " NERDTree is a popular file system explorer plugin for the Vim text editor.
@@ -1062,3 +1085,88 @@ function! AirlineThemePatch(palette)
   let a:palette.normal.airline_a = ['#282828', '#7c6f64', 235, 243]
   let a:palette.normal.airline_z = ['#282828', '#7c6f64', 235, 243]
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-commentary
+"
+" vim-commentary is a popular Vim plugin created by Tim Pope that provides
+" simple and intuitive commenting functionality. It allows you to easily
+" comment and uncomment lines or blocks of code in various programming
+" languages.
+"
+" See: https://github.com/tpope/vim-commentary
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-fugitive
+"
+" vim-fugitive is a popular Vim plugin by Tim Pope that provides comprehensive
+" Git integration directly within Vim.
+"
+" See: https://github.com/tpope/vim-fugitive
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-repeat
+"
+" vim-repeat is a foundational Vim plugin by Tim Pope that enhances Vim's
+" built-in . (dot) command to work properly with plugin-defined operations.
+"
+" See: https://github.com/tpope/vim-repeat
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-surround
+"
+" vim-surround is one of Tim Pope's most popular Vim plugins that provides
+" easy manipulation of surroundings - parentheses, brackets, quotes, XML tags,
+" and more.
+"
+" See: https://github.com/tpope/vim-surround
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-easy-align
+"
+" vim-easy-align is a Vim plugin by Junegunn Choi that provides powerful and
+" intuitive text alignment capabilities. It makes it easy to align text around
+" delimiters like =, ,, :, |, and more.
+"
+" See: https://github.com/junegunn/vim-easy-align
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-sensible
+"
+" vim-sensible is a foundational Vim plugin by Tim Pope that provides
+" a minimal set of sensible default settings for Vim. It's designed to be
+" a starting point that most Vim users would find reasonable, without being
+" opinionated about more subjective preferences.
+"
+" See: https://github.com/tpope/vim-sensible
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vitality.vim
+"
+" vitality.vim is a Vim plugin (primarily by Steve Losh) designed to improve
+" the integration between Vim and terminal multiplexers, particularly tmux and
+" screen. It addresses various issues that arise when running Vim inside these
+" terminal environments.
+"
+" See: https://github.com/sjl/vitality.vim
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
