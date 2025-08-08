@@ -35,6 +35,7 @@ let g:polyglot_disabled = ['markdown']
 "
 " See: https://github.com/junegunn/vim-plug
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 call plug#begin()
 
 " Language
@@ -392,6 +393,7 @@ augroup END
 "
 " See: https://github.com/dense-analysis/ale
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 " Disable all LSP integrations (use YouCompleteMe instead).
 let g:ale_disable_lsp = 1
 
@@ -588,6 +590,7 @@ nnoremap <silent> <Leader>at :ALEToggle<CR>
 "
 " See: https://github.com/fatih/vim-go
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 " Disable automatic linting (use ALE instead).
 let g:go_fmt_autosave = 0
 let g:go_imports_autosave = 0
@@ -604,6 +607,7 @@ let g:go_metalinter_enabled = []
 "
 " See: https://github.com/godlygeek/tabular
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 " In visual mode, the alignment would apply to the selected lines. In normal
 " mode Tabular attempts to guess the range.
 if exists(':Tabularize')
@@ -645,6 +649,7 @@ endfunction
 "
 " See: https://github.com/preservim/vim-markdown
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 " Enable YAML front matter highlighting.
 let g:vim_markdown_frontmatter = 1
 
