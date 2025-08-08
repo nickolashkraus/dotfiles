@@ -27,7 +27,7 @@ set nocompatible
 let g:polyglot_disabled = ['markdown']
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-plug Configuration
+" vim-plug
 "
 " vim-plug is a minimalist and fast plugin manager for Vim and Neovim. As of
 " 2025, vim-plug remains the most widely-used plugin manager across Vim and
@@ -81,7 +81,7 @@ Plug 'sjl/vitality.vim'
 call plug#end()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Gruvbox Configuration
+" Gruvbox
 "
 " Gruvbox is a popular retro-inspired colorscheme for Vim and other text
 " editors. It's designed with warm, earthy tones that are easy on the eyes for
@@ -391,7 +391,7 @@ augroup END
 " No further configuration.
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ALE Configuration
+" ALE
 "
 " ALE (Asynchronous Lint Engine) is a popular Vim plugin that provides
 " real-time linting and fixing capabilities. ALE is particularly popular
@@ -589,7 +589,7 @@ nnoremap <silent> <Leader>ar :ALEReset<CR>
 nnoremap <silent> <Leader>at :ALEToggle<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-go Configuration
+" vim-go
 "
 " vim-go is a popular Vim plugin that provides comprehensive Go development
 " support within Vim. It's designed to make Vim feel like a full-featured IDE
@@ -610,7 +610,7 @@ let g:go_metalinter_autosave_enabled = []
 let g:go_metalinter_enabled = []
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Tabular Configuration
+" Tabular
 "
 " Tabular is a popular Vim plugin for text alignment and formatting. It's
 " designed to help you align text in columns, making it easier to create
@@ -653,7 +653,7 @@ function! s:align()
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-markdown Configuration
+" vim-markdown
 "
 " vim-markdown is a Vim plugin that enhances Markdown editing by adding
 " features that are not available in Vim by default.
@@ -677,7 +677,7 @@ let g:vim_markdown_math = 1
 nnoremap <silent> <Leader>toc :Toc<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-polyglot Configuration
+" vim-polyglot
 "
 " vim-polyglot is a language pack plugin for Vim and Neovim that bundles
 " syntax highlighting, indentation, and filetype detection for hundreds of
@@ -689,7 +689,7 @@ nnoremap <silent> <Leader>toc :Toc<CR>
 " No further configuration.
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" YouCompleteMe Configuration
+" YouCompleteMe
 "
 " YouCompleteMe (YCM) is a popular code completion engine for Vim. It provides
 " fast, intelligent autocompletion for multiple programming languages.
@@ -808,7 +808,7 @@ function! ToggleYcm()
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-gitgutter Configuration
+" vim-gitgutter
 "
 " vim-gitgutter is a popular Vim plugin that visually integrates Git diff
 " information with the buffer's gutter (i.e., the sign column to the left of
@@ -932,7 +932,7 @@ function! AirlineThemePatch(palette)
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" fzf Configuration
+" fzf
 "
 " fzf is a general-purpose command-line fuzzy finder. It helps you quickly
 " search and select items from a list using a fast, interactive fuzzy search
@@ -951,7 +951,7 @@ endfunction
 " No further configuration.
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" fzf.vim Configuration
+" fzf.vim
 "
 " fzf.vim wraps fzf functionality into Vim commands and key mappings.
 "
