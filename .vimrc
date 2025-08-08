@@ -832,106 +832,6 @@ highlight GitGutterChangeDelete ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282
 highlight GitGutterDelete       ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" NERDTree
-"
-" NERDTree is a popular file system explorer plugin for the Vim text editor.
-" It provides a tree-style navigation panel that displays your project's
-" directory structure in a sidebar, making it easier to browse and manage
-" files without leaving Vim.
-"
-" See: https://github.com/preservim/nerdtree
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Show hidden files by default.
-let g:NERDTreeShowHidden = 1
-
-" Ignore specific files.
-let g:NERDTreeIgnore=[
-      \ '\.git$[[dir]]',
-      \ '\.mypy_cache$[[dir]]',
-      \ '\.pytest_cache$[[dir]]',
-      \ '__pycache__$[[dir]]',
-      \ '\.DS_Store$[[file]]',
-      \ '\.pyc$[[file]]',
-      \ '\.swo$[[file]]',
-      \ '\.swp$[[file]]',
-      \ '\~$[[file]]'
-      \ ]
-
-" Do not show 'Bookmarks' and 'Press ? for help' text.
-let g:NERDTreeMinimalUI = 1
-
-" Set window width.
-let g:NERDTreeWinSize = 35
-
-" Toggle NERDTree (if closed, open it; if open, close it).
-nnoremap <C-n> :NERDTreeToggle<CR>
-
-" Find the file for the active buffer in the NERDTree window.
-nnoremap <C-f> :NERDTreeFind<CR>
-
-" Use case-sensitive sort of nodes.
-let g:NERDTreeCaseSensitiveSort = 1
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" nerdtree-git-plugin
-"
-" nerdtree-git-plugin is an extension for NERDTree that shows Git status flags
-" for files and directories directly in the file tree.
-"
-" See: https://github.com/Xuyuanp/nerdtree-git-plugin
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" No further configuration.
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-airline Configuration
-"
-" vim-airline is a lightweight status/tabline plugin for Vim that enhances the
-" appearance and functionality of the default statusline.
-"
-" See: https://github.com/vim-airline/vim-airline
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Enable Powerline fonts.
-let g:airline_powerline_fonts = 1
-
-" Disable ALE integration.
-let g:airline#extensions#ale#enabled = 0
-
-" Disable detection of whitespace errors.
-let g:airline#extensions#whitespace#enabled = 0
-
-" Enable branch information (requires vim-fugitive).
-let g:airline#extensions#branch#enabled = 1
-
-" Enable hunk information (requires vim-gitgutter).
-let g:airline#extensions#hunks#enabled = 1
-
-" Enable NERDTree integration. See NERDTreeStatusline.
-let g:airline#extensions#nerdtree_statusline = 1
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-airline-themes Configuration
-"
-" vim-airline-themes is a companion plugin to vim-airline that provides a
-" large collection of predefined color themes specifically for the airline
-" statusline.
-"
-" See: https://github.com/vim-airline/vim-airline-themes
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Use Gruvbox theme.
-let g:airline_theme = 'gruvbox'
-
-" Patch Gruvbox theme.
-let g:airline_theme_patch_func = 'AirlineThemePatch'
-function! AirlineThemePatch(palette)
-  let a:palette.normal.airline_a = ['#282828', '#7c6f64', 235, 243]
-  let a:palette.normal.airline_z = ['#282828', '#7c6f64', 235, 243]
-endfunction
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " fzf
 "
 " fzf is a general-purpose command-line fuzzy finder. It helps you quickly
@@ -1062,3 +962,103 @@ let g:terminal_ansi_colors = [
       \ '#928374', '#fb4934', '#b8bb26', '#fabd2f',
       \ '#83a598', '#d3869b', '#8ec07c', '#ebdbb2'
       \]
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NERDTree
+"
+" NERDTree is a popular file system explorer plugin for the Vim text editor.
+" It provides a tree-style navigation panel that displays your project's
+" directory structure in a sidebar, making it easier to browse and manage
+" files without leaving Vim.
+"
+" See: https://github.com/preservim/nerdtree
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Show hidden files by default.
+let g:NERDTreeShowHidden = 1
+
+" Ignore specific files.
+let g:NERDTreeIgnore=[
+      \ '\.git$[[dir]]',
+      \ '\.mypy_cache$[[dir]]',
+      \ '\.pytest_cache$[[dir]]',
+      \ '__pycache__$[[dir]]',
+      \ '\.DS_Store$[[file]]',
+      \ '\.pyc$[[file]]',
+      \ '\.swo$[[file]]',
+      \ '\.swp$[[file]]',
+      \ '\~$[[file]]'
+      \ ]
+
+" Do not show 'Bookmarks' and 'Press ? for help' text.
+let g:NERDTreeMinimalUI = 1
+
+" Set window width.
+let g:NERDTreeWinSize = 35
+
+" Toggle NERDTree (if closed, open it; if open, close it).
+nnoremap <C-n> :NERDTreeToggle<CR>
+
+" Find the file for the active buffer in the NERDTree window.
+nnoremap <C-f> :NERDTreeFind<CR>
+
+" Use case-sensitive sort of nodes.
+let g:NERDTreeCaseSensitiveSort = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" nerdtree-git-plugin
+"
+" nerdtree-git-plugin is an extension for NERDTree that shows Git status flags
+" for files and directories directly in the file tree.
+"
+" See: https://github.com/Xuyuanp/nerdtree-git-plugin
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" No further configuration.
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-airline Configuration
+"
+" vim-airline is a lightweight status/tabline plugin for Vim that enhances the
+" appearance and functionality of the default statusline.
+"
+" See: https://github.com/vim-airline/vim-airline
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Enable Powerline fonts.
+let g:airline_powerline_fonts = 1
+
+" Disable ALE integration.
+let g:airline#extensions#ale#enabled = 0
+
+" Disable detection of whitespace errors.
+let g:airline#extensions#whitespace#enabled = 0
+
+" Enable branch information (requires vim-fugitive).
+let g:airline#extensions#branch#enabled = 1
+
+" Enable hunk information (requires vim-gitgutter).
+let g:airline#extensions#hunks#enabled = 1
+
+" Enable NERDTree integration. See NERDTreeStatusline.
+let g:airline#extensions#nerdtree_statusline = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-airline-themes Configuration
+"
+" vim-airline-themes is a companion plugin to vim-airline that provides a
+" large collection of predefined color themes specifically for the airline
+" statusline.
+"
+" See: https://github.com/vim-airline/vim-airline-themes
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Use Gruvbox theme.
+let g:airline_theme = 'gruvbox'
+
+" Patch Gruvbox theme.
+let g:airline_theme_patch_func = 'AirlineThemePatch'
+function! AirlineThemePatch(palette)
+  let a:palette.normal.airline_a = ['#282828', '#7c6f64', 235, 243]
+  let a:palette.normal.airline_z = ['#282828', '#7c6f64', 235, 243]
+endfunction
