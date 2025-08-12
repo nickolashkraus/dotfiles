@@ -832,6 +832,10 @@ highlight GitGutterChange       ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282
 highlight GitGutterChangeDelete ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
 highlight GitGutterDelete       ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
+" Center hunk after jumping.
+nmap ]c <Plug>(GitGutterNextHunk)zz
+nmap [c <Plug>(GitGutterPrevHunk)zz
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " fzf
 "
