@@ -1075,8 +1075,8 @@ let g:airline#extensions#nerdtree_statusline = 1
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-airline-themes
 "
-" vim-airline-themes is a companion plugin to vim-airline that provides a
-" large collection of predefined color themes specifically for the airline
+" vim-airline-themes is a companion plugin to vim-airline that provides
+" a large collection of predefined color themes specifically for the airline
 " statusline.
 "
 " See: https://github.com/vim-airline/vim-airline-themes
