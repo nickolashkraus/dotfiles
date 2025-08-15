@@ -172,7 +172,7 @@ nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 
 " Remap <Leader> key to <Space>.
-nnoremap <space> <nop>
+nnoremap <Space> <nop>
 let g:mapleader = "\<Space>"
 
 " Remap Ctrl + i (go to newer entry in jump list) to <Leader> + i.
@@ -275,7 +275,7 @@ function! s:CopyGitHubURL()
 endfunction
 
 command! CopyGitHubURL call s:CopyGitHubURL()
-nnoremap <leader>cpgh :CopyGitHubURL<CR>
+nnoremap <Leader>cpgh :CopyGitHubURL<CR>
 
 " Function: s:CopyGitHubURLWithRange() range
 " Copy the GitHub URL of the current buffer to the system clipboard.
@@ -318,9 +318,9 @@ function! s:CopyGitHubURLWithRange() range
   echo 'Copied: ' . l:url
 endfunction
 
-command! -range CopyGitHubURLWithRange <line1>,<line2>call s:CopyGitHubURLWithRange()
-nnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
-vnoremap <leader>cpghr :CopyGitHubURLWithRange<CR>
+command! -range CopyGitHubURLWithRange <Line1>,<Line2>call s:CopyGitHubURLWithRange()
+nnoremap <Leader>cpghr :CopyGitHubURLWithRange<CR>
+vnoremap <Leader>cpghr :CopyGitHubURLWithRange<CR>
 
 " Alphabetize selected text (normal, remove duplicates, reverse).
 "   abc   Alphabetize selected text
@@ -938,7 +938,7 @@ autocmd! FileType fzf set laststatus=0 noshowmode noruler
   \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
 
 " Do not open files in NERDTree buffer.
-nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
+nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<C-W>\<C-W>" : '').":Files\<CR>"
 
 " Set terminal colors.
 "
