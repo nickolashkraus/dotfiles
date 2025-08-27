@@ -23,13 +23,13 @@
 ###############################################################################
 
 options=(
- style=round
- width=6.0
- hidpi=on
- background_color=0xff282828  # Gruvbox: dark0
- active_color=0xff504945      # Gruvbox: dark2
- inactive_color=0xff504945    # Gruvbox: dark2
- blacklist="iTerm2"
+  style=round
+  width=6.0
+  hidpi=on
+  background_color=0xff282828 # Gruvbox: dark0
+  active_color=0xff504945     # Gruvbox: dark2
+  inactive_color=0xff504945   # Gruvbox: dark2
+  blacklist="iTerm2"
 )
 
 borders "${options[@]}"
