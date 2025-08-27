@@ -16,8 +16,8 @@
 #     ln -s .config/bat/config $XDG_CONFIG_HOME/bat/config
 ###############################################################################
 
-# Set the theme for syntax highlighting. Use '--list-themes' to see all available
-# themes.
+# Set the theme for syntax highlighting. Use '--list-themes' to see all
+# available themes.
 --theme="gruvbox-dark"
 
 # Map a glob pattern to an existing syntax name. The glob pattern is matched on
