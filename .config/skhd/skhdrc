@@ -58,6 +58,12 @@ alt - m : yabai -m config menubar_opacity \
           $([ "$(yabai -m config menubar_opacity)" = "0.5000" ] \
           && echo "0.0" || echo "0.5")
 
+# Send window to display 2.
+shift + alt - 1 : yabai -m window --display 2 --grid 24:12:2:6:8:12 --focus
+
+# Send window to display 1.
+shift + alt - 2 : yabai -m window --display 1 --grid 12:24:6:2:12:8 --focus
+
 # Fast focus between iTerm2 windows.
 ctrl - return : yabai -m query --windows \
                 | jq -r 'map(select(.app == "iTerm2")) as $w | select($w | length == 2 and ($w[0].display != $w[1].display)) | if $w[0]["has-focus"] then $w[1].id else $w[0].id end' \
