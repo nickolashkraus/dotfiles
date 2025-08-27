@@ -1,0 +1,13 @@
+{
+  "hideHud": true,
+  "regexFindMode": true,
+  "smoothScroll": false,
+  "settingsVersion": "2.3",
+  "userDefinedLinkHintCss": "/* Link hint boxes */\ndiv > .vimiumHintMarker {\n  background: #282828;\n  border: none;\n  box-shadow: none;\n}\n\n/* Link hint text*/\ndiv > .vimiumHintMarker span {\n  color: #504945;\n  text-shadow: none;\n  border: none;\n}\n\ndiv > .vimiumHintMarker > .matchingCharacter {\n  color: #83a598;\n}",
+  "exclusionRules": [
+    {
+      "passKeys": "",
+      "pattern": "https?://app.coderpad.io/*"
+    }
+  ]
+}
