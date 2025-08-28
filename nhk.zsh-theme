@@ -12,6 +12,23 @@
 # DESCRIPTION
 #   My personal Zsh theme.
 #
+#   Colorscheme:
+#     • #a89984 (Gruvbox: light4)
+#     • #98971a (Gruvbox: neutral_green)
+#     • #cc241d (Gruvbox: neutral_red)
+#     • #d5c4a1 (Gruvbox: light2)
+#
+#   Example:
+#
+#     ~/nickolashkraus/dotfiles on  master! [default] [master.root] 13:37:00
+#     |---------- 1 ----------| |---- 2 ---| |-- 3 --| |---- 4 ----| |-- 5 -|
+#
+#     1: ${PWD/#$HOME/~} - Shows current directory, replacing home path with ~
+#     2: $(git_prompt_info) - Shows Git branch and status information
+#     3: $(virtualenv_prompt_info) - Shows virtualenv info
+#     4: $(aws_prompt_info) - Shows AWS profile/region
+#     5: %* - Shows current time (HH:MM:SS format)
+#
 # INSTALLATION
 #   Symlink file to Oh My Zsh themes directory:
 #
@@ -26,22 +43,22 @@
 #     rm -rf fonts
 ###############################################################################
 
-ZSH_THEME_GIT_PROMPT_PREFIX=" on %{$fg_bold[default]%}\uE0A0 "
+ZSH_THEME_GIT_PROMPT_PREFIX="%F{#a89984} on \uE0A0 "
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
-ZSH_THEME_GIT_PROMPT_DIRTY="%{$reset_color%}%{$fg[red]%}!"
-ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[green]%}?"
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$reset_color%}%F{#cc241d}!"
+ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$reset_color%}%F{#98971a}?"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
 
-ZSH_THEME_AWS_PROFILE_PREFIX="["
-ZSH_THEME_AWS_PROFILE_SUFFIX="]"
-ZSH_THEME_AWS_REGION_PREFIX="["
-ZSH_THEME_AWS_REGION_SUFFIX="]"
+ZSH_THEME_AWS_PROFILE_PREFIX="%F{#a89984}["
+ZSH_THEME_AWS_PROFILE_SUFFIX="]%{$reset_color%}"
+ZSH_THEME_AWS_REGION_PREFIX="%F{#a89984}["
+ZSH_THEME_AWS_REGION_SUFFIX="]%{$reset_color%}"
 
 PROMPT='
-%{$fg_bold[default]%}${PWD/#$HOME/~}%{$reset_color%}\
+%F{#d5c4a1}${PWD/#$HOME/~}%{$reset_color%}\
 $(git_prompt_info)\
-%{$fg[default]%} \
+%F{#a89984} \
 $([ -n "$(virtualenv_prompt_info)" ] && echo "$(virtualenv_prompt_info) ")%{$reset_color%}\
 $(aws_prompt_info) \
-%{$fg[red]%}%*%{$reset_color%}
+%F{#cc241d}%*%{$reset_color%}
 $ '
