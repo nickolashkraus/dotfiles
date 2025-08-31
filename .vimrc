@@ -684,6 +684,9 @@ let g:vim_markdown_math = 1
 " Show table of contents.
 nnoremap <silent> <Leader>toc :Toc<CR>
 
+" Disable default key mappings.
+let g:vim_markdown_no_default_key_mappings = 1
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-anyfold
 "
