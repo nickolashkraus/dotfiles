@@ -798,8 +798,8 @@ nnoremap <silent> <Leader>fs  :YcmCompleter FindSymbolInWorkspace<CR>
 nnoremap <silent> <Leader>yd  :YcmCompleter GetDoc<CR>
 nnoremap <silent> <Leader>yt  :YcmCompleter GetType<CR>
 nnoremap <silent> <Leader>rn  :YcmCompleter RefactorRename<CR>
-nnoremap <silent> <Leader>ych :YcmCompleter CallHierarchy)<CR>
-nnoremap <silent> <Leader>yth :YcmCompleter TypeHierarchy)<CR>
+nnoremap <silent> <Leader>ych :YcmCompleter CallHierarchy<CR>
+nnoremap <silent> <Leader>yth :YcmCompleter TypeHierarchy<CR>
 nnoremap <silent> K           :YcmCompleter GetDoc<CR>
 
 " Function: BuildYCM(info)
@@ -844,7 +844,7 @@ nnoremap <silent> <Leader>ytg :call ToggleYcm()<CR>
 " Args: None
 " Returns: None
 function! ToggleYcm()
-  if b:ycm_largefile == 0
+  if !exists('b:ycm_largefile') || b:ycm_largefile == 0
     let b:ycm_largefile = 1
     echo 'YCM has been disabled.'
   else
