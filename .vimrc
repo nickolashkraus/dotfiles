@@ -787,20 +787,20 @@ let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
 " cursor and jumps to its definition if possible. If the definition is not
 " accessible from the current translation unit, it jumps to the symbol's
 " declaration.
-nnoremap <silent> <Leader>g  :YcmCompleter GoTo<CR>
-nnoremap <silent> <Leader>gs :split \| :YcmCompleter GoTo<CR>
-nnoremap <silent> <Leader>gv :vsplit \| :YcmCompleter GoTo<CR>
-nnoremap <silent> <Leader>gd <Plug>(YCMGoToDefinition)
-nnoremap <silent> <Leader>gi <Plug>(YCMGoToImplementation)
-nnoremap <silent> <Leader>gr <Plug>(YCMGoToReferences)
-nnoremap <silent> <Leader>fd <Plug>(YCMFindSymbolInDocument)
-nnoremap <silent> <Leader>fs <Plug>(YCMFindSymbolInWorkspace)
-nnoremap <silent> <Leader>yd <Plug>(YCMGetDoc)
-nnoremap <silent> <Leader>yt <Plug>(YCMGetType)
-nnoremap <silent> <Leader>rn <Plug>(YCMRefactorRename)
-nnoremap <silent> <Leader>ych <Plug>(YCMCallHierarchy)
-nnoremap <silent> <Leader>yth <Plug>(YCMTypeHierarchy)
-nnoremap <silent> K <Plug>(YCMGetDoc)
+nnoremap <silent> <Leader>g   :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gs  :split \| :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gv  :vsplit \| :YcmCompleter GoTo<CR>
+nnoremap <silent> <Leader>gd  :YcmCompleter GoToDefinition<CR>
+nnoremap <silent> <Leader>gi  :YcmCompleter GoToImplementation<CR>
+nnoremap <silent> <Leader>gr  :YcmCompleter GoToReferences<CR>
+nnoremap <silent> <Leader>fd  :YcmCompleter FindSymbolInDocument<CR>
+nnoremap <silent> <Leader>fs  :YcmCompleter FindSymbolInWorkspace<CR>
+nnoremap <silent> <Leader>yd  :YcmCompleter GetDoc<CR>
+nnoremap <silent> <Leader>yt  :YcmCompleter GetType<CR>
+nnoremap <silent> <Leader>rn  :YcmCompleter RefactorRename<CR>
+nnoremap <silent> <Leader>ych :YcmCompleter CallHierarchy)<CR>
+nnoremap <silent> <Leader>yth :YcmCompleter TypeHierarchy)<CR>
+nnoremap <silent> K           :YcmCompleter GetDoc<CR>
 
 " Function: BuildYCM(info)
 " Post-update hook for YouCompleteMe plugin installation.
