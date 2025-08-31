@@ -1055,6 +1055,7 @@ let g:NERDTreeIgnore=[
       \ '\.git$[[dir]]',
       \ '\.mypy_cache$[[dir]]',
       \ '\.pytest_cache$[[dir]]',
+      \ '\.ruff_cache$[[dir]]',
       \ '__pycache__$[[dir]]',
       \ 'node_modules$[[dir]]',
       \ '\.DS_Store$[[file]]',
