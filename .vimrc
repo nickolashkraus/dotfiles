@@ -564,8 +564,14 @@ highlight ALEInfoSign    ctermfg=109 ctermbg=235 guifg=#83a598 guibg=#282828
 highlight ALEWarningSign ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
 highlight ALEErrorSign   ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
-" Do not open a window (location list) if there are no errors or warnings.
+" Automatically open a window (location list) if there are errors or warnings.
 let g:ale_open_list = 1
+
+" Automatically close the location list if the buffer is closed.
+augroup CloseLocationList
+  autocmd!
+  autocmd QuitPre * if empty(&buftype) | lclose | endif
+augroup END
 
 " Do not show errors or warnings with virtual-text (i.e., inline text).
 let g:ale_virtualtext_cursor = 'disabled'
