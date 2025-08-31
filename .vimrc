@@ -176,12 +176,6 @@ nnoremap <C-L> <C-W><C-L>
 nnoremap <Space> <nop>
 let g:mapleader = "\<Space>"
 
-" Remap Ctrl + i (go to newer entry in jump list) to <Leader> + i.
-nnoremap <Leader>i <C-I>
-
-" Remap Ctrl + o (go to older entry in jump list) to <Leader> + o.
-nnoremap <Leader>o <C-O>
-
 " Remap <Leader>y/<Leader>p to copy/paste to the + register (system clipboard).
 nnoremap <Leader>y "+y
 vnoremap <Leader>y "+y
