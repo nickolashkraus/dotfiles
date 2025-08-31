@@ -1160,7 +1160,10 @@ endfunction
 " See: https://github.com/tpope/vim-fugitive
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" No further configuration.
+" Stage/unstage the file for the current buffer.
+nnoremap <leader>ga :Git add %<CR>
+nnoremap <leader>gr :Git reset %<CR>
+nnoremap <leader>gc :Git commit -v<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-repeat
