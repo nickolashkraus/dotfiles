@@ -535,6 +535,12 @@ let g:ale_linters_ignore = {
 \   'typescript': ['cspell'],
 \}
 
+let g:ale_pattern_options = {
+\   'eslint.config.mjs$': {
+\     'ale_javascript_eslint_options': '--no-warn-ignored',
+\   },
+\}
+
 " Configure mypy.
 "
 " See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
