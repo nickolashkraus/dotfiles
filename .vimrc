@@ -466,8 +466,8 @@ let g:ale_linters_explicit = 1
 "   prettier
 "
 "     Prettier is an opinionated code formatter that automatically formats
-"     your code to ensure consistency across your entire codebase.  As of
-"     2025, Prettier is by far the most popular code formatter for JavaScript,
+"     your code to ensure consistency across your entire codebase. As of 2025,
+"     Prettier is by far the most popular code formatter for JavaScript,
 "     TypeScript, and web development in general.
 "
 "     NOTE: Prettier uses a global .prettierrc located at
