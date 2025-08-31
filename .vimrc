@@ -43,6 +43,7 @@ Plug 'dense-analysis/ale'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
+Plug 'pseewald/vim-anyfold'
 Plug 'sheerun/vim-polyglot'
 
 " Completion
@@ -676,6 +677,41 @@ let g:vim_markdown_math = 1
 
 " Show table of contents.
 nnoremap <silent> <Leader>toc :Toc<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" vim-anyfold
+"
+" vim-anyfold is a Vim plugin that provides automatic code folding
+" functionality. It's designed to intelligently fold code structures in any
+" programming language without requiring language-specific configuration.
+"
+" See: https://github.com/pseewald/vim-anyfold
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Open all folds.
+set foldlevel=99
+
+" Activate on all file types by default.
+augroup vim-anyfold
+  autocmd!
+  autocmd Filetype * AnyFoldActivate
+augroup END
+
+" Deactivate for large files to prevent long load times.
+" A file is considered large if it is greater than 1 MB.
+let g:LargeFile = 1000000
+augroup vim-anyfold-large-files
+  autocmd!
+  autocmd BufReadPre,BufRead * let f=getfsize(expand("<afile>")) | if f > g:LargeFile || f == -2 | call AnyFoldDeactivate() | endif
+augroup END
+function! AnyFoldDeactivate()
+  augroup vim-anyfold
+    " Remove all autocommands in group (e.g., remove AnyFoldActivate).
+    autocmd!
+    " Fall back to 'indent' folding method.
+    autocmd Filetype * setlocal foldmethod=indent
+    augroup END
+endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-polyglot
