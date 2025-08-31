@@ -783,7 +783,7 @@ let g:ycm_key_list_stop_completion = ['<C-y>', '<CR>']
 " YCM commands.
 "
 " NOTE: The GoTo command tries to perform the *most sensible* GoTo operation
-" it can.  Currently, this means that it tries to look up the symbol under the
+" it can. Currently, this means that it tries to look up the symbol under the
 " cursor and jumps to its definition if possible. If the definition is not
 " accessible from the current translation unit, it jumps to the symbol's
 " declaration.
