@@ -17,7 +17,7 @@
 #     ln -s .config/shell/aliases.sh $XDG_CONFIG_HOME/shell/aliases.sh
 ###############################################################################
 
-alias clean='pyenv deactivate; cd $HOME; clear; asp master.root'
+alias clean='pyenv deactivate &>/dev/null; cd $HOME; clear; asp master.root'
 alias docker-purge='docker-stop; docker-rm; docker-rmi; docker-rmv'
 alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containers to remove."'
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
