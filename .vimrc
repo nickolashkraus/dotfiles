@@ -763,13 +763,13 @@ let g:ycm_auto_hover = ''
 " type of the symbol, rather than classic regex-based syntax highlighting.
 let g:ycm_enable_semantic_highlighting = 1
 
-" Remap YCM completion to Leader + Space instead of Ctrl + Space.
 " The 'ycm_key_invoke_completion' option controls the key mapping used to
 " invoke the completion menu for semantic completion. This key mapping can be
 " used to trigger semantic completion anywhere, which can be useful when
-" searching for top-level functions and classes in the current file.
-" NOTE: Ctrl + Space opens Alfred.
-let g:ycm_key_invoke_completion = '<Leader><Space>'
+" searching for top-level functions and classes in the current file.  NOTE:
+" The default YCM completion mapping is Ctrl + Space. Command + Space now
+" opens Alfred.
+let g:ycm_key_invoke_completion = '<C-Space>'
 
 " Defines the max size (in Kb) for a file to be considered for completion.
 let g:ycm_disable_for_files_larger_than_kb = 512
