@@ -37,10 +37,10 @@ ZSH_THEME="nhk"
 zstyle ':omz:update' mode auto     # Auto update without asking.
 zstyle ':omz:update' frequency 14  # Auto update every 14 days.
 
+source "$HOME/.config/shell/plugins.sh"
+
+source "$ZSH/oh-my-zsh.sh"
 source "$HOME/.config/shell/aliases.sh"
 source "$HOME/.config/shell/exports.sh"
 source "$HOME/.config/shell/functions.sh"
-source "$HOME/.config/shell/plugins.sh"
 source "$HOME/.config/shell/utilities.sh"
-
-source "$ZSH/oh-my-zsh.sh"
