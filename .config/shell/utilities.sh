@@ -191,4 +191,8 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-pyenv activate default
+
+# Set default virtualenv.
+if [[ "$(pyenv version-name)" != "default" ]]; then
+  pyenv activate default
+fi
