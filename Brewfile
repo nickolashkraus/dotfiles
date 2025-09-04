@@ -84,6 +84,9 @@ brew "youtube-dl"
 brew "zlib"
 brew "zoxide"
 
+cask "alfred"
+cask "obsidian"
+
 mas "Bear", id: 1091189122
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
