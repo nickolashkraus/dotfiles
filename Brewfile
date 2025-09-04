@@ -85,9 +85,13 @@ brew "zlib"
 brew "zoxide"
 
 cask "alfred"
+cask "docker"
+cask "firefox"
+cask "gimp"
+cask "iterm2"
 cask "obsidian"
+cask "slack"
 
-mas "Bear", id: 1091189122
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
 mas "Todoist", id: 585829637
