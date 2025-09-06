@@ -373,9 +373,9 @@ ln -s "${dotfiles}/nhk.zsh-theme" "${ZSH_CUSTOM}/themes/nhk.zsh-theme"
 # Required Files:
 #   * Brewfile
 ###############################################################################
-echo -e "${white}###############################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 echo -e "${white}Installing Homebrew packages...${reset}" >&2
-echo -e "${white}###############################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 check_file_exists "${dotfiles}/Brewfile" || exit 1
 check_command_exists "brew" || exit 1
 brew bundle --file="${dotfiles}/Brewfile"
@@ -387,9 +387,9 @@ echo -e "${green}Done!\n${reset}" >&2
 # NOTE: pipx has effectively become the de facto standard for managing global
 # Python CLI tools in 2025.
 ###############################################################################
-echo -e "${white}#############################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 echo -e "${white}Installing Python packages...${reset}" >&2
-echo -e "${white}#############################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "pipx" || exit 1
 pipx install powerline-status
 pipx install ruff
@@ -399,9 +399,9 @@ echo -e "${green}Done!\n${reset}" >&2
 ###############################################################################
 # Go Binaries
 ###############################################################################
-echo -e "${white}#########################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 echo -e "${white}Installing Go binaries...${reset}" >&2
-echo -e "${white}#########################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "go" || exit 1
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
@@ -411,9 +411,9 @@ echo -e "${green}Done!\n${reset}" >&2
 ###############################################################################
 # npm Packages
 ###############################################################################
-echo -e "${white}##########################${reset}" >&2
-echo -e "${white}Installing npm Packages...${reset}" >&2
-echo -e "${white}##########################${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
+echo -e "${white}Installing npm packages...${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
 npm install -g @anthropic-ai/claude-code
 npm install -g @google/gemini-cli
 npm install -g @openai/codex
