@@ -147,13 +147,13 @@ export PATH=$PATH:${GOPATH:-$HOME/go}/bin
 # Java
 ###############################################################################
 
-# openjdk@24 is marked as keg-only, so it isn't symlinked to `brew --prefix`
-# ($HOMEBREW_PREFIX). This is because it's an alternative version of the main
-# OpenJDK formula.
-export PATH="$HOMEBREW_PREFIX/opt/openjdk@24/bin:$PATH"
+# openjdk is keg-only, which means it is not symlinked to `brew --prefix`
+# ($HOMEBREW_PREFIX). This is because macOS provides similar software and
+# installing this software in parallel can cause issues.
+export PATH="$HOMEBREW_PREFIX/opt/openjdk/bin:$PATH"
 
-# For compilers to find openjdk@24, CPPFLAGS is set.
-export CPPFLAGS="-I/opt/homebrew/opt/openjdk@24/include"
+# For compilers to find openjdk, CPPFLAGS is set.
+export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/openjdk/include"
 
 ###############################################################################
 # Docker
