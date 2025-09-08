@@ -156,13 +156,6 @@ export PATH="$HOMEBREW_PREFIX/opt/openjdk/bin:$PATH"
 export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/openjdk/include"
 
 ###############################################################################
-# Docker
-###############################################################################
-
-# Added by Docker Desktop.
-source "$HOME/.docker/init-zsh.sh" || true
-
-###############################################################################
 # nvm
 #
 # nvm (Node Version Manager) is a tool that lets you install, manage, and
