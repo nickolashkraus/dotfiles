@@ -78,7 +78,7 @@ brew "universal-ctags"
 brew "vale"
 brew "vim"
 brew "yamllint"
-brew "youtube-dl"
+brew "yt-dlp"
 brew "zlib"
 brew "zoxide"
 
