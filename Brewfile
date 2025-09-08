@@ -24,8 +24,6 @@
 tap "derailed/k9s"
 tap "felixkratz/formulae"
 tap "hashicorp/tap"
-tap "homebrew/bundle"
-tap "homebrew/services"
 tap "koekeishiya/formulae"
 
 brew "awscli"
