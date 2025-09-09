@@ -1,64 +1,64 @@
 {
-  "alfredtheme": {
-    "result": {
-      "textSpacing": 10,
-      "subtext": {
-        "size": 10,
-        "colorSelected": "#7c6f64ff",
-        "font": "Meslo LG S for Powerline",
-        "color": "#665c54ff"
+  "alfredtheme" : {
+    "result" : {
+      "textSpacing" : 10,
+      "subtext" : {
+        "size" : 10,
+        "colorSelected" : "#7C6F64FF",
+        "font" : "Meslo LG S for Powerline",
+        "color" : "#665C54FF"
       },
-      "shortcut": {
-        "size": 12,
-        "colorSelected": "#7c6f64ff",
-        "font": "Meslo LG S for Powerline",
-        "color": "#7c6f64ff"
+      "shortcut" : {
+        "size" : 12,
+        "colorSelected" : "#7C6F64FF",
+        "font" : "Meslo LG S for Powerline",
+        "color" : "#7C6F64FF"
       },
-      "backgroundSelected": "#504945ff",
-      "text": {
-        "size": 12,
-        "colorSelected": "#ebdbb2ff",
-        "font": "Meslo LG S for Powerline",
-        "color": "#d5c4a1ff"
+      "backgroundSelected" : "#504945FF",
+      "text" : {
+        "size" : 12,
+        "colorSelected" : "#EBDBB2FF",
+        "font" : "Meslo LG S for Powerline",
+        "color" : "#D5C4A1FF"
       },
-      "iconPaddingHorizontal": 8,
-      "roundness": 0,
-      "paddingVertical": 8,
-      "iconSize": 24
+      "iconPaddingHorizontal" : 8,
+      "roundness" : 0,
+      "paddingVertical" : 8,
+      "iconSize" : 24
     },
-    "search": {
-      "backgroundSelected": "#504945ff",
-      "paddingHorizontal": 8,
-      "spacing": 8,
-      "text": {
-        "size": 18,
-        "colorSelected": "#ebdbb2ff",
-        "font": "Meslo LG S for Powerline",
-        "color": "#ebdbb2ff"
+    "search" : {
+      "backgroundSelected" : "#504945FF",
+      "paddingHorizontal" : 8,
+      "spacing" : 8,
+      "text" : {
+        "size" : 18,
+        "colorSelected" : "#EBDBB2FF",
+        "font" : "Meslo LG S for Powerline",
+        "color" : "#EBDBB2FF"
       },
-      "background": "#282828ff",
-      "roundness": 0,
-      "paddingVertical": 0
+      "background" : "#282828FF",
+      "roundness" : 0,
+      "paddingVertical" : 0
     },
-    "window": {
-      "color": "#282828ff",
-      "paddingHorizontal": 8,
-      "width": 600,
-      "borderPadding": 3,
-      "borderColor": "#504945ff",
-      "blur": 0,
-      "roundness": 0,
-      "paddingVertical": 8
+    "window" : {
+      "color" : "#282828FF",
+      "paddingHorizontal" : 8,
+      "width" : 600,
+      "borderPadding" : 3,
+      "borderColor" : "#504945FF",
+      "blur" : 0,
+      "roundness" : 0,
+      "paddingVertical" : 8
     },
-    "credit": "Nickolas Kraus",
-    "separator": {
-      "color": "#504945ff",
-      "thickness": 0
+    "credit" : "Nickolas Kraus",
+    "separator" : {
+      "color" : "#504945FF",
+      "thickness" : 0
     },
-    "scrollbar": {
-      "color": "#504945ff",
-      "thickness": 3
+    "scrollbar" : {
+      "color" : "#504945FF",
+      "thickness" : 3
     },
-    "name": "gruvbox"
+    "name" : "Gruvbox"
   }
 }
