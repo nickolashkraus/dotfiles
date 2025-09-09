@@ -391,6 +391,7 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing Python packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "pipx" || exit 1
+pipx ensurepath
 pipx install powerline-status
 pipx install ruff
 pipx install mypy
