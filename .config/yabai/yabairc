@@ -104,6 +104,7 @@ yabai -m rule --add app="^Finder$"          manage=off display=^1 sub-layer=belo
 yabai -m rule --add app="^Firefox$"         manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
 yabai -m rule --add app="^Mail$"            manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
 yabai -m rule --add app="^Messages$"        manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
+yabai -m rule --add app="^Obsidian$"        manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
 yabai -m rule --add app="^Slack$"           manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
 yabai -m rule --add app="^Todoist$"         manage=off display=^1 sub-layer=below grid=12:24:6:2:12:8
 yabai -m rule --add app="^System Settings$" manage=off display=^1 sub-layer=below grid=12:24:0:0:0:6
