@@ -45,6 +45,7 @@ HCL
 HTTPS
 Heapsort
 Hoare's
+Homebrew
 IAM
 ICMP
 IPv4
@@ -84,6 +85,7 @@ OpenAPI
 PNG
 PageRank
 Paperwhite
+Powerline
 Quickselect
 Quicksort
 RDP
@@ -129,9 +131,11 @@ WhatsApp
 Wi-Fi
 Workiva
 XYZ
+Xcode
 YAML
 YCM
 YouCompleteMe
+Zsh
 authorizers
 autocompletion
 b43
@@ -147,6 +151,7 @@ codepoints
 colorscheme
 customizable
 dkms
+dotfiles
 duplicative
 eponymously
 fallbacks
@@ -163,6 +168,7 @@ gha
 gitgutter
 glibc
 gruvbox
+hostname
 https
 if
 integrations
@@ -180,6 +186,9 @@ macOS
 metadata
 nerdtree
 networkd
+nhk
+nhk
+nickolashkraus
 nickolaskraus
 nlog
 og
@@ -197,6 +206,7 @@ runtime
 scalable
 schemas
 serverless
+skhd
 stateful
 statusline
 subarray
@@ -222,7 +232,10 @@ unmount
 url
 v4
 viewport
+virtualenv
 wl
+workspace
 www
 x86
+yabai
 
