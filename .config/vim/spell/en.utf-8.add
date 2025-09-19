@@ -41,6 +41,7 @@ Firebase
 FitCSVTool
 Garmin
 Garmin's
+Glassdoor
 HCL
 HTTPS
 Heapsort
@@ -60,6 +61,7 @@ JSON
 Jira
 Kanban
 Kraus
+Kubernetes
 LCS
 LIS
 LLM
@@ -81,6 +83,7 @@ MiB
 MySQL
 NERDTree
 Neovim
+OIDC
 OpenAPI
 PNG
 PageRank
@@ -91,6 +94,7 @@ Quicksort
 RDP
 RESTful
 RTC
+RTO
 Rebase
 Rebasing
 RestApi
@@ -121,6 +125,7 @@ Uncomment
 VPC
 VUS
 Validator
+Vectara
 Vercel
 Versioning
 Viewport
@@ -130,6 +135,7 @@ WebSockets
 WhatsApp
 Wi-Fi
 Workiva
+Workiva's
 XYZ
 Xcode
 YAML
@@ -153,6 +159,7 @@ customizable
 dkms
 dotfiles
 duplicative
+embeddings
 eponymously
 fallbacks
 filesystem
@@ -194,6 +201,7 @@ nlog
 og
 onboard
 overcontributed
+perseveration
 pre-order
 preconfigured
 preprocessing
@@ -231,6 +239,7 @@ unicode
 unmount
 url
 v4
+valenced
 viewport
 virtualenv
 wl
