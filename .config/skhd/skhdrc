@@ -41,6 +41,9 @@ shift + cmd - l : yabai -m window --warp east
 # Balance size of windows.
 shift + alt - 0 : yabai -m space --balance
 
+# Float / unfloat window and center on screen.
+shift + alt - t : yabai -m window --toggle float --grid 12:24:6:2:12:8
+
 # Floating window fills screen.
 shift + alt - up : yabai -m window --grid 1:1:0:0:1:1
 
