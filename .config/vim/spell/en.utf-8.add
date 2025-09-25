@@ -8,6 +8,7 @@ APIs
 ARN
 AUR
 AWS
+Acetyl
 Analytics
 ApiGateway
 BCM43602
@@ -22,10 +23,12 @@ CIDR
 CLI
 CNAME
 CSV
+Carnitine
 Chroot
 CloudFormation
 CloudFront
 CoderPad
+Creatine
 DFS
 DHCP
 DNS
@@ -39,8 +42,10 @@ Ext4
 FQDNs
 Firebase
 FitCSVTool
+GPC
 Garmin
 Garmin's
+Gelcaps
 Glassdoor
 HCL
 HTTPS
@@ -60,6 +65,7 @@ JPG
 JSON
 Jira
 Kanban
+Kimchi
 Kraus
 Kubernetes
 LCS
@@ -84,11 +90,14 @@ MySQL
 NERDTree
 Neovim
 OIDC
+Okta
+Onboarding
 OpenAPI
 PNG
 PageRank
 Paperwhite
 Powerline
+Prolab
 Quickselect
 Quicksort
 RDP
@@ -115,7 +124,11 @@ TCP
 TLS
 TOML
 Terraform
+Theanine
+Thorne
+Threonate
 TypeScript
+Tyrosine
 UDP
 UEFI
 UI
@@ -155,6 +168,7 @@ chipsets
 chrooted
 codepoints
 colorscheme
+creatine
 customizable
 dkms
 dotfiles
@@ -178,6 +192,7 @@ gruvbox
 hostname
 https
 if
+impactful
 integrations
 interoperability
 io
@@ -193,7 +208,6 @@ macOS
 metadata
 nerdtree
 networkd
-nhk
 nhk
 nickolashkraus
 nickolaskraus
@@ -229,6 +243,7 @@ subsequence
 substring
 substrings
 subtree
+sustainably
 systemd
 tabline
 taxonomizes
