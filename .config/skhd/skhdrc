@@ -86,4 +86,4 @@ ctrl - 2 : yabai -m window --focus $(yabai -m query --windows \
 #
 # If multiple Firefox windows exist, cycle through windows on successive
 # invocations.
-ctrl - 3 : yabai-cycle-firefox
+ctrl - 3 : ~/bin/yabai-cycle-firefox
