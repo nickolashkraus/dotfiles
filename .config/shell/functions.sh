@@ -36,3 +36,7 @@ rfv() (
     --preview-window '~4,+{2}+4/3,<80(up)' \
     --query "$*"
 )
+
+gcp_current_config() (
+  gcloud config configurations list --filter="is_active:true" --format="value(name)" 2>/dev/null
+)
