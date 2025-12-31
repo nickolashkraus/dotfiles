@@ -45,10 +45,16 @@ shift + alt - 0 : yabai -m space --balance
 shift + alt - t : yabai -m window --toggle float --grid 12:24:6:2:12:8
 
 # Floating window fills screen.
-shift + alt - up : yabai -m window --grid 1:1:0:0:1:1
+shift + alt - f: yabai -m window --grid 1:1:0:0:1:1
 
 # Floating window centered on screen.
-shift + alt - down : yabai -m window --grid 12:24:6:2:12:8
+shift + alt - c: yabai -m window --grid 12:24:6:2:12:8
+
+# Floating window fills top half of screen.
+shift + alt - up: yabai -m window --grid 2:1:0:0:2:1
+
+# Floating window fills bottom half of screen.
+shift + alt - down: yabai -m window --grid 2:1:0:1:2:1
 
 # Floating window fills left half of screen.
 shift + alt - left : yabai -m window --grid 1:2:0:0:1:1
@@ -82,8 +88,12 @@ ctrl - 2 : yabai -m window --focus $(yabai -m query --windows \
            && yabai -m window --layer above $(yabai -m query --windows \
            | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id')
 
-# Focus and show Firefox (bring floating window to front).
+# Focus and show an application (bring floating window to front).
 #
-# If multiple Firefox windows exist, cycle through windows on successive
-# invocations.
-ctrl - 3 : ~/bin/yabai-cycle-firefox
+# If multiple windows exist, cycle through windows on successive invocations.
+ctrl - 3 : ~/bin/yabai-cycle "Firefox"
+ctrl - 4 : ~/bin/yabai-cycle "Slack"
+
+# Focus mpv.
+ctrl - m : yabai -m window --focus $(yabai -m query --windows \
+           | jq -r '.[] | select(.app == "mpv") | .id')
