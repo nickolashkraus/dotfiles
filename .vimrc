@@ -566,7 +566,12 @@ highlight ALEWarningSign ctermfg=214 ctermbg=235 guifg=#fabd2f guibg=#282828
 highlight ALEErrorSign   ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282828
 
 " Automatically open a window (location list) if there are errors or warnings.
+" Only show errors for the current buffer. The window is closed automatically
+" when there are no warnings or errors.
 let g:ale_open_list = 1
+let g:ale_set_loclist = 1
+let g:ale_set_quickfix = 0
+let g:ale_keep_list_window_open = 0
 
 " Automatically close the location list if the buffer is closed.
 augroup CloseLocationList
