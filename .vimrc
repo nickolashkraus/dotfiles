@@ -192,12 +192,16 @@ nnoremap <Leader>s :%s/\<<C-r><C-w>\>//g<Left><Left>
 command! CopyRelPath let @+ = expand('%')
 nnoremap <Leader>cp :CopyRelPath<CR>
 
-" Function: GetGitHubURL()
+" Function: GetGitHubURL(...)
 " Get the GitHub URL of the file for the current buffer.
 "
-" Args: None
+" Args:
+"   use_current_branch (boolean): When truthy, use the current branch instead
+"     of the repository default branch.
 " Returns: GitHub URL (string), or empty string on error
-function! GetGitHubURL()
+function! GetGitHubURL(...)
+  let l:use_current_branch = a:0 > 0 && a:1
+
   " Check if inside Git repository.
   if system('git rev-parse --is-inside-work-tree 2>/dev/null')->trim() !=# 'true'
     echoerr 'Not inside a Git repository'
@@ -221,13 +225,21 @@ function! GetGitHubURL()
   " Strip trailing .git if present.
   let l:remote = substitute(l:remote, '\.git$', '', '')
 
-  " Determine the repository's default branch (main or master).
-  let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
-  let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
-
-  if empty(l:branch)
-    echoerr 'Could not determine default branch'
-    return ''
+  if l:use_current_branch
+    " Determine the current branch.
+    let l:branch = system('git rev-parse --abbrev-ref HEAD 2>/dev/null')->trim()
+    if v:shell_error != 0 || empty(l:branch) || l:branch ==# 'HEAD'
+      echoerr 'Could not determine current branch'
+      return ''
+    endif
+  else
+    " Determine the repository's default branch (main or master).
+    let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
+    let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
+    if empty(l:branch)
+      echoerr 'Could not determine default branch'
+      return ''
+    endif
   endif
 
   " Get the repository's root and relative file path.
@@ -271,6 +283,35 @@ endfunction
 
 command! CopyGitHubURL call s:CopyGitHubURL()
 nnoremap <Leader>cpgh :CopyGitHubURL<CR>
+
+" Function: s:CopyGitHubURLWithCurrentBranch()
+" Copy the GitHub URL of the current buffer to the system clipboard for the
+" current branch.
+"
+" Same as CopyGitHubURL(), but uses the current branch instead of the default
+" branch for the repository.
+"
+" Examples:
+"   https://github.com/user/repo/blob/my-branch/src/file.py
+"
+" Args: None
+" Returns: None
+function! s:CopyGitHubURLWithCurrentBranch()
+  " Get GitHub URL of the file using the current branch.
+  let l:url = GetGitHubURL(1)
+
+  " Do not copy empty URLs, error already shown.
+  if empty(l:url)
+    return
+  endif
+
+  " Copy to clipboard and show confirmation.
+  let @+ = l:url
+  echo 'Copied: ' . l:url
+endfunction
+
+command! CopyGitHubURLWithCurrentBranch call s:CopyGitHubURLWithCurrentBranch()
+nnoremap <Leader>cpghc :CopyGitHubURLWithCurrentBranch<CR>
 
 " Function: s:CopyGitHubURLWithRange() range
 " Copy the GitHub URL of the current buffer to the system clipboard.
