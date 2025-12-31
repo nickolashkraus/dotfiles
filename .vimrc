@@ -581,6 +581,9 @@ let g:ale_pattern_options = {
 \   'eslint.config.mjs$': {
 \     'ale_javascript_eslint_options': '--no-warn-ignored',
 \   },
+\   'yabairc$': {
+\     'ale_fixers': [],
+\   },
 \}
 
 " Configure mypy.
