@@ -1266,6 +1266,7 @@ endfunction
 nnoremap <leader>ga :Git add %<CR>
 nnoremap <leader>gr :Git reset %<CR>
 nnoremap <leader>gc :Git commit -v<CR>
+nnoremap <leader>gp :Git push<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-repeat
