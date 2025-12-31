@@ -513,7 +513,6 @@ let g:ale_fixers = {
 \   'yaml': ['prettier'],
 \   'yml': ['prettier'],
 \   'xml': ['xmllint'],
-\   'dockerfile': ['hadolint'],
 \   'terraform': ['terraform'],
 \}
 
