@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "version": "1.0",
+  "name": "Gruvbox Dark",
+  "theme": {
+    "colors": {
+      "frame": [40, 40, 40],
+      "frame_inactive": [40, 40, 40],
+      "frame_incognito": [40, 40, 40],
+      "frame_incognito_inactive": [40, 40, 40],
+      "toolbar": [40, 40, 40],
+      "toolbar_button_icon": [235, 219, 178],
+      "tab_text": [235, 219, 178],
+      "tab_background_text": [168, 153, 132],
+      "bookmark_text": [235, 219, 178],
+      "omnibox_background": [40, 40, 40],
+      "omnibox_text": [235, 219, 178],
+      "ntp_background": [40, 40, 40],
+      "ntp_text": [235, 219, 178],
+      "ntp_link": [168, 153, 132],
+      "button_background": [40, 40, 40]
+    }
+  }
+}
