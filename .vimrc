@@ -930,6 +930,28 @@ let g:fzf_vim = {}
 let g:fzf_layout = {'down': '40%'}
 let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
 
+" NOTE: :Rg does not use `FZF_DEFAULT_COMMAND`, it uses the command set by
+" fzf.vim, which defaults to rg without --hidden.
+"
+" See:
+"   - https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim
+
+" Set custom ripgrep command:
+"   --hidden: Search hidden files and directories.
+"   --column: Show column numbers.
+"   --line-number: Show line numbers.
+"   --no-heading: Do not print the file path above clusters of matches.
+"   --color=always: Forcefully emit ANSI escape codes.
+"   --smart-case: Search case insensitively if the pattern is all lowercase.
+"   --glob: Include or exclude files and directories that match the given glob.
+let s:rg_command= 'rg --hidden --column --line-number --no-heading --color=always --smart-case --glob "!.git/*" -- '
+command! -bang -nargs=* Rg
+      \ call fzf#vim#grep(s:rg_command . fzf#shellescape(<q-args>),
+      \ fzf#vim#with_preview(), <bang>0)
+command! -bang -nargs=* RG
+      \ call fzf#vim#grep2(s:rg_command, <q-args>,
+      \ fzf#vim#with_preview(), <bang>0)
+
 " Generate a quickfix list from selected lines.
 function! s:generate_quickfix_list(lines)
   call setqflist(map(copy(a:lines), '{ "filename": v:val, "lnum": 1 }'))
