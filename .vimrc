@@ -1156,6 +1156,32 @@ nnoremap <C-f> :NERDTreeFind<CR>
 " Use case-sensitive sort of nodes.
 let g:NERDTreeCaseSensitiveSort = 1
 
+" Find and reveal the file for the active buffer in the NERDTree window.
+nnoremap <leader>nf :NERDTreeFind<CR>
+
+" Resize NERDTree window to fit the longest line.
+function! NERDTreeResize()
+  let l:max = 0
+  let l:win = g:NERDTree.GetWinNum()
+
+  if l:win != -1
+    execute l:win . 'wincmd w'
+
+    " Find the longest line in the NERDTree buffer.
+    for line in getline(1, '$')
+      let l:curr = len(line)
+      if l:curr > l:max
+        let l:max = l:curr
+      endif
+    endfor
+
+    execute 'vertical resize ' . l:max
+  endif
+endfunction
+
+command! NERDTreeResize call NERDTreeResize()
+nnoremap <leader>nr :NERDTreeResize<CR>
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " nerdtree-git-plugin
 "
