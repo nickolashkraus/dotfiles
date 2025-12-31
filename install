@@ -230,6 +230,20 @@ ln -s "${dotfiles}/.config/gcloud/configurations/config_function-prod" "${gcloud
 ln -s "${dotfiles}/.config/gcloud/configurations/config_personal" "${gcloud_config_dir}/config_personal"
 
 ###############################################################################
+# GitHub CLI Configuration
+#
+# Required Files:
+#   * .config/gh/config.yml
+#   * .config/gh/hosts.yml
+###############################################################################
+check_file_exists "${dotfiles}/.config/gh/config.yml" || exit 1
+check_file_exists "${dotfiles}/.config/gh/hosts.yml" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/gh" || true
+mkdir -p "${XDG_CONFIG_HOME}/gh"
+ln -s "${dotfiles}/.config/gh/config.yml" "${XDG_CONFIG_HOME}/gh/config.yml"
+ln -s "${dotfiles}/.config/gh/hosts.yml" "${XDG_CONFIG_HOME}/gh/hosts.yml"
+
+###############################################################################
 # Git Configuration & Ignore File
 #
 # Required Files:

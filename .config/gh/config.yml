@@ -1,0 +1,66 @@
+###############################################################################
+# GitHub CLI Configuration
+#
+# DESCRIPTION
+#   Configuration file for the GitHub CLI.
+#
+#   The GitHub CLI (gh) is a command-line tool for interacting with GitHub. It
+#   lets you manage issues, PRs, repos, releases, workflows, and authentication
+#   from the terminal.
+#
+#   See: https://cli.github.com
+#
+#   For configuration documentation, see the following:
+#     - https://cli.github.com/manual/gh_config
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/gh/config.yml
+#
+#     ln -s .config/gh/config.yml ${XDG_CONFIG_HOME}/gh/config.yml
+###############################################################################
+
+version: 1
+
+# Protocol to use for `git clone` and `git push` operations.
+git_protocol: ssh
+
+# Text editor to use for authoring text (issues, pull requests, etc.).
+# If blank, the $EDITOR environment variable is used.
+editor:
+
+# Enable/disable interactive prompting in the terminal.
+prompt: enabled
+
+# Enable/disable editor-based interactive prompting in the terminal.
+prefer_editor_prompt: disabled
+
+# Pager program to use for standard output.
+# If blank, the $PAGER environment variable is used.
+# Set value to 'cat' to disable the pager.
+pager:
+
+# Aliases for gh commands.
+#
+# Example:
+#  co: pr checkout
+aliases:
+
+# Path to a Unix socket to send HTTP connections.
+# If blank, HTTP traffic will be handled by net/http.DefaultTransport.
+http_unix_socket:
+
+# Web browser to use for opening URLs.
+browser: Firefox
+
+# Whether to display labels using their RGB hex color codes in terminals that
+# support truecolor.
+color_labels: disabled
+
+# Whether customizable, 4-bit accessible colors should be used.
+accessible_colors: disabled
+
+# Whether an accessible prompter should be used.
+accessible_prompter: disabled
+
+# Whether to use an animated spinner as a progress indicator.
+spinner: enabled
