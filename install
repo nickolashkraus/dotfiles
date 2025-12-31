@@ -209,6 +209,27 @@ mkdir -p "${XDG_CONFIG_HOME}/borders"
 ln -s "${dotfiles}/.config/borders/bordersrc" "${XDG_CONFIG_HOME}/borders/bordersrc"
 
 ###############################################################################
+# Google Cloud CLI (gcloud) Configuration
+#
+# Required Files:
+#   * .config/gcloud/configurations/config_default
+#   * .config/gcloud/configurations/config_function-dev
+#   * .config/gcloud/configurations/config_function-prod
+#   * .config/gcloud/configurations/config_personal
+###############################################################################
+gcloud_config_dir="${XDG_CONFIG_HOME}/gcloud/configurations"
+check_file_exists "${dotfiles}/.config/gcloud/configurations/config_default" || exit 1
+check_file_exists "${dotfiles}/.config/gcloud/configurations/config_function-dev" || exit 1
+check_file_exists "${dotfiles}/.config/gcloud/configurations/config_function-prod" || exit 1
+check_file_exists "${dotfiles}/.config/gcloud/configurations/config_personal" || exit 1
+rm -rf "${gcloud_config_dir}" || true
+mkdir -p "${gcloud_config_dir}"
+ln -s "${dotfiles}/.config/gcloud/configurations/config_default" "${gcloud_config_dir}/config_default"
+ln -s "${dotfiles}/.config/gcloud/configurations/config_function-dev" "${gcloud_config_dir}/config_function-dev"
+ln -s "${dotfiles}/.config/gcloud/configurations/config_function-prod" "${gcloud_config_dir}/config_function-prod"
+ln -s "${dotfiles}/.config/gcloud/configurations/config_personal" "${gcloud_config_dir}/config_personal"
+
+###############################################################################
 # Git Configuration & Ignore File
 #
 # Required Files:

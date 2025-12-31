@@ -1,0 +1,25 @@
+###############################################################################
+# Google Cloud CLI (gcloud) Configuration
+#
+# DESCRIPTION
+#   Configuration file for the Google Cloud CLI (gcloud).
+#
+#   The Google Cloud CLI is a set of command-line tools for creating, managing,
+#   and interacting with Google Cloud resources and services.
+#
+#   See: https://cloud.google.com/cli
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/gcloud/configurations/config_personal
+#
+#     ln -s .config/gcloud/configurations/config_personal \
+#       ${XDG_CONFIG_HOME}/gcloud/configurations/config_personal
+###############################################################################
+[core]
+account = nickolashkraus@gmail.com
+project = personal-478717
+disable_usage_reporting = False
+
+[compute]
+zone = us-central1-a
+region = us-central1
