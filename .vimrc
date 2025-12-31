@@ -329,8 +329,8 @@ nnoremap <Leader>cpghc :CopyGitHubURLWithCurrentBranch<CR>
 "
 " Args:
 "   range: Line range from visual selection (a:firstline, a:lastline).
-"          When called from normal mode, both values equal the current line.
-"          When called from visual mode, contains the selected line range.
+"     When called from normal mode, both values equal the current line.
+"     When called from visual mode, contains the selected line range.
 "
 " Returns: None
 function! s:CopyGitHubURLWithRange() range
@@ -872,9 +872,9 @@ nnoremap <silent> K           :YcmCompleter GetDoc<CR>
 "
 " Args:
 "   info (dict): Dictionary containing plugin information:
-"                - name: name of the plugin
-"                - status: 'installed', 'updated', or 'unchanged'
-"                - force: set on PlugInstall! or PlugUpdate!
+"                  - name: name of the plugin
+"                  - status: 'installed', 'updated', or 'unchanged'
+"                  - force: set on PlugInstall! or PlugUpdate!
 " Returns: None
 function! BuildYCM(info)
   if a:info.status == 'installed' || a:info.force
