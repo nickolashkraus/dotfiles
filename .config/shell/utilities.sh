@@ -68,6 +68,7 @@ source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
 source <(fzf --zsh)
 
 # Default fzf command (uses ripgrep).
+#   --files: Print each file without actually performing the search.
 #   --hidden: Search hidden files and directories.
 #   --follow: Follow symbolic links while traversing directories.
 #   --glob: Include or exclude files and directories that match the given glob.
@@ -184,6 +185,9 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
+
+# Set Node.js version.
+nvm use --silent v22
 
 # Set default virtualenv.
 if [[ "$(pyenv version-name)" != "default" ]]; then
