@@ -25,8 +25,9 @@
 # Local configuration file for Claude Code.
 **/.claude/settings.local.json
 
-# Local task file for coding agents.
+# Local task(s) file for coding agents.
 .task.md
+.tasks.md
 
 # pyenv Python version file.
 .python-version
