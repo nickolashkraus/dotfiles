@@ -1,0 +1,24 @@
+###############################################################################
+# ngrok Configuration
+#
+# DESCRIPTION
+#   Configuration file for ngrok.
+#
+#   ngrok is a tunneling service that exposes a local server to the internet
+#   via a secure public URL.
+#
+#   See: https://ngrok.com
+#
+#   To add an authentication token to the default ngrok.yml configuration file,
+#   run the following:
+#
+#     ngrok config add-authtoken <TOKEN>
+#
+# INSTALLATION
+#   Symlink file to $XDG_CONFIG_HOME/ngrok/ngrok.yml
+#
+#     ln -s .config/ngrok/ngrok.yml ${XDG_CONFIG_HOME}/ngrok/ngrok.yml
+###############################################################################
+version: "3"
+agent:
+  console_ui_color: transparent

@@ -284,6 +284,17 @@ mkdir -p "${XDG_CONFIG_HOME}/mpv"
 ln -s "${dotfiles}/.config/mpv/mpv.conf" "${XDG_CONFIG_HOME}/mpv/mpv.conf"
 
 ###############################################################################
+# ngrok Configuration
+#
+# Required Files:
+#   * .config/ngrok/ngrok.yml
+###############################################################################
+check_file_exists "${dotfiles}/.config/ngrok/ngrok.yml" || exit 1
+rm -rf "${XDG_CONFIG_HOME}/ngrok" || true
+mkdir -p "${XDG_CONFIG_HOME}/ngrok"
+ln -s "${dotfiles}/.config/ngrok/ngrok.yml" "${XDG_CONFIG_HOME}/ngrok/ngrok.yml"
+
+###############################################################################
 # Powerline Configuration
 #
 # Required Files:
