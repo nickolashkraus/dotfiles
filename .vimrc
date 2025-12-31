@@ -545,7 +545,7 @@ let g:ale_pattern_options = {
 " Configure mypy.
 "
 " See: https://mypy.readthedocs.io/en/stable/running_mypy.html#following-imports
-" let g:ale_python_mypy_options = '--follow-imports=silent'
+let g:ale_python_mypy_options = '--follow-imports=ignore'
 
 " Configure Ruff.
 " Disable E501 (line too long).
