@@ -15,15 +15,15 @@
 	<key>AITermAPI</key>
 	<integer>2</integer>
 	<key>AIVectorStore</key>
-	<integer>1</integer>
+	<integer>0</integer>
 	<key>AdjustWindowForFontSizeChange</key>
 	<false/>
 	<key>AiMaxTokens</key>
-	<integer>1000000</integer>
+	<integer>400000</integer>
 	<key>AiModel</key>
-	<string>gpt-4.1</string>
+	<string>gpt-5.1</string>
 	<key>AiResponseMaxTokens</key>
-	<integer>32768</integer>
+	<integer>128000</integer>
 	<key>AitermURL</key>
 	<string>https://api.openai.com/v1/responses</string>
 	<key>AllowClipboardAccess</key>
@@ -406,6 +406,8 @@
 	</dict>
 	<key>Default Bookmark Guid</key>
 	<string>A3147D23-F0C3-4AA2-ABDA-223D52E60FCD</string>
+	<key>Default Browser Profile Guid</key>
+	<string>A3147D23-F0C3-4AA2-ABDA-223D52E60FCD</string>
 	<key>EnableDivisionView</key>
 	<true/>
 	<key>HapticFeedbackForEsc</key>
@@ -430,13 +432,13 @@
 				<key>Alpha Component</key>
 				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.12941177189350128</real>
+				<real>0.12941176470588237</real>
 				<key>Color Space</key>
 				<string>P3</string>
 				<key>Green Component</key>
-				<real>0.12549020349979401</real>
+				<real>0.12549019607843137</real>
 				<key>Red Component</key>
-				<real>0.11372549086809158</real>
+				<real>0.11372549019607843</real>
 			</dict>
 			<key>Ansi 0 Color (Dark)</key>
 			<dict>
@@ -1199,13 +1201,13 @@
 				<key>Alpha Component</key>
 				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.27058824896812439</real>
+				<real>0.51764705882352946</real>
 				<key>Color Space</key>
 				<string>P3</string>
 				<key>Green Component</key>
-				<real>0.28627452254295349</real>
+				<real>0.59999999999999998</real>
 				<key>Red Component</key>
-				<real>0.31372550129890442</real>
+				<real>0.6588235294117647</real>
 			</dict>
 			<key>Cursor Color (Dark)</key>
 			<dict>
@@ -1277,13 +1279,13 @@
 				<key>Alpha Component</key>
 				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.63137257099151611</real>
+				<real>0.15686274509803921</real>
 				<key>Color Space</key>
 				<string>P3</string>
 				<key>Green Component</key>
-				<real>0.76862746477127075</real>
+				<real>0.15686274509803921</real>
 				<key>Red Component</key>
-				<real>0.83529412746429443</real>
+				<real>0.15686274509803921</real>
 			</dict>
 			<key>Cursor Text Color (Dark)</key>
 			<dict>
@@ -1312,7 +1314,7 @@
 				<real>0.15686275064945221</real>
 			</dict>
 			<key>Custom Command</key>
-			<string>Yes</string>
+			<string>No</string>
 			<key>Custom Directory</key>
 			<string>No</string>
 			<key>Default Bookmark</key>
@@ -1370,6 +1372,8 @@
 			<string>A3147D23-F0C3-4AA2-ABDA-223D52E60FCD</string>
 			<key>Horizontal Spacing</key>
 			<real>1</real>
+			<key>Icon</key>
+			<integer>1</integer>
 			<key>Idle Code</key>
 			<integer>0</integer>
 			<key>Jobs to Ignore</key>
@@ -1776,6 +1780,8 @@
 			<string>kNextWindowPointerAction</string>
 		</dict>
 	</dict>
+	<key>Print In Black And White</key>
+	<true/>
 	<key>PromptOnQuit</key>
 	<false/>
 	<key>SeparateWindowTitlePerTab</key>
@@ -1792,6 +1798,10 @@
 	<integer>5</integer>
 	<key>TabsHaveCloseButton</key>
 	<false/>
+	<key>TerminalMargin</key>
+	<integer>8</integer>
+	<key>TerminalVMargin</key>
+	<integer>4</integer>
 	<key>TmuxSyncClipboard</key>
 	<false/>
 	<key>TmuxUnpauseAutomatically</key>
