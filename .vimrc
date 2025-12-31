@@ -573,6 +573,13 @@ let g:ale_set_loclist = 1
 let g:ale_set_quickfix = 0
 let g:ale_keep_list_window_open = 0
 
+" Disable ALE for specific buffer types (NERDTree, help, etc.).
+let g:ale_pattern_options_enabled = 1
+augroup DisableALEForSpecialBuffers
+  autocmd!
+  autocmd FileType nerdtree let b:ale_enabled = 0
+augroup END
+
 " Automatically close the location list if the buffer is closed.
 augroup CloseLocationList
   autocmd!
