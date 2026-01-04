@@ -62,6 +62,18 @@ shift + alt - left : yabai -m window --grid 1:2:0:0:1:1
 # Floating window fills right half of screen.
 shift + alt - right : yabai -m window --grid 1:2:1:0:1:1
 
+# Floating window fills top-left quarter of screen.
+shift + alt - q : yabai -m window --grid 2:2:0:0:1:1
+
+# Floating window fills top-right quarter of screen.
+shift + alt - w : yabai -m window --grid 2:2:1:0:1:1
+
+# Floating window fills bottom-left quarter of screen.
+shift + alt - a : yabai -m window --grid 2:2:0:1:1:1
+
+# Floating window fills bottom-right quarter of screen.
+shift + alt - s : yabai -m window --grid 2:2:1:1:1:1
+
 # Toggle menu bar visibility.
 alt - m : yabai -m config menubar_opacity \
           $([ "$(yabai -m config menubar_opacity)" = "0.5000" ] \
