@@ -273,6 +273,7 @@ fstab
 functionhealth
 fzf
 gcloud
+gcp
 gha
 gitgutter
 glibc
@@ -314,6 +315,7 @@ nickolashkraus
 nickolaskraus
 nlog
 og
+oidc
 onboard
 onboarding
 ons
