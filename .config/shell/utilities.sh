@@ -191,5 +191,5 @@ nvm use --silent v25
 
 # Set default virtualenv.
 if [[ "$(pyenv version-name)" != "default" ]]; then
-  pyenv activate default
+  pyenv activate default >/dev/null 2>&1
 fi
