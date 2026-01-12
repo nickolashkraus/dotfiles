@@ -187,7 +187,7 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 # Set Node.js version.
-nvm use --silent v22
+nvm use --silent v25
 
 # Set default virtualenv.
 if [[ "$(pyenv version-name)" != "default" ]]; then
