@@ -440,6 +440,7 @@ check_command_exists "pipx" || exit 1
 pipx ensurepath
 pipx install powerline-status
 pipx install ruff
+pipx install ty
 pipx install mypy
 pipx install poetry
 echo -e "${green}Done!\n${reset}" >&2
