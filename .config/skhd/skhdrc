@@ -95,10 +95,15 @@ ctrl - 1 : yabai -m window --focus $(yabai -m query --windows \
            | jq -r '.[] | select(.app == "iTerm2" and .display == 2) | .id')
 
 # Focus iTerm2 window on display 1 and put it above all other windows.
-ctrl - 2 : yabai -m window --focus $(yabai -m query --windows \
-           | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id') \
-           && yabai -m window --layer above $(yabai -m query --windows \
-           | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id')
+# If only one display exists, cycle iTerm2 windows.
+ctrl - 2 : if [ "$(yabai -m query --displays | jq 'length')" -eq 1 ]; then \
+             ~/bin/yabai-cycle "iTerm2"; \
+           else \
+             yabai -m window --focus $(yabai -m query --windows \
+               | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id') \
+             && yabai -m window --layer above $(yabai -m query --windows \
+               | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id'); \
+           fi
 
 # Focus and show an application (bring floating window to front).
 #
