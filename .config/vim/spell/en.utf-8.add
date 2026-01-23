@@ -13,11 +13,13 @@ Acetyl
 Ames
 Analytics
 Andreessen
+Anthropic's
 ApiGateway
 Auth0
 Authenticator
 Authlib
 Authy
+B2B
 BCM43602
 BCM43XX
 BFS
@@ -142,6 +144,7 @@ OIDC
 Okta
 Onboarding
 OpenAI
+OpenAI's
 OpenAPI
 OpenID
 PKCE
@@ -159,6 +162,7 @@ Quicksort
 Quickstart
 RDP
 RESTful
+RPA
 RTC
 RTO
 Rebase
@@ -173,6 +177,7 @@ SERPs
 SFTPGo
 SHA
 SPAs
+SSO
 SVG
 Salesforce
 Salesloft
@@ -187,8 +192,10 @@ Subsequence
 Substring
 Sur
 Syntastic
+TBD
 TCP
 TLS
+TODO
 TOML
 Terraform
 Theanine
@@ -338,6 +345,7 @@ runtime
 scalable
 schemas
 serverless
+signup
 skhd
 stateful
 statusline
@@ -349,6 +357,7 @@ subfolder
 submodules
 subnet
 subnets
+subpar
 subsequence
 substring
 substrings
