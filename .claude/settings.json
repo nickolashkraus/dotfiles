@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(git *)",
@@ -14,11 +11,6 @@
       "WebFetch",
       "WebSearch"
     ],
-    "additionalDirectories": [
-      "/Users/nickolas/Function-Health",
-      "/Users/nickolas/grind-rip",
-      "/Users/nickolas/infrable-io",
-      "/Users/nickolas/nickolashkraus"
-    ]
+    "additionalDirectories": []
   }
 }
