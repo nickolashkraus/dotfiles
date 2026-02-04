@@ -744,6 +744,11 @@ nnoremap <silent> <Leader>toc :Toc<CR>
 " Disable default key mappings.
 let g:vim_markdown_no_default_key_mappings = 1
 
+" Sync syntax highlighting from the start of the file.
+" This prevents syntax highlighting from breaking mid-file for large Markdown
+" files with many fenced code blocks.
+autocmd FileType markdown syntax sync fromstart
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-anyfold
 "
