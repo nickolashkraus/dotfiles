@@ -26,8 +26,5 @@ hide_gpt5_1_migration_prompt = true
 unified_exec = true
 shell_snapshot = true
 
-[projects."/Users/nickolas/nickolashkraus/notes"]
-trust_level = "trusted"
-
-[projects."/Users/nickolas/nickolashkraus/ny-nj"]
+[projects."/Users/nickolas/nickolashkraus/dotfiles"]
 trust_level = "trusted"

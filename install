@@ -408,7 +408,7 @@ ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 #   * .claude/settings.json
 ###############################################################################
 check_file_exists "${dotfiles}/.claude/settings.json" || exit 1
-rm -rf "${HOME}/.claude" || true
+rm -rf "${HOME}/.claude/settings.json" || true
 mkdir -p "${HOME}/.claude"
 ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 
@@ -419,7 +419,7 @@ ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 #   * .codex/config.toml
 ###############################################################################
 check_file_exists "${dotfiles}/.codex/config.toml" || exit 1
-rm -rf "${HOME}/.codex" || true
+rm -rf "${HOME}/.codex/config.toml" || true
 mkdir -p "${HOME}/.codex"
 ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
 
