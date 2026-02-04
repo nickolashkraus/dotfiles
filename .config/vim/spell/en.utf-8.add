@@ -10,11 +10,13 @@ ARN
 AUR
 AWS
 Acetyl
+Activations
 Ames
 Analytics
 Andreessen
 Anthropic's
 ApiGateway
+Auditability
 Auth0
 Authenticator
 Authlib
@@ -37,6 +39,7 @@ CNAME
 CORS
 CSRF
 CSV
+CSVs
 Carnitine
 ChatGPT
 Chroot
@@ -51,6 +54,7 @@ DFS
 DHCP
 DNS
 DPoP
+DTC
 DX
 Databricks
 Dev
@@ -64,6 +68,7 @@ EPD
 EPUB
 Ext4
 FQDNs
+FSA
 FastAPI
 FastAPI's
 FastMCP
@@ -75,6 +80,7 @@ FitCSVTool
 Fivetran
 Freshpaint
 GCP
+GCS
 GPC
 Galleri
 Garmin
@@ -83,9 +89,12 @@ Gelcaps
 GetLabs
 Github
 Glassdoor
+GraphQL
 HCL
 HIPAA
+HSA
 HTTPS
+Hawai'i
 Heapsort
 Hoare's
 Homebrew
@@ -102,6 +111,7 @@ Interoperable
 Iterable
 JOON
 JPG
+JPMorgan
 JSON
 JWKS
 JWT
@@ -156,6 +166,7 @@ PostgreSQL
 Powerline
 Prolab
 Pydantic
+Q2
 Quanum
 Quickselect
 Quicksort
@@ -170,10 +181,12 @@ Rebasing
 Redis
 RequisitionFilterOps
 RestApi
+Rollout
 S3
 SDK
 SEO
 SERPs
+SFTP
 SFTPGo
 SHA
 SPAs
@@ -181,6 +194,7 @@ SSO
 SVG
 Salesforce
 Salesloft
+Scalability
 SemVer
 SentinelOne
 Serverless
@@ -212,6 +226,7 @@ URI
 URIs
 UUID
 UUIDs
+UX
 Uncomment
 Unmuted
 UserInfo
@@ -238,6 +253,7 @@ YAML
 YCM
 YouCompleteMe
 Zsh
+a16z
 acul
 ai
 api
@@ -255,8 +271,10 @@ cURL
 chipset
 chipsets
 chrooted
+claude
 codepoints
 colorscheme
+config
 creatine
 cryptographically
 customizable
@@ -267,6 +285,7 @@ duplicative
 embeddings
 engageable
 entrypoint
+enum
 eponymously
 fallbacks
 filesystem
@@ -295,6 +314,7 @@ impactful
 infrable
 integrations
 interoperability
+interservice
 io
 iwctl
 iwd
@@ -321,11 +341,13 @@ nickolashanskraus
 nickolashkraus
 nickolaskraus
 nlog
+offboarding
 og
 oidc
 onboard
 onboarding
 ons
+orchestrator
 overcontributed
 perseveration
 pixy
@@ -341,6 +363,8 @@ ramdisk
 rebasing
 repartition
 resource
+rollout
+rpa
 runtime
 scalable
 schemas
@@ -375,6 +399,9 @@ unicode
 unmount
 untrusted
 url
+v1
+v2
+v3
 v4
 valenced
 validator
