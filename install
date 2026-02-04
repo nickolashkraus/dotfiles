@@ -485,7 +485,6 @@ echo -e "${green}Done!\n${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 echo -e "${white}Installing npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
-npm install -g @anthropic-ai/claude-code
 npm install -g @google/gemini-cli
 npm install -g @openai/codex
 npm install -g cspell
