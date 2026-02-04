@@ -13,6 +13,12 @@
       "Read",
       "WebFetch",
       "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/Users/nickolas/Function-Health",
+      "/Users/nickolas/grind-rip",
+      "/Users/nickolas/infrable-io",
+      "/Users/nickolas/nickolashkraus"
     ]
   }
 }

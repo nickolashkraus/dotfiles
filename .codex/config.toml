@@ -26,5 +26,14 @@ hide_gpt5_1_migration_prompt = true
 unified_exec = true
 shell_snapshot = true
 
-[projects."/Users/nickolas/nickolashkraus/dotfiles"]
+[projects."/Users/nickolas/Function-Health"]
+trust_level = "trusted"
+
+[projects."/Users/nickolas/grind-rip"]
+trust_level = "trusted"
+
+[projects."/Users/nickolas/infrable-io"]
+trust_level = "trusted"
+
+[projects."/Users/nickolas/nickolashkraus"]
 trust_level = "trusted"
