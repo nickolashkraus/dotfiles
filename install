@@ -402,6 +402,28 @@ mkdir -p "${XDG_CONFIG_HOME}/yamllint"
 ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 
 ###############################################################################
+# Claude Code Configuration
+#
+# Required Files:
+#   * .claude/settings.json
+###############################################################################
+check_file_exists "${dotfiles}/.claude/settings.json" || exit 1
+rm -rf "${HOME}/.claude" || true
+mkdir -p "${HOME}/.claude"
+ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
+
+###############################################################################
+# Codex Configuration
+#
+# Required Files:
+#   * .codex/config.toml
+###############################################################################
+check_file_exists "${dotfiles}/.codex/config.toml" || exit 1
+rm -rf "${HOME}/.codex" || true
+mkdir -p "${HOME}/.codex"
+ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
+
+###############################################################################
 # Oh My Zsh Theme
 #
 # Required Files:

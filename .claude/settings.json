@@ -1,0 +1,18 @@
+{
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Edit",
+      "Glob",
+      "Grep",
+      "LSP",
+      "Read",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}

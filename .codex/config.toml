@@ -1,0 +1,33 @@
+###############################################################################
+# Codex Configuration
+#
+# DESCRIPTION
+#   Configuration file for Codex, OpenAI's agentic coding assistant.
+#
+#   See: https://github.com/openai/codex
+#
+# INSTALLATION
+#   Symlink file to $HOME/.codex/config.toml:
+#
+#     ln -s .codex/config.toml $HOME/.codex/config.toml
+###############################################################################
+
+model = "gpt-5.2-codex"
+approval_mode = "auto-edit"
+
+[notice]
+hide_gpt5_1_migration_prompt = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+
+[notice.model_migrations]
+"gpt-5.1-codex-max" = "gpt-5.2-codex"
+
+[features]
+unified_exec = true
+shell_snapshot = true
+
+[projects."/Users/nickolas/nickolashkraus/notes"]
+trust_level = "trusted"
+
+[projects."/Users/nickolas/nickolashkraus/ny-nj"]
+trust_level = "trusted"
