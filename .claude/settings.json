@@ -12,5 +12,6 @@
       "WebSearch"
     ],
     "additionalDirectories": []
-  }
+  },
+  "syntaxHighlightingDisabled": false
 }
