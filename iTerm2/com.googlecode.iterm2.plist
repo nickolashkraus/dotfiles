@@ -1177,7 +1177,7 @@
 				<real>0.92156863212585449</real>
 			</dict>
 			<key>Brighten Bold Text</key>
-			<false/>
+			<true/>
 			<key>Brighten Bold Text (Dark)</key>
 			<true/>
 			<key>Brighten Bold Text (Light)</key>
@@ -1421,6 +1421,19 @@
 					<integer>2</integer>
 					<key>Text</key>
 					<string>d</string>
+					<key>Version</key>
+					<integer>2</integer>
+				</dict>
+				<key>0x74-0x80000-0x11</key>
+				<dict>
+					<key>Action</key>
+					<integer>10</integer>
+					<key>Apply Mode</key>
+					<integer>0</integer>
+					<key>Escaping</key>
+					<integer>2</integer>
+					<key>Text</key>
+					<string>t</string>
 					<key>Version</key>
 					<integer>2</integer>
 				</dict>
