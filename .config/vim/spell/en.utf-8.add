@@ -152,6 +152,8 @@ NERDTree
 Neovim
 OAuth
 OIDC
+Observability
+Offsite
 Okta
 Onboarding
 OpenAI
@@ -167,6 +169,7 @@ PostgreSQL
 Powerline
 Prolab
 Pydantic
+Q1
 Q2
 Quanum
 Quickselect
@@ -199,6 +202,7 @@ Scalability
 SemVer
 SentinelOne
 Serverless
+Signups
 Splunk
 Statsig
 Strava
@@ -212,6 +216,7 @@ TCP
 TLS
 TODO
 TOML
+TRD
 Terraform
 Theanine
 Thorne
@@ -241,6 +246,7 @@ Viewport
 Virtru
 Voilà
 WEBP
+Walkthrough
 Wearables
 WebSockets
 WhatsApp
@@ -258,6 +264,7 @@ a16z
 acul
 ai
 api
+auditable
 auth
 auth0
 authorizers
@@ -265,6 +272,7 @@ autocompletion
 b43
 backend
 base64url
+binpacking
 bootable
 brcm80211
 broadcom
@@ -279,6 +287,7 @@ config
 creatine
 cryptographically
 customizable
+dataclass
 dkms
 docstrings
 dotfiles
@@ -306,6 +315,7 @@ gitgutter
 glibc
 gmail
 gruvbox
+hardcoded
 hostname
 https
 iFax
@@ -313,6 +323,7 @@ iOS
 if
 impactful
 infrable
+instantiation
 integrations
 interoperability
 interservice
@@ -346,6 +357,7 @@ offboarding
 og
 oidc
 onboard
+onboarded
 onboarding
 ons
 orchestrator
@@ -370,6 +382,7 @@ runtime
 scalable
 schemas
 serverless
+signup
 signup
 skhd
 stateful
