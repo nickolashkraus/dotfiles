@@ -25,3 +25,6 @@ hide_gpt5_1_migration_prompt = true
 [features]
 unified_exec = true
 shell_snapshot = true
+
+[projects."/Users/nickolas/nickolashkraus/dotfiles"]
+trust_level = "trusted"
