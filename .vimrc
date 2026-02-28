@@ -686,9 +686,11 @@ let g:go_metalinter_enabled = []
 
 " Align Markdown tables with <Leader> + |.
 " In visual mode, the alignment would apply to the selected lines. In normal
-" mode Tabular attempts to guess the range.
-nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
-vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
+" mode Tabularize attempts to guess the range.
+if exists(':Tabularize')
+  nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
+  vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
+endif
 
 " Auto-align on pipe insert (convenient for real-time table editing).
 inoremap <silent> <Bar> <Bar><Esc>:call <SID>align()<CR>a
@@ -752,23 +754,9 @@ function! s:align()
         call search(repeat('[^|]*|',column).'\s\{-\}'.repeat('.',position),'ce',line('.'))
       endif
     endif
-    " Fill separator rows (lines containing |---) with hyphens instead of
-    " spaces.
-    let l:tstart = line('.')
-    while l:tstart > 1 && getline(l:tstart - 1) =~# '^\s*|'
-      let l:tstart -= 1
-    endwhile
-    let l:tend = line('.')
-    while l:tend < line('$') && getline(l:tend + 1) =~# '^\s*|'
-      let l:tend += 1
-    endwhile
-    for i in range(l:tstart, l:tend)
-      " Remove leading whitespace added by Tabularize before the first pipe.
-      call setline(i, substitute(getline(i), '^\s\+|', '|', ''))
-      if getline(i) =~# '^\s*|\s*-'
-        call setline(i, substitute(getline(i), '-\zs *\ze |', '\=repeat("-", len(submatch(0)))', 'g'))
-      endif
-    endfor
+    " Clean up table: remove leading whitespace and fill separator rows with
+    " hyphens.
+    call s:cleanup_table()
   endif
 endfunction
 
