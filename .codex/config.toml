@@ -12,7 +12,7 @@
 #     ln -s .codex/config.toml $HOME/.codex/config.toml
 ###############################################################################
 
-model = "gpt-5.2-codex"
+model = "gpt-5.3-codex"
 approval_mode = "auto-edit"
 
 [notice]
@@ -21,6 +21,7 @@ hide_gpt5_1_migration_prompt = true
 
 [notice.model_migrations]
 "gpt-5.1-codex-max" = "gpt-5.2-codex"
+"gpt-5.2-codex" = "gpt-5.3-codex"
 
 [features]
 unified_exec = true
