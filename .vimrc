@@ -1208,7 +1208,7 @@ nnoremap <C-f> :NERDTreeFind<CR>
 let g:NERDTreeCaseSensitiveSort = 1
 
 " Find and reveal the file for the active buffer in the NERDTree window.
-nnoremap <leader>nf :NERDTreeFind<CR>
+nnoremap <Leader>nf :NERDTreeFind<CR>
 
 " Resize NERDTree window to fit the longest line.
 function! NERDTreeResize()
@@ -1231,7 +1231,7 @@ function! NERDTreeResize()
 endfunction
 
 command! NERDTreeResize call NERDTreeResize()
-nnoremap <leader>nr :NERDTreeResize<CR>
+nnoremap <Leader>nr :NERDTreeResize<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " nerdtree-git-plugin
@@ -1314,10 +1314,10 @@ endfunction
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Stage/unstage the file for the current buffer.
-nnoremap <leader>ga :Git add %<CR>
-nnoremap <leader>gr :Git reset %<CR>
-nnoremap <leader>gc :Git commit -v<CR>
-nnoremap <leader>gp :Git push<CR>
+nnoremap <Leader>ga :Git add %<CR>
+nnoremap <Leader>gr :Git reset %<CR>
+nnoremap <Leader>gc :Git commit -v<CR>
+nnoremap <Leader>gp :Git push<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-repeat
