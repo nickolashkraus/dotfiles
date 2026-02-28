@@ -684,16 +684,37 @@ let g:go_metalinter_enabled = []
 " See: https://github.com/godlygeek/tabular
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" Align Markdown tables with <Leader> + |.
 " In visual mode, the alignment would apply to the selected lines. In normal
 " mode Tabular attempts to guess the range.
-if exists(':Tabularize')
-  " Manual alignment mappings for pipe characters (e.g., Markdown tables).
-  nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>
-  vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>
-endif
+nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
+vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
 
 " Auto-align on pipe insert (convenient for real-time table editing).
 inoremap <silent> <Bar> <Bar><Esc>:call <SID>align()<CR>a
+
+" Function: s:cleanup_table()
+" Remove leading whitespace added by Tabularize and fill separator rows with
+" hyphens. Called after manual Tabularize alignment (<Leader> + |).
+"
+" Args: None
+" Returns: None
+function! s:cleanup_table()
+  let l:start = line('.')
+  while l:start > 1 && getline(l:start - 1) =~# '^\s*|'
+    let l:start -= 1
+  endwhile
+  let l:end = line('.')
+  while l:end < line('$') && getline(l:end + 1) =~# '^\s*|'
+    let l:end += 1
+  endwhile
+  for i in range(l:start, l:end)
+    call setline(i, substitute(getline(i), '^\s\+|', '|', ''))
+    if getline(i) =~# '^\s*|\s*-'
+      call setline(i, substitute(getline(i), '-\zs *\ze |', '\=repeat("-", len(submatch(0)))', 'g'))
+    endif
+  endfor
+endfunction
 
 " Function: s:align()
 " Automatically aligns table columns when inserting pipe characters.
@@ -714,6 +735,40 @@ function! s:align()
     Tabularize/|/l1
     normal! 0
     call search(repeat('[^|]*|',column).'\s\{-\}'.repeat('.',position),'ce',line('.'))
+    " Find the first row of the table.
+    let l:first = line('.')
+    while l:first > 1 && getline(l:first - 1) =~# '^\s*|'
+      let l:first -= 1
+    endwhile
+    " If the table has at least two rows and the second row is not a separator
+    " row, insert one after the header.
+    let l:next = l:first + 1
+    if l:next <= line('$') && getline(l:next) =~# '^\s*|' && getline(l:next) !~# '^\s*|\s*-'
+      let l:ncols = count(getline(l:first), '|') - 1
+      if l:ncols > 0
+        call append(l:first, '|' . repeat(' --- |', l:ncols))
+        Tabularize/|/l1
+        normal! 0
+        call search(repeat('[^|]*|',column).'\s\{-\}'.repeat('.',position),'ce',line('.'))
+      endif
+    endif
+    " Fill separator rows (lines containing |---) with hyphens instead of
+    " spaces.
+    let l:tstart = line('.')
+    while l:tstart > 1 && getline(l:tstart - 1) =~# '^\s*|'
+      let l:tstart -= 1
+    endwhile
+    let l:tend = line('.')
+    while l:tend < line('$') && getline(l:tend + 1) =~# '^\s*|'
+      let l:tend += 1
+    endwhile
+    for i in range(l:tstart, l:tend)
+      " Remove leading whitespace added by Tabularize before the first pipe.
+      call setline(i, substitute(getline(i), '^\s\+|', '|', ''))
+      if getline(i) =~# '^\s*|\s*-'
+        call setline(i, substitute(getline(i), '-\zs *\ze |', '\=repeat("-", len(submatch(0)))', 'g'))
+      endif
+    endfor
   endif
 endfunction
 
