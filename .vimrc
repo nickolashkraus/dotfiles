@@ -385,7 +385,7 @@ nnoremap g# g#zz
 "   [s  Previous misspelled word
 "   z=  Suggest corrections
 "   zg  Add word to dictionary
-"   zb  Remove word from dictionary
+"   zug Remove word from dictionary
 set spelllang=en_us
 set spellfile=$HOME/.config/vim/spell/en.utf-8.add
 nnoremap <Leader>sp :setlocal spell!<CR>
@@ -410,7 +410,7 @@ augroup vimrc
   " Automatically write all buffers on focus loss / buffer switch.
   autocmd FocusLost,BufLeave * silent! wa
 
-  " Open packages installed via Homebrew in readonly, nomodifiable mode
+  " Open packages installed via Homebrew in readonly, nomodifiable mode.
   autocmd BufReadPre,BufNewFile /opt/homebrew/Cellar/* setlocal readonly nomodifiable
 
 augroup END
@@ -788,7 +788,10 @@ let g:vim_markdown_no_default_key_mappings = 1
 " Sync syntax highlighting from the start of the file.
 " This prevents syntax highlighting from breaking mid-file for large Markdown
 " files with many fenced code blocks.
-autocmd FileType markdown syntax sync fromstart
+augroup vim-markdown-sync
+  autocmd!
+  autocmd FileType markdown syntax sync fromstart
+augroup END
 
 " Prevent `gq` from inserting '-' in Markdown list continuation.
 " Temporarily removes '-' from comments during formatting, preserving '-' on
@@ -890,9 +893,10 @@ let g:ycm_enable_semantic_highlighting = 1
 " The 'ycm_key_invoke_completion' option controls the key mapping used to
 " invoke the completion menu for semantic completion. This key mapping can be
 " used to trigger semantic completion anywhere, which can be useful when
-" searching for top-level functions and classes in the current file.  NOTE:
-" The default YCM completion mapping is Ctrl + Space. Command + Space now
-" opens Alfred.
+" searching for top-level functions and classes in the current file.
+"
+" NOTE: The default YCM completion mapping is Ctrl + Space. Command + Space
+" now opens Alfred.
 let g:ycm_key_invoke_completion = '<C-Space>'
 
 " Defines the max size (in Kb) for a file to be considered for completion.
@@ -1055,7 +1059,7 @@ let g:fzf_preview_window = ['right:50%:border-rounded', 'ctrl-/']
 "   --color=always: Forcefully emit ANSI escape codes.
 "   --smart-case: Search case insensitively if the pattern is all lowercase.
 "   --glob: Include or exclude files and directories that match the given glob.
-let s:rg_command= 'rg --hidden --column --line-number --no-heading --color=always --smart-case --glob "!.git/*" -- '
+let s:rg_command = 'rg --hidden --column --line-number --no-heading --color=always --smart-case --glob "!.git/*" -- '
 command! -bang -nargs=* Rg
       \ call fzf#vim#grep(s:rg_command . fzf#shellescape(<q-args>),
       \ fzf#vim#with_preview(), <bang>0)
@@ -1078,7 +1082,8 @@ let g:fzf_action = {
       \ 'ctrl-v': 'vsplit' }
 
 " Search files with Ctrl - p.
-map <C-P> :Files<CR>
+" NOTE: Overridden below with a NERDTree-aware version.
+nnoremap <C-P> :Files<CR>
 
 " Set fzf colorscheme.
 "
@@ -1125,8 +1130,11 @@ let g:fzf_colors = {
 " Hide statusline when fzf starts in a terminal buffer.
 "
 " See: https://github.com/junegunn/fzf/blob/master/README-VIM.md#hide-statusline
-autocmd! FileType fzf set laststatus=0 noshowmode noruler
-  \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+augroup fzf-statusline
+  autocmd!
+  autocmd FileType fzf set laststatus=0 noshowmode noruler
+    \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+augroup END
 
 " Do not open files in NERDTree buffer.
 nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<C-W>\<C-W>" : '').":Files\<CR>"
