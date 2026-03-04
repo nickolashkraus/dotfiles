@@ -419,8 +419,8 @@ ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 #   * .codex/config.toml
 ###############################################################################
 check_file_exists "${dotfiles}/.codex/config.toml" || exit 1
-rm -rf "${HOME}/.codex/config.toml" || true
 mkdir -p "${HOME}/.codex"
+rm -f "${HOME}/.codex/config.toml" || true
 ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
 
 ###############################################################################
