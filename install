@@ -405,11 +405,15 @@ ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 # Claude Code Configuration
 #
 # Required Files:
+#   * .claude/CLAUDE.md
 #   * .claude/settings.json
 ###############################################################################
+check_file_exists "${dotfiles}/.claude/CLAUDE.md" || exit 1
 check_file_exists "${dotfiles}/.claude/settings.json" || exit 1
-rm -rf "${HOME}/.claude/settings.json" || true
 mkdir -p "${HOME}/.claude"
+rm -f "${HOME}/.claude/CLAUDE.md" || true
+rm -f "${HOME}/.claude/settings.json" || true
+ln -s "${dotfiles}/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 
 ###############################################################################
