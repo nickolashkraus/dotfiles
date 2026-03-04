@@ -92,6 +92,7 @@ GetLabs
 Github
 Glassdoor
 GraphQL
+H2
 HCL
 HIPAA
 HSA
@@ -277,10 +278,13 @@ b43
 backend
 base64url
 binpacking
+blockquotes
 bootable
 brcm80211
 broadcom
+bulleted
 cURL
+callouts
 chipset
 chipsets
 chrooted
@@ -301,6 +305,7 @@ engageable
 entrypoint
 enum
 eponymously
+factly
 fallbacks
 fhir
 filesystem
@@ -427,6 +432,7 @@ validator
 verifier
 viewport
 virtualenv
+walkthroughs
 wearables
 whitespace
 wl
