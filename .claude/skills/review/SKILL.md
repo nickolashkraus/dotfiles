@@ -3,7 +3,7 @@ name: review
 description: Review a file for typos, bugs, inaccuracies, and inconsistencies.
 disable-model-invocation: true
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [file]
+argument-hint: <file>
 ---
 
 You are reviewing a file. The file path is `$ARGUMENTS`.
