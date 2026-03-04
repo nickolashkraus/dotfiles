@@ -1,0 +1,5 @@
+# CLAUDE.md
+
+- @rules/git.md
+- @rules/typography.md
+- @rules/writing.md
