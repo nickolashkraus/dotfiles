@@ -40,3 +40,48 @@ rfv() (
 gcp_current_config() (
   gcloud config configurations list --filter="is_active:true" --format="value(name)" 2>/dev/null
 )
+
+# Automatically activate the Poetry environment when entering a directory that
+# contains a pyproject.toml with a Poetry section. Deactivates and restores the
+# default pyenv virtualenv when leaving.
+#
+# The Python version is resolved from the `python` dependency in pyproject.toml
+# (e.g., "^3.12", "~=3.12", ">=3.12") and matched to the latest installed
+# pyenv version for that minor release.
+_poetry_auto_activate() {
+  # Check for a Poetry project in the current directory.
+  if [[ -f pyproject.toml ]] && grep -q '\[tool\.poetry\]' pyproject.toml 2>/dev/null; then
+    # Extract the minor version (e.g., "3.12") from the Python dependency.
+    local py_constraint
+    py_constraint=$(grep -E '^\s*python\s*=' pyproject.toml | head -1 | grep -oE '[0-9]+\.[0-9]+')
+    if [[ -z "$py_constraint" ]]; then
+      return
+    fi
+
+    # Find the latest installed pyenv version matching that minor release.
+    local py_version
+    py_version=$(pyenv versions --bare 2>/dev/null |
+      grep -E "^${py_constraint}\.[0-9]+$" |
+      sort -t. -k3 -n |
+      tail -1)
+    if [[ -z "$py_version" ]]; then
+      echo "pyenv: no installed version matches ${py_constraint}.x"
+      return
+    fi
+
+    # Activate.
+    pyenv deactivate 2>/dev/null
+    pyenv shell "$py_version"
+    eval "$(poetry env activate 2>/dev/null)"
+    export _POETRY_AUTO_ACTIVATED=1
+  elif [[ -n "$_POETRY_AUTO_ACTIVATED" ]]; then
+    # Left a Poetry project. Restore defaults.
+    unset _POETRY_AUTO_ACTIVATED
+    deactivate 2>/dev/null
+    pyenv shell --unset
+    pyenv activate default 2>/dev/null
+  fi
+}
+
+autoload -U add-zsh-hook
+add-zsh-hook chpwd _poetry_auto_activate
