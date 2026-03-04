@@ -13,5 +13,6 @@
     ],
     "additionalDirectories": []
   },
-  "syntaxHighlightingDisabled": false
+  "syntaxHighlightingDisabled": false,
+  "skipDangerousModePermissionPrompt": true
 }
