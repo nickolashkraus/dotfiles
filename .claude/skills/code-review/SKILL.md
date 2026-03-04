@@ -5,7 +5,7 @@ description: >
   inconsistencies, then creates the Git commit and pull request.
 disable-model-invocation: true
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: "[LINEAR-ISSUE]"
+argument-hint: [linear-issue]
 ---
 
 You are reviewing and shipping a set of changes. Follow every step in order.
@@ -27,12 +27,12 @@ review.
 
 Go through every changed file. For each file, check for:
 
-- **Typos**: misspelled words, wrong variable names, copy/paste errors.
-- **Bugs**: logic errors, off-by-one mistakes, null/undefined risks, missing
+- **Typos**: Misspelled words, wrong variable names, copy/paste errors.
+- **Bugs**: Logic errors, off-by-one mistakes, null/undefined risks, missing
   error handling, race conditions, resource leaks.
-- **Inconsistencies**: naming conventions that break from the rest of the file,
+- **Inconsistencies**: Naming conventions that break from the rest of the file,
   mismatched types, formatting that diverges from surrounding code.
-- **Security**: injection risks, hardcoded secrets, overly broad permissions.
+- **Security**: Injection risks, hardcoded secrets, overly broad permissions.
 
 Read surrounding context in each file when needed to understand intent.
 
@@ -42,15 +42,18 @@ After fixing, re-run the diff to confirm your fixes are correct.
 
 If the diff is clean, say so and move on.
 
+Run CI (formatting, linting, tests, etc.) to ensure the changes will pass.
+
 ## Step 4: Create the commit
 
 Follow the commit rules from @~/.claude/rules/git.md exactly:
 
 - Subject line: 50 characters or less, capitalized, imperative mood, no period.
-- Body (optional): wrap at 72 characters, explain what and why.
+- Body (optional): Wrap at 72 characters, explain what and why.
 - No co-authored-by or signature lines.
 
-Stage all relevant changes and commit. Do not commit files that contain secrets.
+Stage all relevant changes and commit. Do not commit files that contain
+secrets.
 
 If there is a Linear issue (passed as `$ARGUMENTS`), do not include it in the
 commit message.
@@ -62,14 +65,15 @@ commit message.
      (e.g., `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
 2. Create the branch and push.
-3. Create the pull request using `gh pr create`:
-   - If a Linear issue was provided, prefix the PR title (e.g.,
+3. Create the pull request using `gh pr create` against the default branch:
+   - If a Linear issue was provided, prefix the pull request title (e.g.,
      `EPD-1337: Add input validation`).
-   - Write the description following the PR rules from @~/.claude/rules/git.md:
+   - Write the description following the pull request rules from
+     @~/.claude/rules/git.md:
      - Scale the description with the complexity of the change.
-     - Trivial: single sentence or empty body.
-     - Small to medium: declarative summary, code snippets
-       if helpful, `**NOTE**` blocks for secondary context.
+     - Trivial: Single sentence or empty body.
+     - Small to medium: Declarative summary, code snippets if helpful,
+       `**NOTE**` blocks for secondary context.
      - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
        `## References` as needed.
    - Do not add boilerplate sections the change does not warrant.
