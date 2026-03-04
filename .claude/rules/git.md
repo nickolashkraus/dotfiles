@@ -53,7 +53,7 @@ rebase` instead.
 
 Scale the description with the complexity of the change.
 
-### Trivial Changes
+#### Trivial Changes
 
 Use a single declarative sentence or leave the body empty.
 
@@ -65,7 +65,7 @@ Service should not be publicly available.
 Determines document upload status from Google Cloud Storage.
 ```
 
-### Small to Medium Changes
+#### Small to Medium Changes
 
 Open with a brief declarative summary (no header needed). Include code
 snippets, error messages, or links to related code when they add clarity.
@@ -82,7 +82,7 @@ error: "GcpStorageConfig" is not a known attribute of module "gcp_storage_sdk"
 Basically just makes the module's public API more clear and fixes the pyright error.
 ```
 
-### Larger Changes
+#### Larger Changes
 
 Use `## Overview` as the primary header with a concise summary. Add additional
 sections as needed:
