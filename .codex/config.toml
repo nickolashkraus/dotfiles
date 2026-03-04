@@ -29,10 +29,10 @@ approval_mode = "auto-edit"
   trust_level = "trusted"
 
 [projects."/Users/nickolas"]
-trust_level = "trusted"
+  trust_level = "trusted"
 
 [projects."/Users/nickolas/nickolashkraus"]
-trust_level = "trusted"
+  trust_level = "trusted"
 
 [tui]
-theme = "base16"
+  theme = "base16"
