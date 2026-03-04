@@ -790,6 +790,27 @@ let g:vim_markdown_no_default_key_mappings = 1
 " files with many fenced code blocks.
 autocmd FileType markdown syntax sync fromstart
 
+" Prevent `gq` from inserting '-' in Markdown list continuation.
+" Temporarily removes '-' from comments during formatting, preserving '-' on
+" Enter.
+function! MarkdownGq(type) abort
+  let l:saved = &l:comments
+  setlocal comments-=b:-
+  if a:type ==# 'v' || a:type ==# 'V' || a:type ==# "\<C-v>"
+    silent normal! gvgw
+  else
+    silent execute "normal! '[gw']"
+  endif
+  let &l:comments = l:saved
+endfunction
+
+augroup markdown_gq_no_hyphen
+  autocmd!
+  autocmd FileType markdown nnoremap <buffer> gq :set opfunc=MarkdownGq<CR>g@
+  autocmd FileType markdown nnoremap <buffer> gqq :set opfunc=MarkdownGq<CR>g@_
+  autocmd FileType markdown xnoremap <buffer> gq :<C-u>call MarkdownGq(visualmode())<CR>
+augroup END
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-anyfold
 "
