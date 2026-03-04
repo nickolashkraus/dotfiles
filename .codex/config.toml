@@ -27,3 +27,12 @@ approval_mode = "auto-edit"
 
 [projects."/"]
   trust_level = "trusted"
+
+[projects."/Users/nickolas"]
+trust_level = "trusted"
+
+[projects."/Users/nickolas/nickolashkraus"]
+trust_level = "trusted"
+
+[tui]
+theme = "base16"
