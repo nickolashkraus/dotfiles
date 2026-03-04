@@ -687,10 +687,8 @@ let g:go_metalinter_enabled = []
 " Align Markdown tables with <Leader> + |.
 " In visual mode, the alignment would apply to the selected lines. In normal
 " mode Tabularize attempts to guess the range.
-if exists(':Tabularize')
-  nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
-  vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
-endif
+nnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
+vnoremap <silent> <Leader><Bar> :Tabularize /<Bar><CR>:call <SID>cleanup_table()<CR>
 
 " Auto-align on pipe insert (convenient for real-time table editing).
 inoremap <silent> <Bar> <Bar><Esc>:call <SID>align()<CR>a
