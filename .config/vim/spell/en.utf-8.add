@@ -62,6 +62,7 @@ Drata
 DynamoDB
 EC2
 EFI
+EHR
 ENI
 EOL
 EPD
@@ -175,6 +176,7 @@ Quanum
 Quickselect
 Quicksort
 Quickstart
+R4
 RDP
 RESTful
 RPA
@@ -300,6 +302,7 @@ entrypoint
 enum
 eponymously
 fallbacks
+fhir
 filesystem
 filesystems
 filetype
