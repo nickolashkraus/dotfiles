@@ -1,0 +1,77 @@
+---
+name: code-review
+description: >
+  Reviews the diff against the default branch for typos, bugs, and
+  inconsistencies, then creates the Git commit and pull request.
+disable-model-invocation: true
+allowed-tools: Bash, Edit, Glob, Grep, Read
+argument-hint: "[LINEAR-ISSUE]"
+---
+
+You are reviewing and shipping a set of changes. Follow every step in order.
+
+## Step 1: Determine the default branch
+
+```
+!`git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`
+```
+
+## Step 2: Get the diff
+
+Diff all changes (staged, unstaged, and untracked) against the default branch.
+
+If there are untracked files, read them in full. You need complete context to
+review.
+
+## Step 3: Review the diff
+
+Go through every changed file. For each file, check for:
+
+- **Typos**: misspelled words, wrong variable names, copy/paste errors.
+- **Bugs**: logic errors, off-by-one mistakes, null/undefined risks, missing
+  error handling, race conditions, resource leaks.
+- **Inconsistencies**: naming conventions that break from the rest of the file,
+  mismatched types, formatting that diverges from surrounding code.
+- **Security**: injection risks, hardcoded secrets, overly broad permissions.
+
+Read surrounding context in each file when needed to understand intent.
+
+If you find issues, fix them directly. Do not just list them.
+
+After fixing, re-run the diff to confirm your fixes are correct.
+
+If the diff is clean, say so and move on.
+
+## Step 4: Create the commit
+
+Follow the commit rules from @~/.claude/rules/git.md exactly:
+
+- Subject line: 50 characters or less, capitalized, imperative mood, no period.
+- Body (optional): wrap at 72 characters, explain what and why.
+- No co-authored-by or signature lines.
+
+Stage all relevant changes and commit. Do not commit files that contain secrets.
+
+If there is a Linear issue (passed as `$ARGUMENTS`), do not include it in the
+commit message.
+
+## Step 5: Create the pull request
+
+1. Determine the branch name:
+   - If a Linear issue was passed (`$ARGUMENTS`), use it as the branch name
+     (e.g., `EPD-1337`).
+   - Otherwise, derive a short descriptive name from the changes.
+2. Create the branch and push.
+3. Create the pull request using `gh pr create`:
+   - If a Linear issue was provided, prefix the PR title (e.g.,
+     `EPD-1337: Add input validation`).
+   - Write the description following the PR rules from @~/.claude/rules/git.md:
+     - Scale the description with the complexity of the change.
+     - Trivial: single sentence or empty body.
+     - Small to medium: declarative summary, code snippets
+       if helpful, `**NOTE**` blocks for secondary context.
+     - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
+       `## References` as needed.
+   - Do not add boilerplate sections the change does not warrant.
+
+Print the pull request URL when done.
