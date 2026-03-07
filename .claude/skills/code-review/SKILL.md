@@ -64,7 +64,7 @@ commit message.
    - If a Linear issue was passed (`$ARGUMENTS`), use it as the branch name
      (e.g., `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
-2. Create the branch and push.
+2. Create the branch from the default branch and push.
 3. Create the pull request using `gh pr create` against the default branch:
    - If a Linear issue was provided, prefix the pull request title (e.g.,
      `EPD-1337: Add input validation`).
