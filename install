@@ -499,6 +499,7 @@ echo -e "${white}Installing npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "npm" || exit 1
 npm install -g @google/gemini-cli
+npm install -g @googleworkspace/cli
 npm install -g @openai/codex
 npm install -g cspell
 npm install -g eslint

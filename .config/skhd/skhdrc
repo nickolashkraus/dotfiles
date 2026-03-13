@@ -101,8 +101,7 @@ ctrl - 2 : if [ "$(yabai -m query --displays | jq 'length')" -eq 1 ]; then \
            else \
              yabai -m window --focus $(yabai -m query --windows \
                | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id') \
-             && yabai -m window --layer above $(yabai -m query --windows \
-               | jq -r '.[] | select(.app == "iTerm2" and .display == 1) | .id'); \
+             && yabai -m window --raise; \
            fi
 
 # Focus and show an application (bring floating window to front).
@@ -110,6 +109,9 @@ ctrl - 2 : if [ "$(yabai -m query --displays | jq 'length')" -eq 1 ]; then \
 # If multiple windows exist, cycle through windows on successive invocations.
 ctrl - 3 : ~/bin/yabai-cycle "Firefox"
 ctrl - 4 : ~/bin/yabai-cycle "Slack"
+ctrl - 5 : ~/bin/yabai-cycle "Linear"
+ctrl - 6 : ~/bin/yabai-cycle "Notion"
+ctrl - 7 : ~/bin/yabai-cycle "Mail"
 
 # Focus mpv.
 ctrl - m : yabai -m window --focus $(yabai -m query --windows \
