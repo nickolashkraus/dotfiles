@@ -14,5 +14,6 @@
     "additionalDirectories": []
   },
   "syntaxHighlightingDisabled": false,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "high"
 }

@@ -12,12 +12,15 @@
 #     ln -s .codex/config.toml $HOME/.codex/config.toml
 ###############################################################################
 
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 approval_mode = "auto-edit"
 
 [notice]
   hide_gpt5_1_migration_prompt = true
   "hide_gpt-5.1-codex-max_migration_prompt" = true
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4"
 
 [features]
   apps = true
@@ -38,6 +41,12 @@ approval_mode = "auto-edit"
   trust_level = "trusted"
 
 [projects."/Users/nickolas/grind-rip"]
+  trust_level = "trusted"
+
+[projects."/Users/nickolas/Function-Health/auth0-acul"]
+  trust_level = "trusted"
+
+[projects."/Users/nickolas/nickolashkraus/dotfiles"]
   trust_level = "trusted"
 
 [tui]

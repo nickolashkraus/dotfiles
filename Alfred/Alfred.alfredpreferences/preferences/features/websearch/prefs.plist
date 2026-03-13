@@ -4,6 +4,17 @@
 <dict>
 	<key>customSites</key>
 	<dict>
+		<key>1FA26454-410C-4E30-A223-EA65C40044C0</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>ghp</string>
+			<key>text</key>
+			<string>Open nickolashkraus Repository</string>
+			<key>url</key>
+			<string>https://github.com/nickolashkraus/{query}</string>
+		</dict>
 		<key>4416690F-27B2-4E18-BF8D-252E248BCA67</key>
 		<dict>
 			<key>enabled</key>
