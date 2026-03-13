@@ -7,6 +7,8 @@
   description (e.g., `some-feature`).
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
+- If a change has interesting or nuanced information, add it to the Git commit
+  and PR description.
 
 ## Commits
 
