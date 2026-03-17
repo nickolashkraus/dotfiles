@@ -1,14 +1,14 @@
 ---
-name: code-review
+name: ship
 description: >
-  Reviews the diff against the default branch for typos, bugs, and
-  inconsistencies, then creates the Git commit and pull request.
+  Reviews the diff, creates the Git commit, and opens a pull request.
 disable-model-invocation: true
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: [linear-issue]
 ---
 
-You are reviewing and shipping a set of changes. Follow every step in order.
+You are reviewing, committing, and shipping a set of changes. Follow every step
+in order.
 
 ## Step 1: Determine the default branch
 
@@ -52,30 +52,36 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
 - Body (optional): Wrap at 72 characters, explain what and why.
 - No co-authored-by or signature lines.
 
-Stage all relevant changes and commit. Do not commit files that contain
+Stage all relevant changes and commit. Do not stage files that contain
 secrets.
 
-If there is a Linear issue (passed as `$ARGUMENTS`), do not include it in the
-commit message.
+If there is a Linear issue, prefix the subject line with it (e.g.,
+`EPD-1337: Fix bug in user login flow`).
 
-## Step 5: Create the pull request
+## Step 5: Create the branch and push
+
+If already on a non-default branch, push it. Otherwise:
 
 1. Determine the branch name:
    - If a Linear issue was passed (`$ARGUMENTS`), use it as the branch name
      (e.g., `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
-2. Create the branch from the default branch and push.
-3. Create the pull request using `gh pr create` against the default branch:
-   - If a Linear issue was provided, prefix the pull request title (e.g.,
-     `EPD-1337: Add input validation`).
-   - Write the description following the pull request rules from
-     @~/.claude/rules/git.md:
-     - Scale the description with the complexity of the change.
-     - Trivial: Single sentence or empty body.
-     - Small to medium: Declarative summary, code snippets if helpful,
-       `**NOTE**` blocks for secondary context.
-     - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
-       `## References` as needed.
-   - Do not add boilerplate sections the change does not warrant.
+2. Create the branch and push.
+
+## Step 6: Create the pull request
+
+Create the pull request using `gh pr create` against the default branch:
+
+- If a Linear issue was provided, prefix the pull request title (e.g.,
+  `EPD-1337: Add input validation`).
+- Write the description following the pull request rules from
+  @~/.claude/rules/git.md:
+  - Scale the description with the complexity of the change.
+  - Trivial: Single sentence or empty body.
+  - Small to medium: Declarative summary, code snippets if helpful,
+    `**NOTE**` blocks for secondary context.
+  - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
+    `## References` as needed.
+- Do not add boilerplate sections the change does not warrant.
 
 Print the pull request URL when done.
