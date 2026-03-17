@@ -85,3 +85,53 @@ _poetry_auto_activate() {
 
 autoload -U add-zsh-hook
 add-zsh-hook chpwd _poetry_auto_activate
+
+# Activate a gcloud configuration and authenticate. Runs `gcloud auth login`
+# and `gcloud auth application-default login` after switching configurations.
+#
+# Options:
+#   --gws  Include Google Workspace scopes (cloud-platform, drive.readonly)
+#          required by the gws CLI wrapper.
+#
+# Usage:
+#   gcp_auth                 # Authenticate with the current configuration.
+#   gcp_auth personal        # Switch to "personal" and authenticate.
+#   gcp_auth function-dev    # Switch to "function-dev" and authenticate.
+#   gcp_auth --gws           # Authenticate with Google Workspace scopes.
+#   gcp_auth personal --gws  # Switch to "personal" and authenticate with
+#                            # Google Workspace scopes.
+gcp_auth() {
+  local config="" gws=0
+  for arg in "$@"; do
+    case "$arg" in
+      --gws) gws=1 ;;
+      *) config="$arg" ;;
+    esac
+  done
+
+  if [[ -n "$config" ]]; then
+    gcloud config configurations activate "$config" || return 1
+  fi
+
+  gcloud auth login || return 1
+
+  if ((gws)); then
+    gcloud auth application-default login \
+      --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly"
+  else
+    gcloud auth application-default login
+  fi
+}
+
+# Wrap gws (Google Workspace CLI) to automatically inject a Google access token
+# via `gcloud application-default credentials`. This bypasses `gws auth setup`,
+# which requires creating an OAuth client in the GCP project.
+#
+# Requires application-default credentials with the appropriate scopes:
+#
+#   gcloud auth application-default login \
+#     --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly"
+gws() {
+  GOOGLE_WORKSPACE_CLI_TOKEN=$(gcloud auth application-default print-access-token 2>/dev/null) \
+    command gws "$@"
+}

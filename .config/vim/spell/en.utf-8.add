@@ -26,6 +26,7 @@ BCM43602
 BCM43XX
 BFS
 BTR
+BYBO
 BaseURL
 Batchhelder
 Bootable
@@ -84,12 +85,15 @@ Fivetran
 Freshpaint
 GCP
 GCS
+GKE
 GPC
+GWS
 Galleri
 Garmin
 Garmin's
 Gelcaps
 GetLabs
+GitOps
 Github
 Glassdoor
 GraphQL
@@ -198,6 +202,7 @@ SFTP
 SFTPGo
 SHA
 SPAs
+SRE
 SSO
 SVG
 Salesforce
@@ -210,6 +215,7 @@ Serverless
 Signups
 Splunk
 Statsig
+Statsig's
 Strava
 Subarray
 Subsequence
@@ -433,6 +439,7 @@ v4
 valenced
 validator
 verifier
+versioned
 viewport
 virtualenv
 walkthroughs
@@ -444,4 +451,3 @@ www
 x86
 yabai
 
-Statsig's
