@@ -34,6 +34,12 @@
 sudo yabai --load-sa
 yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
 
+# Reload yabai when displays are added or removed.
+yabai -m signal --add event=display_added action="yabai --restart-service"
+yabai -m signal --add event=display_removed action="yabai --restart-service"
+
+display_count=$(yabai -m query --displays | jq 'length')
+
 ###############################################################################
 # Appearance
 ###############################################################################
@@ -97,8 +103,13 @@ yabai -m config debug_output                  off
 # Rules
 # Grid Format: <rows>:<cols>:<start-x>:<start-y>:<width>:<height>
 ###############################################################################
-yabai -m rule --add app=".*"                manage=off display=^2 sub-layer=below grid=24:12:2:6:8:12
-yabai -m rule --add app="^System Settings$" manage=off display=^2 sub-layer=below grid=12:24:0:0:0:6
+if [ "$display_count" -gt 1 ]; then
+  yabai -m rule --add app=".*"                manage=off display=^2 sub-layer=below grid=24:12:2:6:8:12
+  yabai -m rule --add app="^System Settings$" manage=off display=^2 sub-layer=below grid=12:24:0:0:0:6
+else
+  yabai -m rule --add app=".*"                manage=off sub-layer=below grid=24:12:2:6:8:12
+  yabai -m rule --add app="^System Settings$" manage=off sub-layer=below grid=12:24:0:0:0:6
+fi
 yabai -m rule --add app="^iTerm2$"          manage=on  display=^1 grid=1:1:0:0:1:1
 
 ###############################################################################
