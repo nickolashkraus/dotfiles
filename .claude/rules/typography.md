@@ -29,13 +29,10 @@
 - For YAML strings, follow these conventions:
   - Use unquoted strings by default when the value contains no special
     characters.
-  - Use double quotes when the value contains special characters that require
-    escape sequences (e.g., `\n`, `\t`, `\\`).
-  - Use single quotes when the value contains YAML-special characters (e.g.,
-    `:`, `#`, `{`, `}`, `[`, `]`, `,`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`,
-    `@`, `` ` ``) but no escape sequences are needed.
-  - Never mix quoting styles within the same file. Pick one style for values
-    that need quoting and apply it consistently.
+  - Use double quotes when the value contains special characters or
+    YAML-special characters (e.g., `:`, `#`, `{`, `}`, `[`, `]`, `,`, `&`, `*`,
+    `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``). This includes escape sequences
+    (e.g., `\n`, `\t`, `\\`).
   - Use literal block scalars (`|`) for multi-line strings that must preserve
     newlines.
   - Use folded block scalars (`>`) for multi-line strings that should be joined
