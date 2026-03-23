@@ -14,6 +14,7 @@
 
 model = "gpt-5.4"
 approval_mode = "auto-edit"
+model_reasoning_effort = "xhigh"
 
 [notice]
   hide_gpt5_1_migration_prompt = true
