@@ -11,9 +11,10 @@
       "WebFetch",
       "WebSearch"
     ],
+    "defaultMode": "bypassPermissions",
     "additionalDirectories": []
   },
   "syntaxHighlightingDisabled": false,
-  "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true
 }
