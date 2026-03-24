@@ -77,3 +77,8 @@ gcloud run services describe <service> --region=<region> \
 gcloud secrets versions access latest \
   --secret=<secret-name> --project=<project>
 ```
+
+## Member App Middleware (MAM)
+
+Always review member-app-middleware PRs against the guidelines in
+`.github/docs/CONTRIBUTING.md` before submitting.
