@@ -21,15 +21,21 @@ gh pr view --json number,headRefName --jq '.number'
 
 If no PR is found, stop and tell the user.
 
-## Step 2: Get failed checks
+## Step 2: Check status
 
-List all checks on the PR and identify the failures:
+List all checks on the PR:
 
 ```
 gh pr checks <pr-number>
 ```
 
-If all checks pass, say so and stop.
+Classify every check as **pass**, **fail**, or **pending**.
+
+- If all checks pass and no unresolved bot comments remain (see Step 5), go to
+  Step 7.
+- If any checks are pending and none have failed, wait 30 seconds and re-run
+  this step.
+- If any checks have failed, continue to Step 3.
 
 ## Step 3: Get failure details
 
@@ -74,13 +80,17 @@ similar). For each comment:
   suggestion does not apply or is incorrect. Use `gh api` to post the reply and
   resolve the thread.
 
-## Step 6: Verify the fixes
+## Step 6: Verify and iterate
 
 Run the same CI commands locally to confirm the fixes work. Use the project's
 test/lint/build commands as identified from the CI logs or project
 configuration (e.g., `Makefile`, `package.json`, `pyproject.toml`).
 
 If any command still fails, go back to Step 4.
+
+Once local verification passes, commit and push the fixes. Then go back to Step
+2 and wait for all checks (including pending ones) to resolve. Keep iterating
+until every check passes and all bot comments are addressed.
 
 ## Step 7: Summarize
 
