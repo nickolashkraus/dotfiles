@@ -7,3 +7,7 @@
   the resource name. For example:
   - `gws docs documents get` (correct), not `gws docs get` (wrong).
   - `gws sheets spreadsheets get` (correct), not `gws sheets get` (wrong).
+- ALWAYS use `--page-all` to fetch all items from paginated endpoints. When
+  using `--params` with a `fields` mask, include `nextPageToken` in the mask.
+  Without it, `gws` cannot detect additional pages and silently returns only
+  the first page.

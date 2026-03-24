@@ -36,6 +36,6 @@ Present findings grouped by category. For each issue:
 - Suggest the fix.
 
 If you find issues, fix them directly. If the fix is ambiguous, prompt the user
-for input.
+for input. Lean more toward just fixing the issue.
 
 If the file is clean, say so.

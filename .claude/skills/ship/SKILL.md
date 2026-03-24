@@ -13,7 +13,7 @@ in order.
 ## Step 1: Determine the default branch
 
 ```
-!`git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`
+git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 ```
 
 ## Step 2: Get the diff

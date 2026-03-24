@@ -2,7 +2,10 @@
 
 ## General
 
+- Follow @rules/typography.md for all Git content (PR descriptions, commit
+  messages).
 - Never add a co-authored-by or signature to commits.
+  Ex: `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>`
 - Branch names should be the Linear issue (if provided) or a short
   description (e.g., `some-feature`).
 - Pull request titles should include the Linear issue (if provided) (e.g.,
@@ -30,6 +33,11 @@ A pull request should contain a single commit unless each commit represents
 a logical grouping of changes. If you commit often during development, squash
 before merging.
 
+### Pushing
+
+Always run CI (tests, linting) locally before pushing. Do not push code that
+you have not verified passes the project's CI.
+
 ### Rebasing
 
 Do not merge master into a branch to integrate upstream changes. Use `git
@@ -50,6 +58,8 @@ rebase` instead.
   change.
 - Do not add boilerplate sections (e.g., "## Summary", "## Test plan") when the
   change does not warrant them.
+- Do not use hard line breaks within paragraphs. Markdown renderers handle
+  wrapping, so each paragraph should be a single unwrapped line.
 
 ### Descriptions
 

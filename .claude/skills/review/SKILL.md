@@ -18,7 +18,7 @@ are already staged.
 ## Step 2: Determine the default branch
 
 ```
-!`git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`
+git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 ```
 
 ## Step 3: Get the diff

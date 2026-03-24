@@ -12,12 +12,20 @@
   - **Element**: A short description
   ```
 
+- In bulleted or numbered lists, use a colon after the lead-in element, not
+  a dash. For example:
+  `` `GET /foo`: Does something ``
+  not
+  `` `GET /foo` - Does something ``
+
 - When formatting Markdown tables, use the following format:
 
   | Column 1 | Column 2 | Column 3 |
   | -------- | -------- | -------- |
   | x        | y        | z        |
 
+- Use backticks for inline code, file names, commands, resource names, and
+  configuration values (e.g., `python`, `app.py`, `GET /api/users`).
 - For Markdown files, use HTML escape characters (&lt;, &gt;, etc.). Escape \$.
   These characters break syntax highlighting in Vim, except when inside
   backticks (`<br>`).
@@ -25,7 +33,7 @@
   `[label][]` shorthand or bare `[label]` form, even when the text and label
   are the same.
 - Use double space instead of `<br>` for newlines in Markdown.
-- Always put colons outside of bold text (ex: **Bold**:).
+- Always put colons outside of bold text (e.g., **Bold**:).
 - For YAML strings, follow these conventions:
   - Use unquoted strings by default when the value contains no special
     characters.
@@ -37,3 +45,5 @@
     newlines.
   - Use folded block scalars (`>`) for multi-line strings that should be joined
     into a single line.
+- Always put periods outside double quotes unless the quote actually contains
+  a period.
