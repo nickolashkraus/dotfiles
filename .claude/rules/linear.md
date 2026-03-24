@@ -1,5 +1,6 @@
 # Linear
 
+- Follow @rules/typography.md for all Linear content.
 - Issue titles should use Title Case.
 - Issue statuses should default to Todo.
 - Remove extra newlines (e.g., if lines use &lt;80 characters for human
