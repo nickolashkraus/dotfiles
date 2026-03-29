@@ -3,18 +3,19 @@ name: create-linear-issue
 description: >
   Create a Linear issue with the Markdown contents of a local file.
 disable-model-invocation: true
-allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__list_teams
-argument-hint: <file> <linear-project>
+allowed-tools: Bash, Read, mcp__linear__save_issue
+argument-hint: <file> <team> <project>
 ---
 
 You are creating a Linear issue from the contents of a local Markdown file.
+Follow @rules/linear.md for all formatting and content conventions.
 
-`$ARGUMENTS` contains two space-separated values: the path to the local file
-and the Linear project name.
+`$ARGUMENTS` contains three space-separated values: the path to the local file,
+the Linear team name, and the Linear project name.
 
 ## Step 1: Parse arguments
 
-Extract the file path and Linear project name from `$ARGUMENTS`.
+Extract the file path, team name, and project name from `$ARGUMENTS`.
 
 ## Step 2: Clean the Markdown file
 
@@ -40,19 +41,14 @@ Case. If there is no H1, derive the title from the filename.
 Remove the first H1 header from the cleaned Markdown. The remaining content is
 the issue description.
 
-## Step 5: Get the team
-
-Use the `list_teams` tool to find available teams. Use the first team if there
-is only one.
-
-## Step 6: Create the issue
+## Step 5: Create the issue
 
 Use the `save_issue` tool to create the issue with:
 
 - **title**: From Step 3.
 - **description**: From Step 4.
-- **project**: The Linear project from the arguments.
-- **team**: From Step 5.
+- **team**: The team name from the arguments.
+- **project**: The project name from the arguments.
 - **state**: Todo.
 
 Print the issue identifier (e.g., EPD-123) when done.

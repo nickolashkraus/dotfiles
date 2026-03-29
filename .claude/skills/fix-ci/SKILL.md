@@ -34,7 +34,8 @@ Classify every check as **pass**, **fail**, or **pending**.
 - If all checks pass and no unresolved bot comments remain (see Step 5), go to
   Step 7.
 - If any checks are pending and none have failed, wait 30 seconds and re-run
-  this step.
+  this step. Always wait for **all** checks to complete before moving on, even
+  external checks (e.g., Cloud Build, Sentry, third-party scanners).
 - If any checks have failed, continue to Step 3.
 
 ## Step 3: Get failure details

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 ###############################################################################
 # Shell Functions
 #
@@ -17,6 +17,15 @@
 #
 #     ln -s .config/shell/functions.sh $XDG_CONFIG_HOME/shell/functions.sh
 ###############################################################################
+
+# Hide hidden files and file extensions in Finder. The Function Health device
+# profile enables these features, so run this after startup to restore the
+# default behavior.
+init() {
+  defaults write com.apple.finder AppleShowAllFiles -bool false
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool false
+  killall Finder
+}
 
 # See: https://junegunn.github.io/fzf/tips/ripgrep-integration/
 rfv() (
@@ -69,8 +78,10 @@ _poetry_auto_activate() {
       return
     fi
 
-    # Activate.
+    # Deactivate any active virtualenv before activating the new one.
+    deactivate 2>/dev/null
     pyenv deactivate 2>/dev/null
+    pyenv shell --unset 2>/dev/null
     pyenv shell "$py_version"
     eval "$(poetry env activate 2>/dev/null)"
     export _POETRY_AUTO_ACTIVATED=1
@@ -91,7 +102,7 @@ add-zsh-hook chpwd _poetry_auto_activate
 #
 # Options:
 #   --gws  Include Google Workspace scopes (cloud-platform, drive.readonly)
-#          required by the gws CLI wrapper.
+#          and save a per-profile ADC file for the gws wrapper.
 #
 # Usage:
 #   gcp_auth                 # Authenticate with the current configuration.
@@ -117,21 +128,54 @@ gcp_auth() {
 
   if ((gws)); then
     gcloud auth application-default login \
-      --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly"
+      --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly" ||
+      return 1
+    local active
+    active=$(gcp_current_config)
+    cp ~/.config/gcloud/application_default_credentials.json \
+      ~/.config/gcloud/adc-"${active}".json
+    echo "Saved ADC for ${active}."
   else
-    gcloud auth application-default login
+    gcloud auth application-default login || return 1
   fi
 }
 
+# Switch gws between Personal (native OAuth) and Function Health (gcloud ADC).
+#
+# Usage:
+#   gws_use personal  # Use native gws auth (full drive scope).
+#   gws_use function  # Use gcloud ADC (drive.readonly).
+gws_use() {
+  case "$1" in
+    personal | function) export GWS_PROFILE="$1" ;;
+    *) echo "Usage: gws_use personal|function" && return 1 ;;
+  esac
+  echo "gws profile: $GWS_PROFILE"
+}
+
 # Wrap gws (Google Workspace CLI) to automatically inject a Google access token
-# via `gcloud application-default credentials`. This bypasses `gws auth setup`,
-# which requires creating an OAuth client in the GCP project.
+# via per-profile ADC credentials when using the Function Health profile. This
+# bypasses `gws auth setup`, which requires creating an OAuth client in the GCP
+# project.
 #
-# Requires application-default credentials with the appropriate scopes:
-#
-#   gcloud auth application-default login \
-#     --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly"
+# When GWS_PROFILE is "personal", gws uses its native auth (via `gws auth
+# login`). When "function", it injects a token from the saved Function Health
+# ADC file. Auth each profile once with `gcp_auth <config> --gws` to save the
+# ADC credentials.
 gws() {
-  GOOGLE_WORKSPACE_CLI_TOKEN=$(gcloud auth application-default print-access-token 2>/dev/null) \
+  if [[ "$GWS_PROFILE" == "personal" ]]; then
     command gws "$@"
+  else
+    local adc=~/.config/gcloud/adc-function-dev.json
+    if [[ ! -f "$adc" ]]; then
+      echo "No saved ADC for function-dev. Run: gcp_auth function-dev --gws"
+      return 1
+    fi
+    local project
+    project=$(python3 -c "import json; print(json.load(open('$adc')).get('quota_project_id',''))" 2>/dev/null)
+    GOOGLE_WORKSPACE_CLI_TOKEN=$(
+      GOOGLE_APPLICATION_CREDENTIALS="$adc" \
+        gcloud auth application-default print-access-token 2>/dev/null
+    ) GOOGLE_WORKSPACE_PROJECT_ID="$project" command gws "$@"
+  fi
 }

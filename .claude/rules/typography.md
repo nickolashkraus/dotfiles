@@ -2,7 +2,9 @@
 
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
-- Add a period to the end of bulleted lists.
+- Add a period to the end of bulleted lists. Exception: do not add
+  periods to single-word or short-phrase list items (e.g., field
+  name enumerations like "Name", "Price", "Description").
 - Keep lines &lt;80 characters for human readability. Break lines at the last
   word boundary before column 80, maximizing line length. Use the Vim `gq`
   formatting behavior.
@@ -47,3 +49,6 @@
     into a single line.
 - Always put periods outside double quotes unless the quote actually contains
   a period.
+- Place footnote markers after all punctuation (e.g., `sentence.[^1]`, not
+  `sentence[^1].`).
+- Use a comma before "but" when it joins two independent clauses.

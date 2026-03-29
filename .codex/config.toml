@@ -50,5 +50,8 @@ model_reasoning_effort = "xhigh"
 [projects."/Users/nickolas/nickolashkraus/dotfiles"]
   trust_level = "trusted"
 
+[projects."/Users/nickolas/nickolashkraus/agent-os"]
+  trust_level = "trusted"
+
 [tui]
   theme = "base16"
