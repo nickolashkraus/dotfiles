@@ -8,3 +8,17 @@
 - Add links to GitHub, Notion, etc. when appropriate.
 - When creating issue descriptions, do not use explicit file line numbers or
   ranges.
+
+Linear issues should use the following format:
+
+```
+## Overview
+
+## Acceptance Criteria
+
+## Implementation Details
+
+## References
+```
+
+- For references, use actual links (GitHub, Linear, Notion, etc.).

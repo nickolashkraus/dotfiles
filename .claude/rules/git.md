@@ -6,8 +6,8 @@
   messages).
 - Never add a co-authored-by or signature to commits.
   Ex: `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>`
-- Branch names should be the Linear issue (if provided) or a short
-  description (e.g., `some-feature`).
+- Branch names should be the Linear issue slug (e.g., `BYB-1337`) if
+  available, or a short description (e.g., `some-feature`).
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - If a change has interesting or nuanced information, add it to the Git commit
@@ -26,6 +26,7 @@
   - Wrap lines at 72 characters
   - Explain *what* and *why*, not *how*
 - Never use "WIP" or other throwaway messages.
+- Use bulleted lists for Git messages, not long, comma separated items.
 
 ### Squashing Commits
 
@@ -37,6 +38,9 @@ before merging.
 
 Always run CI (tests, linting) locally before pushing. Do not push code that
 you have not verified passes the project's CI.
+
+After pushing, run `/fix-ci` until all checks pass. Do not consider the job
+done while any check is non-passing (including neutral or pending).
 
 ### Rebasing
 
