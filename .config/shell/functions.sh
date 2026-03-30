@@ -25,6 +25,8 @@ init() {
   defaults write com.apple.finder AppleShowAllFiles -bool false
   defaults write NSGlobalDomain AppleShowAllExtensions -bool false
   killall Finder
+  gcp_auth personal --gws
+  gcp_auth function-dev --gws
 }
 
 # See: https://junegunn.github.io/fzf/tips/ripgrep-integration/
