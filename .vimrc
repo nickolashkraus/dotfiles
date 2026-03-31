@@ -192,6 +192,10 @@ nnoremap <Leader>s :%s/\<<C-r><C-w>\>//g<Left><Left>
 command! CopyRelPath let @+ = expand('%')
 nnoremap <Leader>cp :CopyRelPath<CR>
 
+" Copy the absolute path of the current buffer to the system clipboard.
+command! CopyAbsPath let @+ = expand('%:p')
+nnoremap <Leader>cpu :CopyAbsPath<CR>
+
 " Function: GetGitHubURL(...)
 " Get the GitHub URL of the file for the current buffer.
 "
@@ -388,6 +392,12 @@ nnoremap g# g#zz
 "   zug Remove word from dictionary
 set spelllang=en_us
 set spellfile=$HOME/.config/vim/spell/en.utf-8.add
+let s:spelldir = $HOME . '/.config/vim/spell'
+let s:add = s:spelldir . '/en.utf-8.add'
+let s:spl = s:add . '.spl'
+if filereadable(s:add) && (!filereadable(s:spl) || getftime(s:add) > getftime(s:spl))
+  silent execute 'mkspell! ' . fnameescape(s:add)
+endif
 nnoremap <Leader>sp :setlocal spell!<CR>
 
 " Set spellcheck colors.
