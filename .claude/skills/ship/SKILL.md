@@ -79,7 +79,8 @@ Create the pull request using `gh pr create` against the default branch:
   - Scale the description with the complexity of the change.
   - Trivial: Single sentence or empty body.
   - Small to medium: Declarative summary, code snippets if helpful,
-    `**NOTE**` blocks for secondary context.
+    `**NOTE**` blocks for secondary context. Use a bulleted list when
+    the commit contains multiple logical changes.
   - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
     `## References` as needed.
 - Do not add boilerplate sections the change does not warrant.

@@ -25,7 +25,11 @@ init() {
   defaults write com.apple.finder AppleShowAllFiles -bool false
   defaults write NSGlobalDomain AppleShowAllExtensions -bool false
   killall Finder
+  # Auth gcloud (Personal) + read-only `gws`.
   gcp_auth personal --gws
+  # Auth gws (Personal) with read/write.
+  gws auth login
+  # Auth gcloud (Function Dev) + read-only `gws`.
   gcp_auth function-dev --gws
 }
 
