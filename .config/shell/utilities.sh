@@ -184,12 +184,27 @@ export NVM_DIR="$HOME/.nvm"
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+
+# Custom pyenv-virtualenv hook. Activates the virtualenv specified by
+# .python-version, falling back to "default".
+_pyenv_virtualenv_hook() {
+  local ret=$?
+  local ver
+  ver="$(pyenv version-name 2>/dev/null || true)"
+  local current="${VIRTUAL_ENV##*/}"
+  if [[ "$ver" != "$current" ]]; then
+    pyenv activate "$ver" >/dev/null 2>&1 ||
+      pyenv activate default >/dev/null 2>&1 || true
+  fi
+  return $ret
+}
+
+typeset -g -a precmd_functions
+if [[ -z $precmd_functions[(r)_pyenv_virtualenv_hook] ]]; then
+  precmd_functions=(_pyenv_virtualenv_hook $precmd_functions)
+fi
+
+_pyenv_virtualenv_hook
 
 # Set Node.js version.
 nvm use --silent v25
-
-# Set default virtualenv.
-if [[ "$(pyenv version-name)" != "default" ]]; then
-  pyenv activate default >/dev/null 2>&1
-fi

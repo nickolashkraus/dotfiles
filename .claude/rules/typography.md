@@ -35,6 +35,8 @@
   `[label][]` shorthand or bare `[label]` form, even when the text and label
   are the same.
 - Use double space instead of `<br>` for newlines in Markdown.
+- Capitalize the first word after a colon when it begins a complete sentence or
+  independent clause.
 - Always put colons outside of bold text (e.g., **Bold**:).
 - For YAML strings, follow these conventions:
   - Use unquoted strings by default when the value contains no special
