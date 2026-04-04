@@ -66,20 +66,58 @@ For each failure:
 
 ## Step 5: Assess review bot comments
 
-Fetch the PR review comments:
+Collect bot comments from **both** sources:
 
-```
-gh api repos/{owner}/{repo}/pulls/<pr-number>/comments
-```
+1. **PR review comments** (inline comments on diffs):
+
+   ```
+   gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate
+   ```
+
+2. **Review-level comments** (comments attached to reviews): List all reviews,
+   filter for bot authors, then fetch each review's comments:
+
+   ```
+   gh api repos/{owner}/{repo}/pulls/<pr-number>/reviews --paginate \
+     --jq '.[] | select(
+       .user.login == "sentry[bot]" or
+       .user.login == "cursor[bot]" or
+       .user.login == "copilot[bot]" or
+       .user.type == "Bot"
+     ) | .id'
+   ```
+
+   Then for each review ID:
+
+   ```
+   gh api repos/{owner}/{repo}/pulls/<pr-number>/reviews/<review-id>/comments
+   ```
 
 Filter for comments left by review bots (Copilot, Cursor Bugbot, Sentry, or
-similar). For each comment:
+similar).
+
+### Skip comments that are already resolved
+
+For each bot comment, check whether:
+
+- The comment thread is already resolved.
+- I (username: `nickolashkraus`) have already replied. Check the comment's
+  reply thread for any comment where `.user.login == "nickolashkraus"`.
+
+**Skip** any comment that is resolved or already has a reply from
+`nickolashkraus`. Only act on unresolved comments with no reply from me.
+
+### For each remaining unresolved comment
 
 - **Legitimate issue**: Fix it the same way as a CI failure (read context,
   apply the fix directly).
 - **Illegitimate issue**: Resolve the comment with a reply explaining why the
-  suggestion does not apply or is incorrect. Use `gh api` to post the reply and
-  resolve the thread.
+  suggestion does not apply or is incorrect. Post the reply using:
+
+  ```
+  gh api repos/{owner}/{repo}/pulls/<pr-number>/comments \
+    -f body='<reply>' -F in_reply_to=<comment-id>
+  ```
 
 ## Step 6: Verify and iterate
 

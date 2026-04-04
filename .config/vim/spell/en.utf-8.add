@@ -26,6 +26,7 @@ BCM43602
 BCM43XX
 BFS
 BTR
+BYB
 BYBO
 BaseURL
 Batchhelder
@@ -156,6 +157,7 @@ Mixpanel
 MongoDB
 MySQL
 NERDTree
+Nataly
 Neovim
 OAuth
 OIDC
@@ -171,6 +173,7 @@ PKCE
 PNG
 PPP
 PRD
+PRs
 PSP
 PageRank
 Paperwhite
@@ -388,6 +391,8 @@ ons
 orchestrator
 os
 overcontributed
+passthrough
+passwordless
 perseveration
 phlebotomist
 pixy
