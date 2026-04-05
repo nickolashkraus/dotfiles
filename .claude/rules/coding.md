@@ -3,6 +3,7 @@
 ## Codebases
 
 - **Function Health**: ~/Function-Health
+- **Function Health Terraform Modules**: ~/Function-Health-Terraform-Modules
 - **Infrable**: ~/infrable-io
 - **Grind**: ~/grind-rip
 - **Personal**: ~/nickolashkraus
