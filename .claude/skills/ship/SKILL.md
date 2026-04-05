@@ -4,11 +4,16 @@ description: >
   Reviews the diff, creates the Git commit, and opens a pull request.
 disable-model-invocation: true
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [linear-issue]
+argument-hint: [--no-pr] [linear-issue]
 ---
 
 You are reviewing, committing, and shipping a set of changes. Follow every step
 in order.
+
+Parse `$ARGUMENTS` for flags and a Linear issue slug:
+
+- `--no-pr`: Push straight to the default branch (no new branch, no PR).
+- Anything else is treated as a Linear issue slug.
 
 ## Step 1: Determine the default branch
 
@@ -44,7 +49,17 @@ If the diff is clean, say so and move on.
 
 Run CI (formatting, linting, tests, etc.) to ensure the changes will pass.
 
-## Step 4: Create the commit
+## Step 4: Create the branch (skip if `--no-pr`)
+
+If already on a non-default branch, skip this step. Otherwise:
+
+1. Determine the branch name:
+   - If a Linear issue was passed, use it as the branch name (e.g.,
+     `EPD-1337`).
+   - Otherwise, derive a short descriptive name from the changes.
+2. Create and check out the branch.
+
+## Step 5: Create the commit
 
 Follow the commit rules from @~/.claude/rules/git.md exactly:
 
@@ -58,17 +73,13 @@ secrets.
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
 
-## Step 5: Create the branch and push
+## Step 6: Push
 
-If already on a non-default branch, push it. Otherwise:
+```
+git push -u origin <current-branch>
+```
 
-1. Determine the branch name:
-   - If a Linear issue was passed (`$ARGUMENTS`), use it as the branch name
-     (e.g., `EPD-1337`).
-   - Otherwise, derive a short descriptive name from the changes.
-2. Create the branch and push.
-
-## Step 6: Create the pull request
+## Step 7: Create the pull request (skip if `--no-pr`)
 
 Create the pull request using `gh pr create` against the default branch:
 

@@ -106,6 +106,9 @@ add-zsh-hook chpwd _poetry_auto_activate
 # Activate a gcloud configuration and authenticate. Runs `gcloud auth login`
 # and `gcloud auth application-default login` after switching configurations.
 #
+# NOTE: Adding gmail scopes (gmail.readonly, gmail.modify) causes "This app
+# is blocked" from Google. Use the Gmail MCP connector via Claude.ai instead.
+#
 # Options:
 #   --gws  Include Google Workspace scopes (cloud-platform, drive.readonly)
 #          and save a per-profile ADC file for the gws wrapper.
