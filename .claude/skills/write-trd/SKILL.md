@@ -3,7 +3,7 @@ name: write-trd
 description: >
   Generates a Technical Requirements Document through structured
   interviews and codebase analysis.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Agent, Bash, Glob, Grep, Read, Write
 argument-hint: [feature-name]
 ---

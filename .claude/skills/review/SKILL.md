@@ -3,7 +3,7 @@ name: review
 description: >
   Reviews the diff against the default branch for typos, bugs, and
   inconsistencies.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: [--staged]
 ---

@@ -4,14 +4,20 @@
 
 - Follow @rules/typography.md for all Git content (PR descriptions, commit
   messages).
-- Never add a co-authored-by or signature to commits.
-  Ex: `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>`
+- Never add a co-authored-by or signature to commits
+  (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
 - Branch names should be the Linear issue slug (e.g., `BYB-1337`) if
   available, or a short description (e.g., `some-feature`).
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
+
+## Worktrees
+
+- Always create worktrees in the root of the bare repo as peer directories
+  (e.g., `transaction-service/BYB-934` alongside `transaction-service/dev`).
+  Never place them under subdirectories like `.claude/worktrees/`.
 
 ## Commits
 
@@ -26,7 +32,7 @@
   - Wrap lines at 72 characters
   - Explain *what* and *why*, not *how*
 - Never use "WIP" or other throwaway messages.
-- Use bulleted lists for Git messages, not long, comma separated items.
+- Use bulleted lists for Git messages, not long, comma-separated items.
 
 ### Squashing Commits
 

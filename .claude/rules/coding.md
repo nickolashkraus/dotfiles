@@ -27,3 +27,9 @@
   regressions, particularly for business logic, edge cases, and functions with
   multiple code paths. Aim for 100% test coverage, but avoid tests for trivial
   code or framework-generated scaffolding. Use your best judgment.
+
+## Docker
+
+- Always build Docker images that are not intended to be run locally for
+  `linux/amd64` (`--platform linux/amd64`) to ensure compatibility with
+  external cloud environments (AWS, Google Cloud, etc.).
