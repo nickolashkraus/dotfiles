@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Creates a Git commit from the current changes.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Read
 argument-hint: [--staged] [linear-issue]
 ---

@@ -3,7 +3,7 @@ name: typo
 description: >
   Check macOS clipboard for typos and formatting issues, fix them, and re-paste
   to clipboard.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash
 ---
 

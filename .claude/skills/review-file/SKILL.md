@@ -1,7 +1,7 @@
 ---
 name: review-file
 description: Review a file for typos, bugs, inaccuracies, and inconsistencies.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: <file>
 ---

@@ -3,7 +3,7 @@ name: fix-ci
 description: >
   Fixes CI failures on a pull request by fetching check results, diagnosing the
   issues, and applying fixes.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: [pr-number]
 ---
@@ -37,6 +37,14 @@ Classify every check as **pass**, **fail**, or **pending**.
   this step. Always wait for **all** checks to complete before moving on, even
   external checks (e.g., Cloud Build, Sentry, third-party scanners).
 - If any checks have failed, continue to Step 3.
+
+**IMPORTANT**: Never create an empty commit to "Retry CI". Instead, read the
+logs to diagnose the failure and, if the failure is transient or
+infrastructure-related, re-run the specific check:
+
+```
+gh run rerun <run-id> --failed
+```
 
 ## Step 3: Get failure details
 

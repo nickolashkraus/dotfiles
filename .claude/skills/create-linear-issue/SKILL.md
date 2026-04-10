@@ -2,7 +2,7 @@
 name: create-linear-issue
 description: >
   Create a Linear issue with the Markdown contents of a local file.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__linear__save_issue
 argument-hint: <file> <team> <project>
 ---

@@ -2,7 +2,7 @@
 name: ship
 description: >
   Reviews the diff, creates the Git commit, and opens a pull request.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: [--no-pr] [linear-issue]
 ---

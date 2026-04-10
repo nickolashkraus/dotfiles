@@ -2,7 +2,7 @@
 name: update-notion-page
 description: >
   Update a Notion page with the Markdown contents of a local file.
-disable-model-invocation: true
+disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__notion__notion-fetch, mcp__notion__notion-update-page
 argument-hint: <file> <notion-page-link>
 ---

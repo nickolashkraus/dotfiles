@@ -98,6 +98,7 @@ GitHub
 GitOps
 Glassdoor
 GraphQL
+H1
 H2
 HCL
 HIPAA
@@ -161,6 +162,7 @@ Nataly
 Neovim
 OAuth
 OIDC
+OTP
 Observability
 Offsite
 Okta
@@ -172,6 +174,7 @@ OpenID
 PKCE
 PNG
 PPP
+PPP's
 PRD
 PRs
 PSP
@@ -233,7 +236,9 @@ TCP
 TLS
 TODO
 TOML
+TOTP
 TRD
+TS's
 Terraform
 Theanine
 Thorne
@@ -271,6 +276,7 @@ WhatsApp
 Wi-Fi
 Workiva
 Workiva's
+Worktrees
 Workwize
 XYZ
 Xcode
@@ -321,6 +327,7 @@ embeddings
 engageable
 entrypoint
 enum
+env
 eponymously
 factly
 fallbacks
@@ -456,9 +463,13 @@ viewport
 virtualenv
 walkthroughs
 wearables
+webhook
+webhooks
 whitespace
+wildcard
 wl
 workspace
+worktrees
 www
 x86
 yabai
