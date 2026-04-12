@@ -58,6 +58,7 @@ Customizations
 DCR
 DFS
 DHCP
+DM
 DNS
 DPoP
 DTC
@@ -446,6 +447,7 @@ skhd
 stateful
 statusline
 subarray
+subcommand
 subdirectories
 subdirectory
 subdomain
@@ -495,5 +497,3 @@ www
 x86
 yabai
 
-DM
-subcommand
