@@ -1,3 +1,4 @@
+ACK
 ACL
 ACLs
 ACM
@@ -11,6 +12,7 @@ AUR
 AWS
 Acetyl
 Activations
+AirPlay
 Ames
 Analytics
 Andreessen
@@ -44,6 +46,7 @@ CSV
 CSVs
 Carnitine
 ChatGPT
+ChatOps
 Chroot
 CloudFormation
 CloudFront
@@ -60,7 +63,9 @@ DPoP
 DTC
 DX
 Databricks
+Deduplicates
 Dev
+Dockerfile
 Drata
 DynamoDB
 EC2
@@ -78,6 +83,7 @@ FastAPI
 FastAPI's
 FastMCP
 FastMCP's
+Fernet
 Figma
 Firebase
 Firestore
@@ -85,6 +91,7 @@ FitCSVTool
 Fivetran
 Freshpaint
 GCP
+GCR
 GCS
 GKE
 GPC
@@ -176,6 +183,7 @@ PKCE
 PNG
 PPP
 PPP's
+PR's
 PRD
 PRs
 PSP
@@ -184,6 +192,7 @@ Paperwhite
 PostgreSQL
 Powerline
 Prolab
+PyPI
 Pydantic
 Q1
 Q2
@@ -203,6 +212,7 @@ Redis
 RequisitionFilterOps
 RestApi
 Rollout
+Runbook
 S3
 SDK
 SEO
@@ -227,6 +237,7 @@ Statsig
 Statsig's
 Strava
 Subarray
+Subcommand
 Subsequence
 Substring
 Supremium
@@ -289,6 +300,7 @@ a16z
 acul
 ai
 api
+args
 auditable
 auth
 auth0
@@ -297,6 +309,7 @@ autocompletion
 b43
 backend
 backfill
+backgrounded
 base64url
 binpacking
 blockquotes
@@ -311,6 +324,7 @@ chipset
 chipsets
 chrooted
 claude
+codebase
 codepoints
 colorscheme
 combinatorially
@@ -372,6 +386,7 @@ keymaps
 kraus
 kth
 lifecycle
+localhost
 loopback
 mTLS
 macOS
@@ -404,6 +419,7 @@ passwordless
 perseveration
 phlebotomist
 pixy
+ppp
 pre
 pre-order
 preconfigured
@@ -415,8 +431,10 @@ px
 ramdisk
 rebasing
 repartition
+repo
 resource
 rollout
+routable
 rpa
 runtime
 scalable
@@ -452,6 +470,7 @@ unicode
 unmount
 untrusted
 url
+uvicorn
 v1
 v2
 v3
@@ -475,3 +494,4 @@ www
 x86
 yabai
 
+worktree

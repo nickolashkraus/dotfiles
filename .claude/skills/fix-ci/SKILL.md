@@ -5,15 +5,23 @@ description: >
   issues, and applying fixes.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [pr-number]
+argument-hint: [--in-place] [--re-review] [pr-number]
 ---
 
 You are fixing CI failures on a pull request. Follow every step in order.
 
 ## Step 1: Determine the pull request
 
-If a PR number was passed (`$ARGUMENTS`), use it. Otherwise, detect the current
-branch and find its open PR:
+Parse `$ARGUMENTS` for flags and an optional PR number:
+
+- `--in-place`: Fix bot comments directly on this branch (no stacked PR).
+- `--re-review`: Re-review all bot comments, even those already resolved or
+  replied to.
+
+Remove both flags before continuing.
+
+If a PR number was passed, use it. Otherwise, detect the current branch and
+find its open PR:
 
 ```
 gh pr view --json number,headRefName --jq '.number'
@@ -38,9 +46,8 @@ Classify every check as **pass**, **fail**, or **pending**.
 
 ## Step 3: Assess results
 
-- If all checks pass and no unresolved bot comments remain (see Step 5), go to
-  Step 7.
 - If any checks have failed, continue to Step 4.
+- If all checks pass, skip to Step 5 to assess bot comments.
 
 **IMPORTANT**: Never create an empty commit to "Retry CI". Instead, read the
 logs to diagnose the failure and, if the failure is transient or
@@ -108,21 +115,48 @@ similar).
 
 ### Skip comments that are already resolved
 
+**If `--re-review` was set, skip this subsection entirely.** Act on all bot
+comments regardless of resolution or reply status.
+
 For each bot comment, check whether:
 
 - The comment thread is already resolved.
-- I (username: `nickolashkraus`) have already replied. Check the comment's
-  reply thread for any comment where `.user.login == "nickolashkraus"`.
+- The user (username: `nickolashkraus`) has already replied. Check the
+  comment's reply thread for any comment where
+  `.user.login == "nickolashkraus"`.
 
 **Skip** any comment that is resolved or already has a reply from
-`nickolashkraus`. Only act on unresolved comments with no reply from me.
+`nickolashkraus`. Only act on unresolved comments with no reply from the
+user.
 
-### For each remaining unresolved comment
+If no actionable bot comments remain and all checks pass, go to Step 7.
 
-- **Legitimate issue**: Fix it the same way as a CI failure (read context,
-  apply the fix directly).
-- **Illegitimate issue**: Resolve the comment with a reply explaining why the
-  suggestion does not apply or is incorrect. Post the reply using:
+### If `--in-place` was NOT set
+
+If there are actionable bot comments and `--in-place` was not passed, delegate
+to `/fix-bot-reviews <pr-number>` (include `--re-review` if it was set). This
+creates a stacked fix PR for the bot comment fixes. Skip to Step 7 after
+`/fix-bot-reviews` completes.
+
+### If `--in-place` was set
+
+For each remaining unresolved comment, assess whether it is legitimate and fix
+in-place on the current branch.
+
+**Bias toward fixing.** If the suggestion is plausible, fix it. Only dismiss
+a comment if it is clearly wrong:
+
+- The bot misread the code or misunderstood the logic.
+- The suggestion would break existing behavior.
+- The suggestion contradicts project conventions.
+- The suggestion contradicts the product or feature specification.
+
+For each comment:
+
+- **Legitimate issue** (default): Read the relevant source files to understand
+  context, then apply the fix directly.
+- **Clearly illegitimate**: Reply with a brief explanation of why the
+  suggestion does not apply:
 
   ```
   gh api repos/{owner}/{repo}/pulls/<pr-number>/comments \
@@ -143,7 +177,54 @@ and push in a single push. Then go back to Step 2 and wait for all checks to
 complete before taking further action. Keep iterating until every check passes
 and all bot comments are addressed.
 
+Follow the commit rules from @~/.claude/rules/git.md:
+
+- Subject line: 50 characters or less, capitalized, imperative mood, no period.
+- Body: Explain what bot comments were addressed and why.
+- No co-authored-by or signature lines.
+
 ## Step 7: Summarize
 
 List each CI failure and review bot comment, and what you did to fix or resolve
 each one.
+
+If any bot comments were addressed (fixed or dismissed), post a summary comment
+on the PR using tables. Number findings sequentially (F-01, F-02, ... for
+fixed; D-01, D-02, ... for dismissed). Use each bot comment's `html_url` for
+the link column. The Fix column should contain:
+
+- A commit SHA if the fix was applied in-place.
+- A link to the fix PR if the fix was delegated to `/fix-bot-reviews`.
+
+```
+gh pr comment <pr-number> --body "$(cat <<'EOF'
+## Bot Review Findings
+
+### Fixed
+
+| #    | Comment            | Description   | Fix                |
+| ---- | ------------------ | ------------- | ------------------ |
+| F-01 | [→](<comment-url>) | <description> | <commit-or-fix-pr> |
+| F-02 | [→](<comment-url>) | <description> | <commit-or-fix-pr> |
+
+### Dismissed
+
+| #    | Comment            | Description   | Reason   |
+| ---- | ------------------ | ------------- | -------- |
+| D-01 | [→](<comment-url>) | <description> | <reason> |
+| D-02 | [→](<comment-url>) | <description> | <reason> |
+EOF
+)"
+```
+
+Omit a section if it has no entries. If there are zero findings (nothing fixed
+or dismissed), post:
+
+```
+gh pr comment <pr-number> --body '## Bot Review Findings
+
+✅ No actionable findings.'
+```
+
+This summary is in addition to the individual replies already posted on each
+bot comment thread.

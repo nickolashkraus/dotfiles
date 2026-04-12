@@ -5,7 +5,7 @@ description: >
   opening a stacked fix PR.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [pr-number]
+argument-hint: [--re-review] [pr-number]
 ---
 
 You are fixing bot review comments on a pull request. The fixes are applied in
@@ -14,8 +14,12 @@ every step in order.
 
 ## Step 1: Determine the pull request
 
-If a PR number was passed (`$ARGUMENTS`), use it. Otherwise, detect the current
-branch and find its open PR:
+Parse `$ARGUMENTS` for the `--re-review` flag and an optional PR number. The
+`--re-review` flag means all bot comments should be re-reviewed, even those
+already resolved or replied to. Remove the flag before continuing.
+
+If a PR number was provided, use it. Otherwise, detect the current branch and
+find its open PR:
 
 ```
 gh pr view --json number,headRefName,baseRefName \
@@ -65,6 +69,9 @@ similar).
 
 ### Skip comments that are already resolved
 
+**If `--re-review` was set, skip this subsection entirely.** Act on all bot
+comments regardless of resolution or reply status.
+
 For each bot comment, check whether:
 
 - The comment thread is already resolved.
@@ -83,23 +90,24 @@ Create a new worktree from the PR's head branch as a peer directory with a new
 fix branch:
 
 ```
-git worktree add -b <head-branch>-bot-fixes \
-  ../<head-branch>-bot-fixes <head-branch>
+git worktree add -b <head-branch>-fixes-<number> \
+  ../<head-branch>-fixes-<number> <head-branch>
 ```
 
 All subsequent work (file reads, edits, CI commands) happens in the worktree
-directory (`../<head-branch>-bot-fixes`).
+directory (`../<head-branch>-fixes-<number>`).
 
 ## Step 4: Fix bot comments
 
 For each unresolved bot comment, assess whether it is legitimate.
 
-**Bias toward fixing.** If the suggestion is plausible, fix it. Only dismiss a
-comment if it is clearly wrong:
+**Bias toward fixing.** If the suggestion is plausible, fix it. Only dismiss
+a comment if it is clearly wrong:
 
 - The bot misread the code or misunderstood the logic.
 - The suggestion would break existing behavior.
 - The suggestion contradicts project conventions.
+- The suggestion contradicts the product or feature specification.
 
 For each comment:
 
@@ -126,15 +134,14 @@ If any command fails, fix the issue and re-run until all checks pass locally.
 Commit all fixes in the worktree. Follow the commit rules from
 @~/.claude/rules/git.md:
 
-- Subject line: 50 characters or less, capitalized, imperative mood, no
-  period.
+- Subject line: 50 characters or less, capitalized, imperative mood, no period.
 - Body: Explain what bot comments were addressed and why.
 - No co-authored-by or signature lines.
 
 Push the fix branch:
 
 ```
-git push -u origin <head-branch>-bot-fixes
+git push -u origin <head-branch>-fixes-<number>
 ```
 
 ## Step 7: Create the fix PR
@@ -142,7 +149,7 @@ git push -u origin <head-branch>-bot-fixes
 Create a pull request with the **original PR's head branch** as the base:
 
 ```
-gh pr create --base <head-branch> --head <head-branch>-bot-fixes \
+gh pr create --base <head-branch> --head <head-branch>-fixes-<number> \
   --title "..." --body "..."
 ```
 
@@ -153,11 +160,50 @@ Print the fix PR URL.
 
 ## Step 8: Delegate to `/fix-ci`
 
-Run `/fix-ci <new-pr-number>` on the fix PR to handle any CI failures and new
-bot comments that appear. `/fix-ci` runs in-place on the fix branch (no
-additional PRs are created).
+Run `/fix-ci --in-place <new-pr-number>` on the fix PR to handle any CI
+failures and new bot comments that appear. The `--in-place` flag ensures
+`/fix-ci` fixes bot comments directly on the fix branch instead of delegating
+back to `/fix-bot-reviews` (which would cause infinite recursion).
 
 ## Step 9: Summarize
 
 List each bot comment and what you did: fixed, dismissed (with reason), or
 skipped (already resolved/replied).
+
+If any bot comments were addressed (fixed or dismissed), post a summary comment
+on the fix PR using tables. Number findings sequentially (F-01, F-02, ... for
+fixed; D-01, D-02, ... for dismissed). Use each bot comment's `html_url` for
+the link column.
+
+```
+gh pr comment <fix-pr-number> --body "$(cat <<'EOF'
+## Bot Review Findings
+
+### Fixed
+
+| #    | Comment            | Description   | Fix      |
+| ---- | ------------------ | ------------- | -------- |
+| F-01 | [→](<comment-url>) | <description> | <commit> |
+| F-02 | [→](<comment-url>) | <description> | <commit> |
+
+### Dismissed
+
+| #    | Comment            | Description   | Reason   |
+| ---- | ------------------ | ------------- | -------- |
+| D-01 | [→](<comment-url>) | <description> | <reason> |
+| D-02 | [→](<comment-url>) | <description> | <reason> |
+EOF
+)"
+```
+
+Omit a section if it has no entries. If there are zero findings (nothing fixed
+or dismissed), post:
+
+```
+gh pr comment <fix-pr-number> --body '## Bot Review Findings
+
+✅ No actionable findings.'
+```
+
+This summary is in addition to the individual replies already posted on each
+bot comment thread.
