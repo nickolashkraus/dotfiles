@@ -489,9 +489,11 @@ whitespace
 wildcard
 wl
 workspace
+worktree
 worktrees
 www
 x86
 yabai
 
-worktree
+DM
+subcommand
