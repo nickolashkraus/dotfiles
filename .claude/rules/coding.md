@@ -28,6 +28,14 @@
   multiple code paths. Aim for 100% test coverage, but avoid tests for trivial
   code or framework-generated scaffolding. Use your best judgment.
 
+## Migrations
+
+- Separate schema changes (DDL) and data changes (DML) into distinct
+  migrations. DDL migrations handle structural changes (`CREATE TABLE`, `ALTER
+  TABLE`, `ADD COLUMN`). DML migrations handle data operations (`INSERT`,
+  `UPDATE`, `DELETE`). This allows each to land, fail, and roll back
+  independently.
+
 ## Docker
 
 - Always build Docker images that are not intended to be run locally for

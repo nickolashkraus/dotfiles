@@ -5,7 +5,7 @@ description: >
   issues, and applying fixes.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [--in-place] [--re-review] [pr-number]
+argument-hint: [--in-place] [--re-review [all | unresolved]] [pr-number]
 ---
 
 You are fixing CI failures on a pull request. Follow every step in order.
@@ -15,8 +15,10 @@ You are fixing CI failures on a pull request. Follow every step in order.
 Parse `$ARGUMENTS` for flags and an optional PR number:
 
 - `--in-place`: Fix bot comments directly on this branch (no stacked PR).
-- `--re-review`: Re-review all bot comments, even those already resolved or
-  replied to.
+- `--re-review [all | unresolved]`: Re-review bot comments. `all` (default)
+  re-reviews every comment regardless of resolution or reply status.
+  `unresolved` re-reviews only comments that have not been resolved via the
+  GitHub UI, ignoring reply status.
 
 Remove both flags before continuing.
 
@@ -113,30 +115,27 @@ Collect bot comments from **both** sources:
 Filter for comments left by review bots (Copilot, Cursor Bugbot, Sentry, or
 similar).
 
-### Skip comments that are already resolved
+### Filter comments by resolution status
 
-**If `--re-review` was set, skip this subsection entirely.** Act on all bot
-comments regardless of resolution or reply status.
+How comments are filtered depends on the `--re-review` flag:
 
-For each bot comment, check whether:
-
-- The comment thread is already resolved.
-- The user (username: `nickolashkraus`) has already replied. Check the
-  comment's reply thread for any comment where
-  `.user.login == "nickolashkraus"`.
-
-**Skip** any comment that is resolved or already has a reply from
-`nickolashkraus`. Only act on unresolved comments with no reply from the
-user.
+- **No flag** (default): Skip comments that are resolved or that
+  `nickolashkraus` has already replied to. Check the comment's reply thread for
+  any comment where `.user.login == "nickolashkraus"`.
+- **`--re-review all`**: Act on all bot comments regardless of resolution or
+  reply status.
+- **`--re-review unresolved`**: Skip resolved comments, but ignore reply
+  status. This is for the workflow where you review findings in the GitHub UI,
+  resolve the ones you want to skip, then re-run to fix the rest.
 
 If no actionable bot comments remain and all checks pass, go to Step 7.
 
 ### If `--in-place` was NOT set
 
 If there are actionable bot comments and `--in-place` was not passed, delegate
-to `/fix-bot-reviews <pr-number>` (include `--re-review` if it was set). This
-creates a stacked fix PR for the bot comment fixes. Skip to Step 7 after
-`/fix-bot-reviews` completes.
+to `/fix-bot-reviews <pr-number>` (pass through `--re-review <value>` if it was
+set). This creates a stacked fix PR for the bot comment fixes. Skip to Step
+7 after `/fix-bot-reviews` completes.
 
 ### If `--in-place` was set
 
@@ -162,6 +161,22 @@ For each comment:
   gh api repos/{owner}/{repo}/pulls/<pr-number>/comments \
     -f body='<reply>' -F in_reply_to=<comment-id>
   ```
+
+### Evidence in replies
+
+When replying to a bot comment (whether fixing or dismissing), include an
+**Evidence** section if there is existing source documentation (e.g., Stripe
+docs, API specs, framework guides) that substantiates the decision. Use the
+format:
+
+```
+**Evidence**:
+- Brief factual statement.
+- [Page title (Source)](https://...)
+```
+
+Do not fabricate an evidence section when no external documentation is
+relevant.
 
 ## Step 6: Verify, commit, and push
 
@@ -193,7 +208,8 @@ on the PR using tables. Number findings sequentially (F-01, F-02, ... for
 fixed; D-01, D-02, ... for dismissed). Use each bot comment's `html_url` for
 the link column. The Fix column should contain:
 
-- A commit SHA if the fix was applied in-place.
+- A linked commit SHA (e.g., [`abc1234`](commit-url)) if the fix was applied
+  in-place.
 - A link to the fix PR if the fix was delegated to `/fix-bot-reviews`.
 
 ```
@@ -202,10 +218,10 @@ gh pr comment <pr-number> --body "$(cat <<'EOF'
 
 ### Fixed
 
-| #    | Comment            | Description   | Fix                |
-| ---- | ------------------ | ------------- | ------------------ |
-| F-01 | [→](<comment-url>) | <description> | <commit-or-fix-pr> |
-| F-02 | [→](<comment-url>) | <description> | <commit-or-fix-pr> |
+| #    | Comment            | Description   | Fix                     |
+| ---- | ------------------ | ------------- | ----------------------- |
+| F-01 | [→](<comment-url>) | <description> | [`<sha>`](<commit-url>) |
+| F-02 | [→](<comment-url>) | <description> | [`<sha>`](<commit-url>) |
 
 ### Dismissed
 

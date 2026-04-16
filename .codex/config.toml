@@ -55,3 +55,6 @@ model_reasoning_effort = "xhigh"
 
 [tui]
   theme = "base16"
+
+[plugins."github@openai-curated"]
+enabled = true

@@ -11,7 +11,7 @@ allowed-tools: >
   mcp__claude_ai_Slack__slack_search_public,
   mcp__claude_ai_Slack__slack_search_public_and_private
 argument-hint: >
-  <topic>
+  [topic]
   --thread <channel_id> <message_ts>
   | --channel <channel_id>
   | --dm <channel_id>
@@ -20,21 +20,26 @@ argument-hint: >
 
 # Monitor Slack
 
-Monitors Slack for messages about a given topic. Triages each message:
-non-actionable items (questions, discussions, feature requests) are summarized.
-Legitimate bugs get a drafted fix. All proposed Slack responses are queued in
-the outbox for review. Nothing is committed, pushed, or posted to Slack without
-explicit user approval via `/outbox`.
+Monitors Slack for messages, optionally filtered by topic. Triages each
+message: non-actionable items (questions, discussions, feature requests) are
+summarized. Legitimate bugs get a drafted fix. All proposed Slack responses are
+queued in the outbox for review. Nothing is committed, pushed, or posted to
+Slack without explicit user approval via `/outbox`.
 
 ## Usage
 
 Pair with `/loop` for recurring monitoring:
 
 ```
-/loop 5m /monitor-slack <topic> --thread <channel_id> <message_ts>
-/loop 5m /monitor-slack <topic> --channel <channel_id>
-/loop 5m /monitor-slack <topic> --dm <channel_id>
-/loop 10m /monitor-slack <topic> --workspace
+# With a topic filter:
+/loop 5m /monitor-slack PPP --thread C0ANWC51NH5 1775783009.575449
+/loop 5m /monitor-slack "checkout bugs" --channel C0ANWC51NH5
+/loop 10m /monitor-slack PPP --workspace
+
+# Without a topic (all messages):
+/loop 5m /monitor-slack --dm C0ANWC51NH5
+/loop 5m /monitor-slack --channel C0ANWC51NH5
+/loop 5m /monitor-slack --thread C0ANWC51NH5 1775783009.575449
 ```
 
 Review and send queued messages with `/outbox`.
@@ -44,15 +49,13 @@ Review and send queued messages with `/outbox`.
 - `--thread <channel_id> <message_ts>`: Monitor a specific thread.
 - `--channel <channel_id>`: Monitor an entire channel.
 - `--dm <channel_id>`: Monitor a DM or group DM.
-- `--workspace`: Search the entire workspace for the topic.
+- `--workspace`: Search the entire workspace (requires a topic).
 
-### Examples
+### Channel ID
 
-```
-/loop 5m /monitor-slack PPP --thread C0ANWC51NH5 1775783009.575449
-/loop 5m /monitor-slack "checkout bugs" --channel C0ANWC51NH5
-/loop 10m /monitor-slack PPP --workspace
-```
+The `<channel_id>` can be a raw ID (e.g., `C0ANWC51NH5`) or a Slack archive URL
+(e.g., `https://functionhealth.slack.com/archives/C0ANWC51NH5`). If a URL is
+provided, extract the channel ID from the path.
 
 ## Outbox
 
@@ -62,20 +65,33 @@ queued messages are appended to a single daily file (`YYYY-MM-DD.md`). Use
 
 ## Step 1: Parse arguments
 
-Parse `$ARGUMENTS` into two parts:
+Parse `$ARGUMENTS` into:
 
-1. **Topic**: The first positional argument (or quoted string). This is the
-   subject to watch for (e.g., "PPP", "checkout bugs", "auth errors").
-2. **Mode flag**: One of `--thread`, `--channel`, `--dm`, or `--workspace`,
-   followed by its required parameters.
+1. **Mode flag** (required): One of `--thread`, `--channel`, `--dm`, or
+   `--workspace`, followed by its required parameters.
+2. **Topic** (optional): Any positional argument before the mode flag. If
+   omitted, all messages in the target are processed (no relevance filter).
+   `--workspace` mode requires a topic; print an error and stop if missing.
+
+If a Slack URL is provided instead of a channel ID, extract the channel ID from
+the URL path (the segment starting with `C`, `D`, or `G`).
 
 If arguments are missing or malformed, print usage instructions and stop.
 
 ## Step 2: Load state
 
-Read the state file at `~/nickolashkraus/agent-os/tasks/outbox/.state.json`. If
-it exists, extract `last_seen_ts` (the timestamp of the last processed
-message). If it does not exist, this is the first run.
+Read the state file at `~/nickolashkraus/agent-os/tasks/outbox/.state.json`.
+The file is a JSON object keyed by monitor target so that multiple concurrent
+monitors do not overwrite each other's timestamps. Derive the key from the
+parsed arguments:
+
+- `--channel` / `--dm`: the channel ID (e.g., `C0ASJ80NWBG`).
+- `--thread`: `<channel_id>:<message_ts>` (e.g., `C0ANWC51NH5:1775783009.575449`).
+- `--workspace`: `workspace:<topic>` (e.g., `workspace:PPP`).
+
+If the file exists, look up the key and extract its `last_seen_ts` and
+`watched_threads` (defaults to `{}`). If the key is missing or the file
+does not exist, this is the first run for that target.
 
 ## Step 3: Fetch messages
 
@@ -93,6 +109,13 @@ Use `slack_read_channel` with the given `channel_id`. Read the latest messages
 (limit 10 on first run). Skip any messages with a timestamp at or before
 `last_seen_ts`.
 
+After processing top-level messages, check each entry in `watched_threads` for
+new replies. For each watched thread, call `slack_read_thread` with the
+thread's `channel_id` and `thread_ts`, setting `oldest` to the thread's
+`last_seen_reply_ts`. Triage any new replies the same way as top-level
+messages. Update the thread's `last_seen_reply_ts` to the newest reply
+timestamp.
+
 ### --workspace
 
 Use `slack_search_public_and_private` with the topic as the query. Add a date
@@ -100,9 +123,12 @@ filter to limit results to the last hour. Summarize any new matches.
 
 ## Step 4: Filter for relevance
 
-Skip messages that do not relate to the topic. Only process messages that
-mention the topic directly or discuss related functionality (e.g., error
-messages, stack traces, or behavior changes in the topic's domain).
+If a topic was provided, skip messages that do not relate to the topic. Only
+process messages that mention the topic directly or discuss related
+functionality (e.g., error messages, stack traces, or behavior changes in the
+topic's domain).
+
+If no topic was provided, process all messages.
 
 ## Step 5: Triage each relevant message
 
@@ -160,17 +186,35 @@ Do not send the message. Print a confirmation:
 Queued reply -> agent-os/tasks/outbox/YYYY-MM-DD.md
 ```
 
+### Watching threads
+
+When a reply is queued to a thread (i.e., the outbox entry has a `thread_ts`),
+add that thread to `watched_threads` in the state so future polls pick up new
+replies. Also add a thread when a top-level message is triaged as an actionable
+bug, since follow-up discussion is likely.
+
 ## Step 7: Save state
 
-Write the timestamp of the newest processed message to
-`~/nickolashkraus/agent-os/tasks/outbox/.state.json`:
+Read the current state file (or start with `{}`), update the entry for this
+monitor's key, and write the file back. This read-modify-write ensures other
+monitors' state is preserved.
 
 ```json
 {
-  "last_seen_ts": "<newest_message_ts>",
-  "updated_at": "<ISO 8601 timestamp>"
+  "<key>": {
+    "last_seen_ts": "<newest_message_ts>",
+    "updated_at": "<ISO 8601 timestamp>",
+    "watched_threads": {
+      "<thread_ts>": {
+        "last_seen_reply_ts": "<newest_reply_ts>",
+        "added_at": "<ISO 8601 timestamp>"
+      }
+    }
+  }
 }
 ```
+
+Prune any `watched_threads` entry whose `added_at` is older than 7 days.
 
 ## Step 8: Report status
 

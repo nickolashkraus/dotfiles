@@ -5,7 +5,7 @@ description: >
   opening a stacked fix PR.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [--re-review] [pr-number]
+argument-hint: [--re-review [all | unresolved]] [pr-number]
 ---
 
 You are fixing bot review comments on a pull request. The fixes are applied in
@@ -14,21 +14,28 @@ every step in order.
 
 ## Step 1: Determine the pull request
 
-Parse `$ARGUMENTS` for the `--re-review` flag and an optional PR number. The
-`--re-review` flag means all bot comments should be re-reviewed, even those
-already resolved or replied to. Remove the flag before continuing.
+Parse `$ARGUMENTS` for the `--re-review` flag (with optional value `all` or
+`unresolved`) and an optional PR number. `--re-review all` (default when no
+value is given) re-reviews every comment regardless of resolution or reply
+status. `--re-review unresolved` re-reviews only comments that have not been
+resolved via the GitHub UI, ignoring reply status. Remove the flag and its
+value before continuing.
 
 If a PR number was provided, use it. Otherwise, detect the current branch and
 find its open PR:
 
 ```
-gh pr view --json number,headRefName,baseRefName \
-  --jq '{number, headRefName, baseRefName}'
+gh pr view --json number,headRefName,baseRefName,title \
+  --jq '{number, headRefName, baseRefName, title}'
 ```
 
 If no PR is found, stop and tell the user.
 
-Save the PR number, head branch name, and base branch name for later steps.
+Save the PR number, head branch name, base branch name, and title for later
+steps. Extract the issue slug from the title (the prefix before the first
+colon, e.g., `BYB-1120` from `BYB-1120: Handle missing statuses`). This slug is
+used in Step 7 for the fix PR title.
+
 Also determine the `{owner}/{repo}` from the remote:
 
 ```
@@ -67,20 +74,18 @@ Collect bot comments from **both** sources:
 Filter for comments left by review bots (Copilot, Cursor Bugbot, Sentry, or
 similar).
 
-### Skip comments that are already resolved
+### Filter comments by resolution status
 
-**If `--re-review` was set, skip this subsection entirely.** Act on all bot
-comments regardless of resolution or reply status.
+How comments are filtered depends on the `--re-review` flag:
 
-For each bot comment, check whether:
-
-- The comment thread is already resolved.
-- The user (username: `nickolashkraus`) has already replied. Check the
-  comment's reply thread for any comment where
-  `.user.login == "nickolashkraus"`.
-
-**Skip** any comment that is resolved or already has a reply from
-`nickolashkraus`. Only act on unresolved comments with no reply.
+- **No flag** (default): Skip comments that are resolved or that
+  `nickolashkraus` has already replied to. Check the comment's reply thread for
+  any comment where `.user.login == "nickolashkraus"`.
+- **`--re-review all`**: Act on all bot comments regardless of resolution or
+  reply status.
+- **`--re-review unresolved`**: Skip resolved comments, but ignore reply
+  status. This is for the workflow where you review findings in the GitHub UI,
+  resolve the ones you want to skip, then re-run to fix the rest.
 
 If no actionable bot comments remain, stop and tell the user.
 
@@ -121,6 +126,22 @@ For each comment:
     -f body='<reply>' -F in_reply_to=<comment-id>
   ```
 
+### Evidence in replies
+
+When replying to a bot comment (whether fixing or dismissing), include an
+**Evidence** section if there is existing source documentation (e.g., Stripe
+docs, API specs, framework guides) that substantiates the decision. Use the
+format:
+
+```
+**Evidence**:
+- Brief factual statement.
+- [Page title (Source)](https://...)
+```
+
+Do not fabricate an evidence section when no external documentation is
+relevant.
+
 ## Step 5: Run CI locally
 
 Run the project's test/lint/build commands in the worktree to verify the fixes.
@@ -150,8 +171,14 @@ Create a pull request with the **original PR's head branch** as the base:
 
 ```
 gh pr create --base <head-branch> --head <head-branch>-fixes-<number> \
-  --title "..." --body "..."
+  --title "<issue-slug>: Address bot review findings" --body "..."
 ```
+
+The PR title must use the format `<issue-slug>: Address bot review findings`,
+where `<issue-slug>` is extracted from the parent PR's title (e.g., if the
+parent title is `BYB-1120: Handle missing statuses`, the slug is `BYB-1120`).
+If the parent PR title has no issue slug prefix, use `Address bot review
+findings` as the full title.
 
 Write the PR description following @~/.claude/rules/git.md. Include a summary
 of which bot comments were fixed and which were dismissed (with reasons).
@@ -181,10 +208,10 @@ gh pr comment <fix-pr-number> --body "$(cat <<'EOF'
 
 ### Fixed
 
-| #    | Comment            | Description   | Fix      |
-| ---- | ------------------ | ------------- | -------- |
-| F-01 | [→](<comment-url>) | <description> | <commit> |
-| F-02 | [→](<comment-url>) | <description> | <commit> |
+| #    | Comment            | Description   | Fix                     |
+| ---- | ------------------ | ------------- | ----------------------- |
+| F-01 | [→](<comment-url>) | <description> | [`<sha>`](<commit-url>) |
+| F-02 | [→](<comment-url>) | <description> | [`<sha>`](<commit-url>) |
 
 ### Dismissed
 

@@ -53,6 +53,14 @@ done while any check is non-passing (including neutral or pending).
 Do not merge master into a branch to integrate upstream changes. Use `git
 rebase` instead.
 
+## Stacked PRs
+
+For dependent changes, stack PRs by targeting each PR against its parent branch
+(e.g., `BYB-1053` targets `BYB-891`, `BYB-1054` targets `BYB-1053`). This keeps
+each review focused on only the relevant delta. When a parent branch merges
+and is deleted, GitHub automatically retargets the child PR to the default
+branch.
+
 ## Pull Requests
 
 ### General Rules

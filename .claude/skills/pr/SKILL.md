@@ -33,8 +33,10 @@ If already on a non-default branch, push it. Otherwise:
 
 Create the pull request using `gh pr create` against the default branch:
 
-- If a Linear issue was provided, prefix the pull request title (e.g.,
-  `EPD-1337: Add input validation`).
+- If a Linear issue was provided, fetch the issue title from Linear and use it
+  as the pull request title, prefixed with the issue slug (e.g., `EPD-1337: Add
+  Input Validation`). Always prefer the Linear issue title over deriving one
+  from the diff.
 - Write the description following the pull request rules from
   @~/.claude/rules/git.md:
   - Scale the description with the complexity of the change.
