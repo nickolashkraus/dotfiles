@@ -295,6 +295,7 @@ Wearables
 WebSockets
 WhatsApp
 Wi-Fi
+WorkMail
 Workiva
 Workiva's
 Worktrees
@@ -318,6 +319,7 @@ autocompletion
 b43
 backend
 backfill
+backfilled
 backgrounded
 base64url
 binpacking
@@ -329,6 +331,7 @@ bulleted
 cURL
 callouts
 cancelled
+cardinality
 chipset
 chipsets
 chrooted
@@ -374,6 +377,7 @@ gitgutter
 glibc
 gmail
 gruvbox
+gws
 hardcoded
 hostname
 https

@@ -78,6 +78,8 @@ branch.
   change does not warrant them.
 - Do not use hard line breaks within paragraphs. Markdown renderers handle
   wrapping, so each paragraph should be a single unwrapped line.
+- When adding PR review comments, attach them to the specific line or line
+  range in the diff where the issue occurs.
 
 ### Descriptions
 
