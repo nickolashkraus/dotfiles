@@ -32,3 +32,6 @@ export KUBECONFIG=$HOME/.kube/workiva.yaml:$HOME/.kube/config
 
 # Set default AWS profile.
 export AWS_PROFILE=master.root
+
+# Use file-based storage for gws credentials instead of macOS Keychain.
+export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file
