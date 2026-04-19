@@ -205,15 +205,16 @@ nnoremap <Leader>cpu :CopyAbsPath<CR>
 " Returns: GitHub URL (string), or empty string on error
 function! GetGitHubURL(...)
   let l:use_current_branch = a:0 > 0 && a:1
+  let l:git = 'git -C ' . shellescape(expand('%:p:h'))
 
   " Check if inside Git repository.
-  if system('git rev-parse --is-inside-work-tree 2>/dev/null')->trim() !=# 'true'
+  if system(l:git . ' rev-parse --is-inside-work-tree 2>/dev/null')->trim() !=# 'true'
     echoerr 'Not inside a Git repository'
     return ''
   endif
 
   " Get remote URL.
-  let l:remote = system('git config --get remote.origin.url 2>/dev/null')->trim()
+  let l:remote = system(l:git . ' config --get remote.origin.url 2>/dev/null')->trim()
   if v:shell_error != 0 || empty(l:remote)
     echoerr 'No remote origin found'
     return ''
@@ -231,14 +232,14 @@ function! GetGitHubURL(...)
 
   if l:use_current_branch
     " Determine the current branch.
-    let l:branch = system('git rev-parse --abbrev-ref HEAD 2>/dev/null')->trim()
+    let l:branch = system(l:git . ' rev-parse --abbrev-ref HEAD 2>/dev/null')->trim()
     if v:shell_error != 0 || empty(l:branch) || l:branch ==# 'HEAD'
       echoerr 'Could not determine current branch'
       return ''
     endif
   else
     " Determine the repository's default branch (main or master).
-    let l:branch = system('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
+    let l:branch = system(l:git . ' symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')->trim()
     let l:branch = substitute(l:branch, '^refs/remotes/origin/', '', '')
     if empty(l:branch)
       echoerr 'Could not determine default branch'
@@ -247,7 +248,7 @@ function! GetGitHubURL(...)
   endif
 
   " Get the repository's root and relative file path.
-  let l:root = system('git rev-parse --show-toplevel 2>/dev/null')->trim()
+  let l:root = system(l:git . ' rev-parse --show-toplevel 2>/dev/null')->trim()
   if v:shell_error != 0
     echoerr 'Could not determine repository root'
     return ''
