@@ -51,11 +51,13 @@ ChatOps
 Chroot
 CloudFormation
 CloudFront
+CloudSQL
 Codebases
 CoderPad
 ConductorOne
 Creatine
 Customizations
+DBs
 DCR
 DDL
 DFS
@@ -107,6 +109,7 @@ Garmin
 Garmin's
 Gelcaps
 GetLabs
+Getlabs
 GitHub
 GitOps
 Glassdoor
@@ -409,6 +412,7 @@ md
 metadata
 microservice
 middleware
+misconfigured
 nerdtree
 networkd
 nhk
@@ -427,11 +431,14 @@ onboarding
 ons
 orchestrator
 os
+overcomplicate
 overcontributed
 passthrough
 passwordless
 perseveration
 phlebotomist
+phlebotomists
+phlebotomy
 pixy
 ppp
 pre
@@ -488,6 +495,7 @@ unmount
 untrusted
 url
 uvicorn
+v0
 v1
 v2
 v3

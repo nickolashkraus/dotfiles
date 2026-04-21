@@ -26,6 +26,9 @@
   | -------- | -------- | -------- |
   | x        | y        | z        |
 
+  Pad all columns to equal width with a 1-space buffer on each side. When
+  modifying a table, always reformat the entire table to maintain even spacing.
+
 - Use backticks for inline code, file names, commands, resource names, and
   configuration values (e.g., `python`, `app.py`, `GET /api/users`).
 - For Markdown files, use HTML escape characters (&lt;, &gt;, etc.). Escape \$.
@@ -35,6 +38,7 @@
   `[label][]` shorthand or bare `[label]` form, even when the text and label
   are the same.
 - Use double space instead of `<br>` for newlines in Markdown.
+- Capitalize environment names: Dev, Staging, Prod. Treat them as proper nouns.
 - Capitalize the first word after a colon when it begins a complete sentence or
   independent clause.
 - Always put colons outside of bold text (e.g., **Bold**:).
