@@ -3,7 +3,7 @@ name: create-linear-issue
 description: >
   Create a Linear issue with the Markdown contents of a local file.
 disable-model-invocation: false
-allowed-tools: Bash, Read, mcp__linear__save_issue
+allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__list_projects
 argument-hint: <file> <team> <project>
 ---
 
@@ -31,24 +31,32 @@ If the script is not available, read the file directly.
 Read the cleaned output from `dist/<filename>`. This is the content you will
 use in subsequent steps.
 
-## Step 3: Determine the title
+## Step 3: Resolve the project
+
+Use `list_projects` with the project name from Step 1 as the `query` parameter.
+If a single result is returned, use it. If multiple results are returned, pick
+the best match. If no results are returned, report an error and stop.
+
+Use the matched project's name or slug for the `project` field in Step 6.
+
+## Step 4: Determine the title
 
 Use the first H1 header (`# ...`) in the file as the issue title. Use Title
 Case. If there is no H1, derive the title from the filename.
 
-## Step 4: Prepare the description
+## Step 5: Prepare the description
 
 Remove the first H1 header from the cleaned Markdown. The remaining content is
 the issue description.
 
-## Step 5: Create the issue
+## Step 6: Create the issue
 
 Use the `save_issue` tool to create the issue with:
 
-- **title**: From Step 3.
-- **description**: From Step 4.
+- **title**: From Step 4.
+- **description**: From Step 5.
 - **team**: The team name from the arguments.
-- **project**: The project name from the arguments.
+- **project**: The resolved project from Step 3.
 - **state**: Todo.
 
 Print the issue identifier (e.g., EPD-123) when done.
