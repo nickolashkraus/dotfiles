@@ -60,3 +60,5 @@ Use the `save_issue` tool to create the issue with:
 - **state**: Todo.
 
 Print the issue identifier (e.g., EPD-123) when done.
+
+@~/.claude/rules/meta-learning.md

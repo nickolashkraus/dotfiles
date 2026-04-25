@@ -76,3 +76,5 @@ If a deploy script was provided:
 3. Report the result: success or failure with relevant output.
 
 After a successful deploy, stop monitoring. The loop can be cancelled.
+
+@~/.claude/rules/meta-learning.md

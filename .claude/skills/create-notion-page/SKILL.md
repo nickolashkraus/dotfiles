@@ -55,3 +55,5 @@ with:
 - **content**: From Step 4.
 
 Print the new Notion page link when done.
+
+@~/.claude/rules/meta-learning.md

@@ -32,3 +32,5 @@ If issues found: list each issue and its fix in a short table, then pipe the
 corrected text back to the clipboard with `pbcopy`.
 
 Confirm the clipboard has been updated.
+
+@~/.claude/rules/meta-learning.md

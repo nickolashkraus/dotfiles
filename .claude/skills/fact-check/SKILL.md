@@ -35,3 +35,5 @@ Report your findings concisely:
 - **Evidence**: A short bullet list of supporting or contradicting evidence
   with sources (file paths, URLs).
 - **Corrections**: If false or partially true, state what is actually correct.
+
+@~/.claude/rules/meta-learning.md

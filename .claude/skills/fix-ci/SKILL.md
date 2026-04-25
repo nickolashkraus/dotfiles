@@ -188,9 +188,10 @@ If any command still fails, go back to Step 4. Do not push between fix
 iterations.
 
 Once **all** local verification passes (CI fixes and bot comment fixes), commit
-and push in a single push. Then go back to Step 2 and wait for all checks to
-complete before taking further action. Keep iterating until every check passes
-and all bot comments are addressed.
+and push in a single push. Always create a new commit rather than amending and
+force-pushing, so that review history and prior CI runs are preserved. Then go
+back to Step 2 and wait for all checks to complete before taking further action.
+Keep iterating until every check passes and all bot comments are addressed.
 
 Follow the commit rules from @~/.claude/rules/git.md:
 
@@ -244,3 +245,5 @@ gh pr comment <pr-number> --body '## Bot Review Findings
 
 This summary is in addition to the individual replies already posted on each
 bot comment thread.
+
+@~/.claude/rules/meta-learning.md

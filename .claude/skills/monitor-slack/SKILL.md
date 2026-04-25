@@ -226,3 +226,5 @@ No new messages. Monitoring continues.
 
 If messages were processed, print a summary of actions taken (summaries
 printed, fixes drafted, messages queued).
+
+@~/.claude/rules/meta-learning.md

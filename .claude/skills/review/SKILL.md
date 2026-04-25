@@ -50,3 +50,5 @@ After fixing, re-run the diff to confirm your fixes are correct.
 If the diff is clean, say so and move on.
 
 Run CI (formatting, linting, tests, etc.) to ensure the changes will pass.
+
+@~/.claude/rules/meta-learning.md

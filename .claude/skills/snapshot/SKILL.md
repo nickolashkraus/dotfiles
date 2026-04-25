@@ -67,3 +67,5 @@ git push -u origin SNAPSHOT-YYYY-MM-DD.XX
 
 Print the snapshot branch name and confirm that the default branch is back to
 its original dirty state (`git status`).
+
+@~/.claude/rules/meta-learning.md

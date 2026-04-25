@@ -128,3 +128,5 @@ Outbox is empty.
 1. Count unchecked items.
 2. Ask: "Discard all N pending messages? (y/n)"
 3. On confirmation, change all `- [ ]` to `- [-]`.
+
+@~/.claude/rules/meta-learning.md

@@ -65,3 +65,5 @@ Use the `save_issue` tool with the `id` parameter to update the issue:
 - **project**: From Step 4 (if applicable).
 
 Print the issue identifier when done.
+
+@~/.claude/rules/meta-learning.md

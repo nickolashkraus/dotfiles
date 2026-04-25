@@ -48,3 +48,5 @@ Create the pull request using `gh pr create` against the default branch:
 - Do not add boilerplate sections the change does not warrant.
 
 Print the pull request URL when done.
+
+@~/.claude/rules/meta-learning.md

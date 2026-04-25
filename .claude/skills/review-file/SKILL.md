@@ -39,3 +39,5 @@ If you find issues, fix them directly. If the fix is ambiguous, prompt the user
 for input. Lean more toward just fixing the issue.
 
 If the file is clean, say so.
+
+@~/.claude/rules/meta-learning.md
