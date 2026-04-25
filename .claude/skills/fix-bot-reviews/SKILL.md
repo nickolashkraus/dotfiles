@@ -234,3 +234,5 @@ gh pr comment <fix-pr-number> --body '## Bot Review Findings
 
 This summary is in addition to the individual replies already posted on each
 bot comment thread.
+
+@~/.claude/rules/meta-learning.md

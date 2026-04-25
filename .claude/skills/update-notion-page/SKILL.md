@@ -44,3 +44,5 @@ Strip the first H1 header from the content before replacing, since Notion uses
 the page title for that. Update the page title if it differs from the H1.
 
 Print the Notion page link when done.
+
+@~/.claude/rules/meta-learning.md

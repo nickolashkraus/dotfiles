@@ -31,6 +31,8 @@ init() {
   gws auth login
   # Auth gcloud (Function Dev) + read-only `gws`.
   gcp_auth function-dev --gws
+  # Auth gcloud (Function Prod).
+  gcp_auth function-prod
 }
 
 # See: https://junegunn.github.io/fzf/tips/ripgrep-integration/

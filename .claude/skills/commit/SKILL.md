@@ -36,3 +36,5 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
 
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
+
+@~/.claude/rules/meta-learning.md

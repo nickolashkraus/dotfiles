@@ -115,3 +115,5 @@ Before delivering, confirm:
 - Risk table has 3+ rows with mitigation strategies.
 - In scope and out of scope explicitly stated.
 - Output filename follows the naming convention.
+
+@~/.claude/rules/meta-learning.md
