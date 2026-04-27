@@ -1,5 +1,4 @@
 {
-  "model": "claude-opus-4-6",
   "permissions": {
     "allow": [
       "Bash(git *)",
@@ -15,9 +14,6 @@
     "defaultMode": "bypassPermissions",
     "additionalDirectories": []
   },
-  "syntaxHighlightingDisabled": false,
-  "effortLevel": "high",
-  "skipDangerousModePermissionPrompt": true,
   "hooks": {
     "PostCompact": [
       {
@@ -31,5 +27,9 @@
         ]
       }
     ]
-  }
+  },
+  "syntaxHighlightingDisabled": false,
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
+  "spinnerTipsEnabled": false
 }
