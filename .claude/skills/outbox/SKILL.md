@@ -15,7 +15,7 @@ argument-hint: >
 # Outbox
 
 Review and manage queued Slack messages in
-`~/nickolashkraus/agent-os/tasks/outbox/`. Messages are queued by
+`~/nickolashkraus/agent-os/master/tasks/outbox/`. Messages are queued by
 `/monitor-slack` and other skills. Nothing is sent without your explicit
 approval.
 
@@ -37,7 +37,7 @@ outbox (defaults to today).
 ## Outbox format
 
 Each day's outbox is a single file at
-`~/nickolashkraus/agent-os/tasks/outbox/YYYY-MM-DD.md`. Messages are checklist
+`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md`. Messages are checklist
 items:
 
 ```markdown
@@ -62,7 +62,7 @@ no subcommand, default to `list`. If `--date` is present, use that date;
 otherwise use today's date.
 
 Set the outbox path to
-`~/nickolashkraus/agent-os/tasks/outbox/YYYY-MM-DD.md`.
+`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md`.
 
 ## Step 2: Execute subcommand
 

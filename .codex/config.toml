@@ -47,10 +47,10 @@ model_reasoning_effort = "xhigh"
 [projects."/Users/nickolas/Function-Health/auth0-acul"]
   trust_level = "trusted"
 
-[projects."/Users/nickolas/nickolashkraus/dotfiles"]
+[projects."/Users/nickolas/nickolashkraus/dotfiles/master"]
   trust_level = "trusted"
 
-[projects."/Users/nickolas/nickolashkraus/agent-os"]
+[projects."/Users/nickolas/nickolashkraus/agent-os/master"]
   trust_level = "trusted"
 
 [tui]

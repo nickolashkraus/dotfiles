@@ -18,7 +18,7 @@ for cmd in jq python3; do
   fi
 done
 
-log_dir="/Users/nickolas/nickolashkraus/agent-os/notes/daily/logs"
+log_dir="/Users/nickolas/nickolashkraus/agent-os/master/notes/daily/logs"
 
 input=$(cat)
 

@@ -59,7 +59,7 @@ provided, extract the channel ID from the path.
 
 ## Outbox
 
-The outbox lives at `~/nickolashkraus/agent-os/tasks/outbox/`. Each day's
+The outbox lives at `~/nickolashkraus/agent-os/master/tasks/outbox/`. Each day's
 queued messages are appended to a single daily file (`YYYY-MM-DD.md`). Use
 `/outbox` to review, edit, approve, or discard queued messages.
 
@@ -80,7 +80,7 @@ If arguments are missing or malformed, print usage instructions and stop.
 
 ## Step 2: Load state
 
-Read the state file at `~/nickolashkraus/agent-os/tasks/outbox/.state.json`.
+Read the state file at `~/nickolashkraus/agent-os/master/tasks/outbox/.state.json`.
 The file is a JSON object keyed by monitor target so that multiple concurrent
 monitors do not overwrite each other's timestamps. Derive the key from the
 parsed arguments:
@@ -160,7 +160,7 @@ issue):
 ## Step 6: Queue outbox messages
 
 For any Slack message that should be sent, append an entry to today's outbox
-file at `~/nickolashkraus/agent-os/tasks/outbox/YYYY-MM-DD.md` (using the
+file at `~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md` (using the
 current date).
 
 If the file does not exist, create it with a heading:
