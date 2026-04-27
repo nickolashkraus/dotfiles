@@ -21,6 +21,7 @@
 #     brew bundle check || brew bundle install
 ###############################################################################
 
+tap "conductorone/cone"
 tap "derailed/k9s"
 tap "felixkratz/formulae"
 tap "hashicorp/tap"
@@ -33,6 +34,7 @@ brew "bat"
 brew "bun"
 brew "bzip2"
 brew "cmake"
+brew "conductorone/cone/cone"
 brew "curl"
 brew "felixkratz/formulae/borders"
 brew "ffmpeg@4"

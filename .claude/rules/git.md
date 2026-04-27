@@ -18,6 +18,9 @@
 - Always create worktrees in the root of the bare repo as peer directories
   (e.g., `transaction-service/BYB-934` alongside `transaction-service/dev`).
   Never place them under subdirectories like `.claude/worktrees/`.
+- In a bare repo with worktrees, default to the `master` (or default) branch
+  worktree for operations like `git log`, `git diff`, and rebasing. Do not
+  operate from the bare repo root.
 
 ## Commits
 

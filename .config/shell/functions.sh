@@ -33,6 +33,11 @@ init() {
   gcp_auth function-dev --gws
   # Auth gcloud (Function Prod).
   gcp_auth function-prod
+  # Prevent idle/system sleep so background agents run continuously.
+  #   -i: Prevent idle sleep.
+  #   -m: Prevent disk sleep.
+  #   -s: Prevent system sleep (AC power).
+  caffeinate -ims &
 }
 
 # See: https://junegunn.github.io/fzf/tips/ripgrep-integration/

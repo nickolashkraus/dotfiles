@@ -1,5 +1,11 @@
 # Function Health
 
+## CLI Authentication
+
+- **Auth0**: Authenticate with `auth0 login`.
+- **ConductorOne**: Authenticate with
+  `cone login https://functionhealth.conductor.one`.
+
 ## API (Secret) Key Authentication
 
 Some Function Health services authenticate via `FunctionHealthSecretKey`, which
