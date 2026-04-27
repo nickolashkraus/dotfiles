@@ -3,10 +3,15 @@ name: pr
 description: Creates a branch and pull request from the current commit(s).
 disable-model-invocation: false
 allowed-tools: Bash, Read
-argument-hint: [linear-issue]
+argument-hint: [--worktree] [linear-issue]
 ---
 
 You are creating a pull request. Follow every step in order.
+
+Parse `$ARGUMENTS` for flags and a Linear issue slug:
+
+- `--worktree`: Create a new worktree instead of switching branches.
+- Anything else is treated as a Linear issue slug.
 
 ## Step 1: Determine the default branch
 
@@ -24,10 +29,18 @@ commits that will be included in the pull request.
 If already on a non-default branch, push it. Otherwise:
 
 1. Determine the branch name:
-   - If a Linear issue was passed (`$ARGUMENTS`), use it as the branch name
-     (e.g., `EPD-1337`).
+   - If a Linear issue was passed, use it as the branch name (e.g.,
+     `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
-2. Create the branch and push.
+2. If `--worktree` was set:
+   a. Create a worktree at HEAD with the new branch:
+      `git worktree add -b <branch> ../<branch> HEAD`
+   b. Reset the default branch to match the remote:
+      `git reset --hard origin/<default-branch>`
+   c. Change to the worktree: `cd ../<branch>`
+   All subsequent steps happen in the worktree.
+3. Otherwise, create and check out the branch.
+4. Push.
 
 ## Step 4: Create the pull request
 
