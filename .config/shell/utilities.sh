@@ -162,15 +162,38 @@ export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/openjdk/include"
 # nvm (Node Version Manager) is a tool that lets you install, manage, and
 # switch between multiple versions of Node.js on the same machine.
 #
+# Sourcing nvm.sh on every shell startup is slow. Instead, eagerly add the
+# default Node version's bin directory to PATH so node, npm, and npx are
+# immediately available. The `nvm` command itself is lazy-loaded on first use.
+#
 # See: https://github.com/nvm-sh/nvm
 ###############################################################################
 
-# WARNING: Managing nvm via Homebrew is not supported.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] &&
-  \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
-[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] &&
-  \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
+
+if [[ -f $NVM_DIR/alias/default ]]; then
+  _nvm_v="$(<$NVM_DIR/alias/default)"
+  while [[ -f $NVM_DIR/alias/$_nvm_v ]]; do
+    _nvm_v="$(<$NVM_DIR/alias/$_nvm_v)"
+  done
+  if [[ -d $NVM_DIR/versions/node/$_nvm_v/bin ]]; then
+    export PATH="$NVM_DIR/versions/node/$_nvm_v/bin:$PATH"
+  fi
+  unset _nvm_v
+fi
+
+_lazy_load_nvm() {
+  unset -f nvm
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] &&
+    \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] &&
+    \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
+}
+
+nvm() {
+  _lazy_load_nvm
+  nvm "$@"
+}
 
 ###############################################################################
 # pyenv
@@ -178,33 +201,41 @@ export NVM_DIR="$HOME/.nvm"
 # pyenv is a Python version manager that lets you install, manage, and switch
 # between multiple versions of Python on the same machine.
 #
+# The output of `pyenv init -` and `pyenv virtualenv-init -` is cached to avoid
+# the subprocess and version detection cost on every shell startup. The cache
+# is regenerated whenever the pyenv binary is newer than the cache.
+#
 # See: https://github.com/pyenv/pyenv
 ###############################################################################
 
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
 
-# Custom pyenv-virtualenv hook. Activates the virtualenv specified by
-# .python-version, falling back to "default".
-_pyenv_virtualenv_hook() {
-  local ret=$?
-  local ver
-  ver="$(pyenv version-name 2>/dev/null || true)"
-  local current="${VIRTUAL_ENV##*/}"
-  if [[ "$ver" != "$current" ]]; then
-    pyenv activate "$ver" >/dev/null 2>&1 ||
-      pyenv activate default >/dev/null 2>&1 || true
+_pyenv_cache="$HOME/.cache/pyenv-init.zsh"
+_pyenv_bin="$(command -v pyenv 2>/dev/null)"
+if [[ -n $_pyenv_bin ]]; then
+  if [[ ! -f $_pyenv_cache || $_pyenv_bin -nt $_pyenv_cache ]]; then
+    mkdir -p "$HOME/.cache"
+    {
+      pyenv init -
+      pyenv virtualenv-init -
+    } >"$_pyenv_cache"
   fi
-  return $ret
-}
+  source "$_pyenv_cache"
 
-typeset -g -a precmd_functions
-if [[ -z $precmd_functions[(r)_pyenv_virtualenv_hook] ]]; then
-  precmd_functions=(_pyenv_virtualenv_hook $precmd_functions)
+  # Override the hook installed by `pyenv virtualenv-init -` so it falls back
+  # to the `default` virtualenv when no `.python-version` is set.
+  _pyenv_virtualenv_hook() {
+    local ret=$?
+    local ver
+    ver="$(pyenv version-name 2>/dev/null || true)"
+    local current="${VIRTUAL_ENV##*/}"
+    if [[ "$ver" != "$current" ]]; then
+      pyenv activate "$ver" >/dev/null 2>&1 ||
+        pyenv activate default >/dev/null 2>&1 || true
+    fi
+    return $ret
+  }
+
+  _pyenv_virtualenv_hook
 fi
-
-_pyenv_virtualenv_hook
-
-# Set Node.js version.
-nvm use --silent v25
+unset _pyenv_cache _pyenv_bin

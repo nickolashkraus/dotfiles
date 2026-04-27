@@ -24,7 +24,7 @@ git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 ## Step 3: Get the diff
 
 If `--staged` was passed, diff only staged changes against the default branch
-(`git diff --cached`).
+(`git diff --cached <default-branch>`).
 
 Otherwise, diff all changes (staged, unstaged, and untracked) against the
 default branch. If there are untracked files, read them in full. You need the
