@@ -1,0 +1,7 @@
+interface:
+  display_name: "Worktree Cleanup"
+  short_description: "Safely remove merged or stale Git worktrees"
+  default_prompt: "Use $worktree-cleanup to find merged Git worktrees, skip dirty ones, and remove safe candidates with Git worktree commands."
+
+policy:
+  allow_implicit_invocation: true
