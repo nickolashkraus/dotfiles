@@ -4,7 +4,7 @@ description: >
   Reviews the diff, creates the Git commit, and opens a pull request.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [--no-pr] [linear-issue]
+argument-hint: [--no-pr] [--worktree] [linear-issue]
 ---
 
 You are reviewing, committing, and shipping a set of changes. Follow every step
@@ -13,6 +13,7 @@ in order.
 Parse `$ARGUMENTS` for flags and a Linear issue slug:
 
 - `--no-pr`: Push straight to the default branch (no new branch, no PR).
+- `--worktree`: Create a new worktree instead of switching branches.
 - Anything else is treated as a Linear issue slug.
 
 ## Step 1: Determine the default branch
@@ -57,7 +58,15 @@ If already on a non-default branch, skip this step. Otherwise:
    - If a Linear issue was passed, use it as the branch name (e.g.,
      `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
-2. Create and check out the branch.
+2. If `--worktree` was set:
+   a. Stash all changes including untracked files:
+      `git stash push --include-untracked`
+   b. Create a worktree as a peer directory with the new branch:
+      `git worktree add -b <branch> ../<branch> HEAD`
+   c. Change to the worktree: `cd ../<branch>`
+   d. Pop the stash: `git stash pop`
+   All subsequent steps happen in the worktree.
+3. Otherwise, create and check out the branch.
 
 ## Step 5: Create the commit
 
