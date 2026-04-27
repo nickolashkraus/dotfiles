@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-dotfiles="${HOME}/nickolashkraus/dotfiles"
+dotfiles="${HOME}/nickolashkraus/dotfiles/master"
 echo "dotfiles directory found at the following location: ${dotfiles}"
 read -rp "Do you wish to proceed? [Y/n]: " proceed
 proceed=${proceed:-Y}
