@@ -1,0 +1,9 @@
+interface:
+  display_name: Home Cleanup
+  short_description: Safely review and prune home-directory caches
+  default_prompt: >
+    Use $home-cleanup to review my home directory, propose safe cache
+    deletions, and wait for confirmation before removing anything.
+
+policy:
+  allow_implicit_invocation: true
