@@ -55,9 +55,14 @@ Classify every check as **pass**, **fail**, or **pending**.
 logs to diagnose the failure and, if the failure is transient or
 infrastructure-related, re-run the specific check:
 
-```
-gh run rerun <run-id> --failed
-```
+- **GitHub Actions**: `gh run rerun <run-id> --failed`.
+- **External check (e.g., Google Cloud Build)**: `gh run rerun` does not
+  apply. First try GitHub's check-run rerequest:
+  `gh api -X POST repos/{owner}/{repo}/check-runs/<check-run-id>/rerequest`.
+  If that returns 404 (the app does not support rerequest), fall back to the
+  provider's native retry. For Cloud Build:
+  `curl -X POST -H "Authorization: Bearer $(gcloud auth print-access-token)" https://cloudbuild.googleapis.com/v1/projects/<project>/builds/<build-id>:retry`
+  (`gcloud builds triggers run` does not work for GitHub PR triggers).
 
 ## Step 4: Get failure details and fix
 

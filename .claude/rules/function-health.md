@@ -84,6 +84,72 @@ gcloud secrets versions access latest \
   --secret=<secret-name> --project=<project>
 ```
 
+### Prod Databases (IAM Group Auth)
+
+Prod databases do not expose static `POSTGRES_PASSWORD` credentials to
+engineers. Authenticate via Cloud SQL IAM group authentication:
+
+1. Request access via ConductorOne. Two entitlements are required and are
+   scoped per project, so they must be requested separately for each env (Dev,
+   Staging, Prod):
+
+   - `db <env> <instance> ro|rw|adm Group Member` (e.g., `db prod
+     production-transaction ro Group Member`).
+   - `Cloud SQL Instance User` on the relevant project (e.g., `Function Health
+     Prod env`). This is what authorizes the IAM database login. `Cloud SQL
+     Client` alone is not enough.
+
+   ```
+   cone search --query "<instance>" --granted
+   cone search --query "Cloud SQL Instance User" --granted
+   cone get --query "Cloud SQL Instance User" --justification "<reason>"
+   ```
+
+2. Start the proxy with `--auto-iam-authn`:
+
+   ```
+   cloud-sql-proxy <connection-name> --port=5434 --auto-iam-authn
+   ```
+
+3. Connect using your Workspace email as the user and a fresh `gcloud` access
+   token as the password. The token expires after ~1 hour, so regenerate it per
+   session:
+
+   ```
+   PGPASSWORD=$(gcloud auth print-access-token) \
+     psql -h 127.0.0.1 -p 5434 \
+     -U <user>@functionhealth.com \
+     -d <database>
+   ```
+
+   The database name often differs from the instance name (e.g.,
+   `production-transaction` instance hosts a `production-transaction` database,
+   not `transaction`). Confirm with `\l` against `postgres`.
+
+If login still fails with `password authentication failed for user "<email>"`
+and the user does not appear in `gcloud sql users list --instance=<instance>`
+as `CLOUD_IAM_GROUP_USER`, the most common cause is missing `Cloud SQL Instance
+User` on that project. See the Notion runbook: [How to Request Database Group
+Access][1].
+
+[1]: https://www.notion.so/345b0b10ae8c80b7a9ede57ff7975ece
+
+## GKE kubeconfig
+
+Function Health GKE clusters live across `function-health-dev-env`,
+`function-health-prod-env`, and `function-health-sandbox-env`. To generate or
+refresh `~/.kube/function.yaml`, run:
+
+```
+generate-fh-kubeconfig --output $HOME/.kube/function.yaml
+```
+
+The script lives at
+`~/nickolashkraus/bash-scripts/master/generate-fh-kubeconfig` and queries
+`gcloud container clusters describe` for each cluster, so it requires
+`Kubernetes Engine Admin` (or read-equivalent) on the relevant projects via
+ConductorOne.
+
 ## Backend Coding Conventions
 
 ### Architecture

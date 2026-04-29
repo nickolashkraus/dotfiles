@@ -27,6 +27,12 @@ Go through the entire file. Check for:
 
 Read surrounding files when needed to understand intent or verify correctness.
 
+If the file is explicitly raw (e.g., `Scratch.md`, dump files, working notes
+with `TBD`/`TODO` markers throughout), apply only typography rules that don't
+change meaning (escape `<>`/`$`, replace em dashes, header levels, missing `#`
+titles). Skip prose rewraps and period normalization that would amount to
+re-writing.
+
 ## Step 3: Report findings
 
 Present findings grouped by category. For each issue:

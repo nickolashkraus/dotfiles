@@ -1357,6 +1357,12 @@ nnoremap <Leader>gr :Git reset %<CR>
 nnoremap <Leader>gc :Git commit -v<CR>
 nnoremap <Leader>gp :Git push<CR>
 
+" Shrink the :Git status window to 35 lines.
+augroup fugitive_resize
+  autocmd!
+  autocmd FileType fugitive resize 35
+augroup END
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-repeat
 "

@@ -82,6 +82,11 @@ secrets.
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
 
+If a pre-commit hook or user reformats files (the commit succeeds but `git
+status` shows new staged changes from the formatter), fold them into the
+original commit with `git reset --soft HEAD~1 && git commit -C ORIG_HEAD`. This
+keeps a single clean commit without using `--amend`.
+
 ## Step 6: Push
 
 ```

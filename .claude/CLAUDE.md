@@ -6,5 +6,6 @@
 - @rules/gws.md
 - @rules/linear.md
 - @rules/notion.md
+- @rules/slack.md
 - @rules/typography.md
 - @rules/writing.md

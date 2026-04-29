@@ -168,11 +168,15 @@ ln -s "${dotfiles}/.aws/config" "${HOME}/.aws/config"
 # kubeconfig Files
 #
 # Required Files:
+#   * .kube/function.yaml
 #   * .kube/workiva.yaml
 ###############################################################################
+check_file_exists "${dotfiles}/.kube/function.yaml" || exit 1
 check_file_exists "${dotfiles}/.kube/workiva.yaml" || exit 1
 mkdir -p "${HOME}/.kube"
+rm -f "${HOME}/.kube/function.yaml" || true
 rm -f "${HOME}/.kube/workiva.yaml" || true
+ln -s "${dotfiles}/.kube/function.yaml" "${HOME}/.kube/function.yaml"
 ln -s "${dotfiles}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 
 ###############################################################################
