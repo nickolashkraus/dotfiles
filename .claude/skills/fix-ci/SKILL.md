@@ -44,6 +44,12 @@ Classify every check as **pass**, **fail**, or **pending**.
 - If any checks are pending, wait 30 seconds and re-check. Always wait for
   **all** checks to complete before moving on, even external checks (e.g.,
   Cloud Build, Sentry, third-party scanners).
+- **Don't fake the handoff.** If you start a background wait (`Monitor`,
+  `ScheduleWakeup`, `/loop`, or any `run_in_background` task), you must
+  register a concrete resumption (cron, scheduled wakeup, or loop tick) in the
+  same turn. Don't end the turn relying on the user to re-prompt. "I'll let the
+  monitor continue running" or "waiting for monitor to notify me" are not valid
+  handoffs unless paired with a registered resumption.
 - Once all checks have completed, continue to Step 3.
 
 ## Step 3: Assess results
@@ -63,6 +69,17 @@ infrastructure-related, re-run the specific check:
   provider's native retry. For Cloud Build:
   `curl -X POST -H "Authorization: Bearer $(gcloud auth print-access-token)" https://cloudbuild.googleapis.com/v1/projects/<project>/builds/<build-id>:retry`
   (`gcloud builds triggers run` does not work for GitHub PR triggers).
+
+**IMPORTANT**: Every check must pass, including non-required ones.
+A non-blocking failure is still a failure and must be cleared, not documented
+around.
+
+**IMPORTANT**: Never close and reopen a PR to retrigger CI. It rewrites
+timestamps, fires PR-lifecycle webhooks with side effects, and leaves the
+original failed check as a stuck record (a new run is created under a different
+name, so it does not replace the old one). If the retry paths above fail,
+diagnose and fix the root cause. Do not force-push or push empty commits as
+workarounds.
 
 ## Step 4: Get failure details and fix
 

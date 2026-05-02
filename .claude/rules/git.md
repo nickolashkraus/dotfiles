@@ -51,6 +51,20 @@ you have not verified passes the project's CI.
 After pushing, run `/fix-ci` until all checks pass. Do not consider the job
 done while any check is non-passing (including neutral or pending).
 
+### Retriggering CI
+
+Never close and reopen a pull request to retrigger CI. It rewrites timestamps,
+fires PR-lifecycle webhooks with side effects, and leaves the original failed
+check as a stuck record (a new check run is created under a different name, so
+it does not replace the old one). For transient or infrastructure failures,
+follow the documented retry path for that provider (`gh run rerun --failed` for
+GitHub Actions, `check-runs/<id>/rerequest` or the provider's native retry API
+for external checks). If the failed check is a stale artifact (e.g., Cloud
+Build "Couldn't read commit" raced with `gh pr create`), verify it is not in
+the branch's required-status-checks ruleset before treating it as blocking. Do
+not reach for destructive shortcuts like close/reopen, force-push, or empty
+commits to make a failed check go away.
+
 ### Rebasing
 
 Do not merge master into a branch to integrate upstream changes. Use `git

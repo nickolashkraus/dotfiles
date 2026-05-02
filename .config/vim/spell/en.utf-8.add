@@ -145,6 +145,7 @@ JWT's
 JWTs
 Jira
 Kanban
+Keychain
 Khabaiev
 Kimchi
 Kraus
@@ -189,6 +190,7 @@ OpenAI
 OpenAI's
 OpenAPI
 OpenID
+PCC
 PKCE
 PNG
 PPP
@@ -221,6 +223,7 @@ Rebasing
 Redis
 RequisitionFilterOps
 RestApi
+Retriggering
 Rollout
 Runbook
 S3
@@ -458,9 +461,11 @@ repartition
 repo
 resource
 retargets
+retrigger
 rollout
 routable
 rpa
+ruleset
 runtime
 scalable
 schemas
@@ -470,6 +475,7 @@ signup
 skhd
 stateful
 statusline
+stdout
 subarray
 subcommand
 subdirectories
@@ -491,6 +497,7 @@ taxonomizes
 templated
 th
 timestamp
+timestamps
 uncomment
 unicode
 unmount
