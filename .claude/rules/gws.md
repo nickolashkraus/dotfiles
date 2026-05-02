@@ -11,6 +11,9 @@
   using `--params` with a `fields` mask, include `nextPageToken` in the mask.
   Without it, `gws` cannot detect additional pages and silently returns only
   the first page.
+- For methods with a request body (e.g., `gmail messages modify`, `gmail
+  messages send`), pass body fields via `--json`, not `--params`. `--params` is
+  only for URL/query parameters like `userId` and `id`.
 
 ## Account Switching
 

@@ -12,7 +12,7 @@
 #   JSON with session_id, cwd, compact_summary, etc.
 
 for cmd in jq python3; do
-  if ! [ -x "$(command -v ${cmd})" ]; then
+  if ! [ -x "$(command -v "${cmd}")" ]; then
     echo "ERROR: ${cmd} is not installed." >&2
     exit 1
   fi
@@ -104,17 +104,34 @@ def wrap_paragraph(text, width=79):
     return textwrap.fill(text, width=width)
 
 def wrap_bullets(text, width=79):
-    """Wrap each bullet line, indenting continuation."""
+    """Wrap each bullet line, indenting continuation. Wrap
+    non-bullet lines as plain paragraphs, preserving blank
+    lines as paragraph breaks.
+    """
     out = []
+    paragraph = []
+
+    def flush_paragraph():
+        if paragraph:
+            joined = " ".join(paragraph).strip()
+            if joined:
+                out.append(textwrap.fill(joined, width=width))
+            paragraph.clear()
+
     for line in text.split("\n"):
         m = re.match(r"^(\s*[-*]\s+)", line)
         if m:
+            flush_paragraph()
             indent = " " * len(m.group(1))
             out.append(textwrap.fill(
                 line, width=width, subsequent_indent=indent
             ))
+        elif line.strip() == "":
+            flush_paragraph()
+            out.append("")
         else:
-            out.append(line)
+            paragraph.append(line.strip())
+    flush_paragraph()
     return "\n".join(out)
 
 def format_section(label, text, max_sentences=3):
@@ -134,8 +151,6 @@ def format_section(label, text, max_sentences=3):
                 bullet_start = i
                 break
             prose.append(line)
-        else:
-            bullet_start = len(lines)
 
         prose_text = " ".join(prose).strip()
         bullets = "\n".join(lines[bullet_start:]).strip()

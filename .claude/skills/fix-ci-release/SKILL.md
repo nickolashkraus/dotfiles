@@ -55,6 +55,22 @@ For transient/infrastructure failures, re-run the specific check:
 gh run rerun <run-id> --failed
 ```
 
+For external checks (e.g., Cloud Build), follow the documented retry path:
+GitHub check-run rerequest first, then the provider's native retry API.
+
+**IMPORTANT**: Every check must pass, including non-required ones.
+A non-blocking failure is still a failure and must be cleared, not documented
+around.
+
+**IMPORTANT**: Never close and reopen the release PR to retrigger CI. It
+rewrites timestamps, fires PR-lifecycle webhooks with side effects, and leaves
+the original failed check as a stuck record (a new run is created under
+a different name, so it does not replace the old one). Release PRs are
+especially sensitive: they accept only cherry-picked merge commits, so
+destructive shortcuts that lose state are not recoverable. If the retry paths
+above fail, diagnose and fix the root cause. Do not close/reopen, force-push,
+or push empty commits as workarounds.
+
 Then go back to Step 2.
 
 ## Step 4: Diagnose CI failures

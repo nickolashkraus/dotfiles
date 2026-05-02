@@ -26,6 +26,17 @@
 			<key>url</key>
 			<string>https://github.com/Function-Health/{query}</string>
 		</dict>
+		<key>E2A9DAC3-0440-4153-BA89-F2C1CE8837B2</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>ghfhtm</string>
+			<key>text</key>
+			<string>Open Function-Health-Terraform-Modules Repository</string>
+			<key>url</key>
+			<string>https://github.com/Function-Health-Terraform-Modules/{query}</string>
+		</dict>
 	</dict>
 </dict>
 </plist>

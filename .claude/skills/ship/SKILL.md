@@ -48,7 +48,9 @@ After fixing, re-run the diff to confirm your fixes are correct.
 
 If the diff is clean, say so and move on.
 
-Run CI (formatting, linting, tests, etc.) to ensure the changes will pass.
+If the project has CI (workflows, pre-commit, scripts in `package.json` /
+`pyproject.toml` / `Makefile`), run the relevant commands locally to ensure
+the changes will pass.
 
 ## Step 4: Create the branch (skip if `--no-pr`)
 
