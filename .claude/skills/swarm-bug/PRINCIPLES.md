@@ -1,94 +1,11 @@
-# Swarm Design Principles
+# Bug Swarm Principles
 
-## Independence Before Synthesis
+For shared swarm principles (independence, consensus, context
+management, fact-checking, artifact location), read
+`~/.claude/skills/swarm-core/PRINCIPLES.md`. The lessons below
+are specific to the bug-fix workflow.
 
-Agents investigate before reading each other's work. Anchoring
-on the first analysis causes the swarm to converge prematurely.
-Wrong findings from independent investigation are more valuable
-than correct findings derived from another agent's work, because
-the synthesis step reconciles divergence into a more complete
-model.
-
-## Different Lenses, Not Redundant Work
-
-Each agent has a distinct investigation approach. Implementer
-reads source files. Tester reproduces and writes tests.
-Investigator queries databases. Tracker traces data flows and
-migrations. If all four agents read the same files and reached
-the same conclusion, the swarm would add latency without value.
-
-## The Spec Is the Contract
-
-The final analysis document must be detailed enough that the
-implementation agent never needs to ask "what should this do?"
-Each fix layer has a scope, a rationale, code snippets showing
-before/after, and a files changed list. The implementation agent
-translates the spec into code; it does not design the solution.
-
-## Review Catches What Tests Cannot
-
-Tests verify code correctness. Review catches structural issues:
-dependency ordering across code paths, asymmetries between
-similar fallback mechanisms, observability gaps in error
-handling, and inconsistencies between constants and their usage.
-Multi-agent review with different lenses finds more issues than
-a single reviewer.
-
-## Consensus Through Iteration
-
-Each phase that involves multiple agents loops until all agents
-explicitly approve. Investigation loops until no agent has new
-findings. Synthesis loops until all agents confirm the root
-cause model is accurate. Review loops until all agents report
-no blocking findings. Consensus is explicit: each agent writes
-a verdict ("approved" or "has concerns") and the Orchestrator
-only advances when all verdicts are "approved." Cap at 3 rounds
-per phase to prevent unbounded iteration. If consensus is not
-reached, the Orchestrator surfaces the remaining disagreements
-to the user.
-
-## Context Management
-
-The Orchestrator runs the entire workflow. Without management,
-its context grows unboundedly: raw findings from four agents,
-synthesis drafts, review rounds, implementation diffs. Three
-strategies keep context viable:
-
-1. **File references over inline content.** Convergence and
-   review rounds pass file paths, not inline content. Subagents
-   read files themselves. This caps the Orchestrator's outgoing
-   prompt size regardless of how large the findings are, and
-   lets subagents read selectively.
-2. **Phase handoffs via files.** Each phase produces a file
-   (`orchestrator/analysis.md`, `orchestrator/final.md`,
-   `orchestrator/findings.md`). The next phase reads the file.
-   The Orchestrator does not need prior phases in context once
-   the output file is written.
-3. **Checkpoints at phase boundaries.** The Orchestrator writes
-   `orchestrator/checkpoint.md` at each phase transition:
-   completed phases, decisions made, file locations, next
-   steps. If compaction occurs, the Orchestrator re-reads the
-   checkpoint to recover orchestration state.
-
-Compaction is safe between phases. The Orchestrator can lose
-Phase 2 details once Phase 3 is complete because the synthesis
-captures the essential findings. Within a phase (e.g., between
-convergence rounds), compaction loses round state. The
-checkpoint file makes this recoverable: the Orchestrator writes
-a checkpoint after each convergence round with the current
-round number and each agent's verdict.
-
-## Fact-Check Claims Before Shipping
-
-Analyses make claims about system behavior ("the legacy checkout
-always creates a new customer"). These claims must be verified
-against the actual code before they enter the Linear issue or
-the implementation spec. An incorrect claim in the spec produces
-an incorrect fix.
-
----
-
-# Lessons from BYB-1345
+## Lessons from BYB-1345
 
 The following lessons from the first swarm run inform the
 automation design:
