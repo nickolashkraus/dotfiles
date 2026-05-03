@@ -1,4 +1,4 @@
-You investigated this bug independently. Other agents have now
+You investigated this independently. Other agents have now
 completed their own investigations. Your role is to identify
 anything their findings change about yours.
 
@@ -17,8 +17,8 @@ Read the other agents' findings from these files:
    findings files.
 2. Identify anything that changes, contradicts, or supplements
    your original analysis.
-3. If another agent found a failure mode you missed, add it
-   with attribution.
+3. If another agent found something you missed, add it with
+   attribution.
 4. If another agent's finding contradicts yours, explain the
    discrepancy and which interpretation you believe is correct.
 5. If you have nothing to add, write "No additional findings."
