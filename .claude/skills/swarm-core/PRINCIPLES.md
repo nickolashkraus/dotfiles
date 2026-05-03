@@ -99,11 +99,11 @@ worktree, artifacts live under `domains/<domain>/<projects|teams>
 
 | Skill              | Bucket           |
 | ------------------ | ---------------- |
-| `/swarm-bug`       | `bugs/`          |
-| `/swarm-feature`   | `features/`      |
-| `/swarm-investigate` | `issues/`      |
-| `/swarm-verify`    | `verifications/` |
-| `/swarm-research`  | `docs/`          |
+| `/swarm-bug`         | `bugs/`           |
+| `/swarm-feature`     | `features/`       |
+| `/swarm-investigate` | `investigations/` |
+| `/swarm-verify`      | `verifications/`  |
+| `/swarm-research`    | `research/`       |
 
 Bug and Feature additionally create a code worktree in the
 target codebase for implementation. Investigate, Verify, and

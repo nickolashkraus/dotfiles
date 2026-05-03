@@ -61,7 +61,7 @@ git -C ~/nickolashkraus/agent-os worktree add \
 Set `{artifact_dir}` to:
 
 ```
-~/nickolashkraus/agent-os/{slug}/domains/{domain}/{projects|teams}/{name}/docs/{slug}/
+~/nickolashkraus/agent-os/{slug}/domains/{domain}/{projects|teams}/{name}/research/{slug}/
 ```
 
 Create the artifact subdirectories:
