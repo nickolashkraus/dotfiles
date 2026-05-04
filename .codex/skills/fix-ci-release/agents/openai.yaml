@@ -1,0 +1,14 @@
+interface:
+  display_name: Fix CI Release
+  short_description: >
+    Monitors CI and bot comments on a release PR. Creates a Linear issue
+    for findings instead of committing fixes directly, since release
+    branches only accept cherry-picked merge commits.
+  default_prompt: >
+    Use $fix-ci-release for this task: Monitors CI and bot comments on a
+    release PR. Creates a Linear issue for findings instead of committing
+    fixes directly, since release branches only accept cherry-picked merge
+    commits.
+
+policy:
+  allow_implicit_invocation: true

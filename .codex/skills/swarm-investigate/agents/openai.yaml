@@ -1,0 +1,14 @@
+interface:
+  display_name: Swarm Investigate
+  short_description: >
+    Multi-agent swarm for investigating a contemporaneous issue
+    (production incident, anomaly, mysterious behavior). Produces a
+    written report; no implementation phase.
+  default_prompt: >
+    Use $swarm-investigate for this task: Multi-agent swarm for
+    investigating a contemporaneous issue (production incident, anomaly,
+    mysterious behavior). Produces a written report; no implementation
+    phase.
+
+policy:
+  allow_implicit_invocation: true

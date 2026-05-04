@@ -1,0 +1,11 @@
+interface:
+  display_name: Fix CI
+  short_description: >
+    Fixes CI failures on a pull request by fetching check results,
+    diagnosing the issues, and applying fixes.
+  default_prompt: >
+    Use $fix-ci for this task: Fixes CI failures on a pull request by
+    fetching check results, diagnosing the issues, and applying fixes.
+
+policy:
+  allow_implicit_invocation: true

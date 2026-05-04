@@ -1,0 +1,12 @@
+interface:
+  display_name: Release
+  short_description: >
+    Cut a release for a Function Health service. Gathers PRs, creates the
+    release branch, Notion doc, and deployment announcement.
+  default_prompt: >
+    Use $release for this task: Cut a release for a Function Health
+    service. Gathers PRs, creates the release branch, Notion doc, and
+    deployment announcement.
+
+policy:
+  allow_implicit_invocation: true

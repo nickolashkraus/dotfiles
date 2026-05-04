@@ -1,0 +1,11 @@
+interface:
+  display_name: Snapshot
+  short_description: >
+    Snapshots dirty working tree to a dated backup branch, then restores
+    the dirty state on the default branch.
+  default_prompt: >
+    Use $snapshot for this task: Snapshots dirty working tree to a dated
+    backup branch, then restores the dirty state on the default branch.
+
+policy:
+  allow_implicit_invocation: true

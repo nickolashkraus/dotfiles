@@ -1,0 +1,10 @@
+interface:
+  display_name: Outbox
+  short_description: >
+    Review, edit, approve, and send queued Slack messages from the outbox.
+  default_prompt: >
+    Use $outbox for this task: Review, edit, approve, and send queued
+    Slack messages from the outbox.
+
+policy:
+  allow_implicit_invocation: true

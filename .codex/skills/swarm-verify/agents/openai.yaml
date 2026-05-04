@@ -1,0 +1,13 @@
+interface:
+  display_name: Swarm Verify
+  short_description: >
+    Multi-agent swarm for verifying a claim, document, or proposal against
+    reality. Produces a verdict and supporting evidence; no implementation
+    phase.
+  default_prompt: >
+    Use $swarm-verify for this task: Multi-agent swarm for verifying a
+    claim, document, or proposal against reality. Produces a verdict and
+    supporting evidence; no implementation phase.
+
+policy:
+  allow_implicit_invocation: true

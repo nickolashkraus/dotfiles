@@ -1,0 +1,10 @@
+interface:
+  display_name: Update Notion Page
+  short_description: >
+    Update a Notion page with the Markdown contents of a local file.
+  default_prompt: >
+    Use $update-notion-page for this task: Update a Notion page with the
+    Markdown contents of a local file.
+
+policy:
+  allow_implicit_invocation: true

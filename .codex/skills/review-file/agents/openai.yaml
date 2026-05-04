@@ -1,0 +1,10 @@
+interface:
+  display_name: Review File
+  short_description: >
+    Review a file for typos, bugs, inaccuracies, and inconsistencies.
+  default_prompt: >
+    Use $review-file for this task: Review a file for typos, bugs,
+    inaccuracies, and inconsistencies.
+
+policy:
+  allow_implicit_invocation: true

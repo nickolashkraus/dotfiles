@@ -1,0 +1,62 @@
+---
+name: pr
+description: Creates a branch and pull request from the current commit(s).
+---
+
+You are creating a pull request. Follow every step in order.
+
+Parse the user-provided skill input for flags and a Linear issue slug:
+
+- `--worktree`: Create a new worktree instead of switching branches.
+- Anything else is treated as a Linear issue slug.
+
+## Step 1: Determine the default branch
+
+```
+git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
+```
+
+## Step 2: Understand the changes
+
+Run `git log` and `git diff` against the default branch to understand all
+commits that will be included in the pull request.
+
+## Step 3: Create the branch and push
+
+If already on a non-default branch, push it. Otherwise:
+
+1. Determine the branch name:
+   - If a Linear issue was passed, use it as the branch name (e.g.,
+     `EPD-1337`).
+   - Otherwise, derive a short descriptive name from the changes.
+2. If `--worktree` was set:
+   a. Create a worktree at HEAD with the new branch:
+      `git worktree add -b <branch> ../<branch> HEAD`
+   b. Reset the default branch to match the remote:
+      `git reset --hard origin/<default-branch>`
+   c. Change to the worktree: `cd ../<branch>`
+   All subsequent steps happen in the worktree.
+3. Otherwise, create and check out the branch.
+4. Push.
+
+## Step 4: Create the pull request
+
+Create the pull request using `gh pr create` against the default branch:
+
+- If a Linear issue was provided, fetch the issue title from Linear and use it
+  as the pull request title, prefixed with the issue slug (e.g., `EPD-1337: Add
+  Input Validation`). Always prefer the Linear issue title over deriving one
+  from the diff.
+- Write the description following the pull request rules from
+  ~/.codex/rules/git.md:
+  - Scale the description with the complexity of the change.
+  - Trivial: Single sentence or empty body.
+  - Small to medium: Declarative summary, code snippets if helpful,
+    `**NOTE**` blocks for secondary context.
+  - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
+    `## References` as needed.
+- Do not add boilerplate sections the change does not warrant.
+
+Print the pull request URL when done.
+
+~/.codex/rules/meta-learning.md

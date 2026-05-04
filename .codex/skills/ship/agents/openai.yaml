@@ -1,0 +1,10 @@
+interface:
+  display_name: Ship
+  short_description: >
+    Reviews the diff, creates the Git commit, and opens a pull request.
+  default_prompt: >
+    Use $ship for this task: Reviews the diff, creates the Git commit, and
+    opens a pull request.
+
+policy:
+  allow_implicit_invocation: true

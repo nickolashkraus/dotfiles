@@ -13,8 +13,10 @@
 ###############################################################################
 
 model = "gpt-5.5"
-approval_mode = "auto-edit"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 model_reasoning_effort = "xhigh"
+project_doc_max_bytes = 65536
 
 [notice]
   hide_gpt5_1_migration_prompt = true
@@ -25,6 +27,7 @@ model_reasoning_effort = "xhigh"
 
 [features]
   apps = true
+  codex_hooks = true
   multi_agent = true
   shell_snapshot = true
   unified_exec = true
@@ -50,6 +53,12 @@ model_reasoning_effort = "xhigh"
 [projects."/Users/nickolas/nickolashkraus/dotfiles/master"]
   trust_level = "trusted"
 
+[projects."/Users/nickolas/nickolashkraus/dotfiles/codex-claude-harness"]
+  trust_level = "trusted"
+
+[projects."/Users/nickolas/nickolashkraus/dotfiles"]
+  trust_level = "trusted"
+
 [projects."/Users/nickolas/nickolashkraus/agent-os/master"]
   trust_level = "trusted"
 
@@ -57,7 +66,7 @@ model_reasoning_effort = "xhigh"
   theme = "base16"
 
 [tui.model_availability_nux]
-"gpt-5.5" = 1
+"gpt-5.5" = 3
 
 [plugins."github@openai-curated"]
 enabled = true

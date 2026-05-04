@@ -1,0 +1,11 @@
+interface:
+  display_name: Review
+  short_description: >
+    Reviews the diff against the default branch for typos, bugs, and
+    inconsistencies.
+  default_prompt: >
+    Use $review for this task: Reviews the diff against the default branch
+    for typos, bugs, and inconsistencies.
+
+policy:
+  allow_implicit_invocation: true

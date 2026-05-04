@@ -1,0 +1,11 @@
+interface:
+  display_name: Fix Bot Reviews
+  short_description: >
+    Fixes bot review comments on a PR by creating a worktree, applying
+    fixes, and opening a stacked fix PR.
+  default_prompt: >
+    Use $fix-bot-reviews for this task: Fixes bot review comments on a PR
+    by creating a worktree, applying fixes, and opening a stacked fix PR.
+
+policy:
+  allow_implicit_invocation: true

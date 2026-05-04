@@ -1,0 +1,10 @@
+interface:
+  display_name: Update Linear Issue
+  short_description: >
+    Update a Linear issue from context.
+  default_prompt: >
+    Use $update-linear-issue for this task: Update a Linear issue from
+    context.
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,13 @@
+interface:
+  display_name: Swarm Bug
+  short_description: >
+    Multi-agent swarm for fixing hard bugs. Independent parallel
+    investigation, structured synthesis, implementation in a code
+    worktree, and multi-agent review.
+  default_prompt: >
+    Use $swarm-bug for this task: Multi-agent swarm for fixing hard bugs.
+    Independent parallel investigation, structured synthesis,
+    implementation in a code worktree, and multi-agent review.
+
+policy:
+  allow_implicit_invocation: true
