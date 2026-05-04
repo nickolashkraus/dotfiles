@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'if [ -x \"$HOME/.codex/hooks/post-compact-log.sh\" ]; then exec \"$HOME/.codex/hooks/post-compact-log.sh\"; fi; exec \"$(git rev-parse --show-toplevel)/.codex/hooks/post-compact-log.sh\"'",
+            "timeout": 10,
+            "statusMessage": "Logging Codex session summary"
+          }
+        ]
+      }
+    ]
+  }
+}
