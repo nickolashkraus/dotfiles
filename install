@@ -436,12 +436,12 @@ ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 # Codex Configuration
 #
 # Required Files:
-#   * .codex/AGENTS.md
-#   * .codex/config.toml
 #   * .codex/hooks/
-#   * .codex/hooks.json
 #   * .codex/rules/
 #   * .codex/skills/
+#   * .codex/AGENTS.md
+#   * .codex/config.toml
+#   * .codex/hooks.json
 ###############################################################################
 check_file_exists "${dotfiles}/.codex/AGENTS.md" || exit 1
 check_file_exists "${dotfiles}/.codex/config.toml" || exit 1
