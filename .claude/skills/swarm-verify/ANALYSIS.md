@@ -12,7 +12,7 @@
 
 ## Agent Analysis
 
-### Factchecker
+### Fact-Checker
 
 ### Tester
 

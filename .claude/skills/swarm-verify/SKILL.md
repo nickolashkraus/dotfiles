@@ -22,7 +22,7 @@ swarm design principles.
 | Agent        | Description                                                                                       |
 | ------------ | ------------------------------------------------------------------------------------------------- |
 | Orchestrator | Orchestrates phases, synthesizes findings, fact-checks claims, ships the verification memo       |
-| Factchecker  | Verifies each specific claim against the primary source (code, docs, runtime state)             |
+| Fact-Checker | Verifies each specific claim against the primary source (code, docs, runtime state)             |
 | Tester       | Reproduces or executes claimed behavior to confirm it actually works as described                |
 | Investigator | Pulls runtime state (databases, logs, dashboards) to confirm or refute claims about live state   |
 | Skeptic      | Actively tries to falsify claims: looks for counterexamples, edge cases, and unstated conditions |
@@ -70,7 +70,7 @@ Create the artifact subdirectories:
 {artifact_dir}/
   orchestrator/
     analysis.md
-  factchecker/
+  fact-checker/
   tester/
   investigator/
   skeptic/
@@ -88,7 +88,7 @@ becomes five claims, each verifiable independently.
 Spawn four subagents using the Agent tool. All four must launch
 in a single message (parallel, not sequential).
 
-For each agent (factchecker, tester, investigator, skeptic):
+For each agent (fact-checker, tester, investigator, skeptic):
 
 1. Read the prompt template from
    `~/.claude/skills/swarm-verify/prompts/investigate/{agent}.md`.
@@ -111,7 +111,7 @@ Repeat until all four report "complete," capped at 3 rounds.
 
 Assemble the final agent files into
 `{artifact_dir}/orchestrator/analysis.md` under the
-corresponding `### Factchecker`, `### Tester`,
+corresponding `### Fact-Checker`, `### Tester`,
 `### Investigator`, `### Skeptic` sections.
 
 ## Step 3: Synthesize
