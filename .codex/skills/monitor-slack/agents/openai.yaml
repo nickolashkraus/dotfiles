@@ -1,0 +1,12 @@
+interface:
+  display_name: Monitor Slack
+  short_description: >
+    Monitors a Slack thread, channel, DM, or workspace for a topic,
+    triaging issues and drafting fixes for bugs.
+  default_prompt: >
+    Use $monitor-slack for this task: Monitors a Slack thread, channel,
+    DM, or workspace for a topic, triaging issues and drafting fixes for
+    bugs.
+
+policy:
+  allow_implicit_invocation: true

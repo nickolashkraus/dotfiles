@@ -1,0 +1,11 @@
+interface:
+  display_name: Babysit PR
+  short_description: >
+    Monitors a PR for new commits, checks CI status, and deploys on
+    approval.
+  default_prompt: >
+    Use $babysit-pr for this task: Monitors a PR for new commits, checks
+    CI status, and deploys on approval.
+
+policy:
+  allow_implicit_invocation: true

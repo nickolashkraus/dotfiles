@@ -1,0 +1,11 @@
+interface:
+  display_name: Typo
+  short_description: >
+    Check macOS clipboard for typos and formatting issues, fix them, and
+    re-paste to clipboard.
+  default_prompt: >
+    Use $typo for this task: Check macOS clipboard for typos and
+    formatting issues, fix them, and re-paste to clipboard.
+
+policy:
+  allow_implicit_invocation: true

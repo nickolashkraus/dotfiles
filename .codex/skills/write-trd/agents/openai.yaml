@@ -1,0 +1,11 @@
+interface:
+  display_name: Write Trd
+  short_description: >
+    Generates a Technical Requirements Document through structured
+    interviews and codebase analysis.
+  default_prompt: >
+    Use $write-trd for this task: Generates a Technical Requirements
+    Document through structured interviews and codebase analysis.
+
+policy:
+  allow_implicit_invocation: true

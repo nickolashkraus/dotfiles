@@ -1,0 +1,10 @@
+interface:
+  display_name: PR
+  short_description: >
+    Creates a branch and pull request from the current commit(s).
+  default_prompt: >
+    Use $pr for this task: Creates a branch and pull request from the
+    current commit(s).
+
+policy:
+  allow_implicit_invocation: true

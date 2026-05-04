@@ -15,18 +15,20 @@ Slack without explicit user approval via `$outbox`.
 
 ## Usage
 
-Run repeatedly for recurring monitoring:
+Codex does not currently provide a direct `/loop`-style scheduler primitive.
+For recurring monitoring, run the skill manually at the desired interval or
+invoke it from an external scheduler.
 
 ```
 # With a topic filter:
-Run every 5 minutes: $monitor-slack PPP --thread C0ANWC51NH5 1775783009.575449
-Run every 5 minutes: $monitor-slack "checkout bugs" --channel C0ANWC51NH5
-Run every 10 minutes: $monitor-slack PPP --workspace
+$monitor-slack PPP --thread C0ANWC51NH5 1775783009.575449
+$monitor-slack "checkout bugs" --channel C0ANWC51NH5
+$monitor-slack PPP --workspace
 
 # Without a topic (all messages):
-Run every 5 minutes: $monitor-slack --dm C0ANWC51NH5
-Run every 5 minutes: $monitor-slack --channel C0ANWC51NH5
-Run every 5 minutes: $monitor-slack --thread C0ANWC51NH5 1775783009.575449
+$monitor-slack --dm C0ANWC51NH5
+$monitor-slack --channel C0ANWC51NH5
+$monitor-slack --thread C0ANWC51NH5 1775783009.575449
 ```
 
 Review and send queued messages with `$outbox`.

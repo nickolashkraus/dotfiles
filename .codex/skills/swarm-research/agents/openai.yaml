@@ -1,0 +1,13 @@
+interface:
+  display_name: Swarm Research
+  short_description: >
+    Multi-agent swarm for deep-dive analysis on a topic, system, or
+    proposed direction. Produces a long-form research document; no
+    implementation phase.
+  default_prompt: >
+    Use $swarm-research for this task: Multi-agent swarm for deep-dive
+    analysis on a topic, system, or proposed direction. Produces a long-
+    form research document; no implementation phase.
+
+policy:
+  allow_implicit_invocation: true

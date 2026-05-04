@@ -1,0 +1,12 @@
+interface:
+  display_name: Remote
+  short_description: >
+    Polls for remote tasks submitted via Obsidian (iOS) and executes them
+    on macOS. Run repeatedly for continuous polling.
+  default_prompt: >
+    Use $remote for this task: Polls for remote tasks submitted via
+    Obsidian (iOS) and executes them on macOS. Run repeatedly for
+    continuous polling.
+
+policy:
+  allow_implicit_invocation: true

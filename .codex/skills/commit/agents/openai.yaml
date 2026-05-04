@@ -1,0 +1,10 @@
+interface:
+  display_name: Commit
+  short_description: >
+    Creates a Git commit from the current changes.
+  default_prompt: >
+    Use $commit for this task: Creates a Git commit from the current
+    changes.
+
+policy:
+  allow_implicit_invocation: true

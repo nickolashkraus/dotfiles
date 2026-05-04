@@ -1,0 +1,10 @@
+interface:
+  display_name: Create Linear Issue
+  short_description: >
+    Create a Linear issue from context.
+  default_prompt: >
+    Use $create-linear-issue for this task: Create a Linear issue from
+    context.
+
+policy:
+  allow_implicit_invocation: true

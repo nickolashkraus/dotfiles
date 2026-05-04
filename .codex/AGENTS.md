@@ -4,13 +4,11 @@ These instructions mirror the Claude harness in `.claude/`. Follow them for Code
 
 ## Rule Sources
 
-The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.codex/rules/` when installed globally. The full rule text is included below so Codex receives it at session start.
-
+The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.codex/rules/` when installed globally. The full rule text is included below so Codex receives it at session start. Path mentions such as `~/.codex/rules/meta-learning.md` are references, not import directives.
 
 ## coding
 
-
-## Codebases
+### Codebases
 
 - **Function Health**: ~/Function-Health
 - **Function Health Terraform Modules**: ~/Function-Health-Terraform-Modules
@@ -18,7 +16,7 @@ The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.
 - **Grind**: ~/grind-rip
 - **Personal**: ~/nickolashkraus
 
-## Comments
+### Comments
 
 - Follow ~/.codex/rules/typography.md for all comments.
 - Only add comments where the logic is not self-evident. The code should speak
@@ -31,14 +29,14 @@ The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.
 - Never add trailing comments that narrate what a line does (e.g., `x
   = 1  # set x to 1`).
 
-## Testing
+### Testing
 
 - Write unit tests when appropriate. Tests should validate behavior and prevent
   regressions, particularly for business logic, edge cases, and functions with
   multiple code paths. Aim for 100% test coverage, but avoid tests for trivial
   code or framework-generated scaffolding. Use your best judgment.
 
-## Migrations
+### Migrations
 
 - Separate schema changes (DDL) and data changes (DML) into distinct
   migrations. DDL migrations handle structural changes (`CREATE TABLE`, `ALTER
@@ -46,7 +44,7 @@ The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.
   `UPDATE`, `DELETE`). This allows each to land, fail, and roll back
   independently.
 
-## Docker
+### Docker
 
 - Always build Docker images that are not intended to be run locally for
   `linux/amd64` (`--platform linux/amd64`) to ensure compatibility with
@@ -54,14 +52,13 @@ The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.
 
 ## function-health
 
-
-## CLI Authentication
+### CLI Authentication
 
 - **Auth0**: Authenticate with `auth0 login`.
 - **ConductorOne**: Authenticate with
   `cone login https://functionhealth.conductor.one`.
 
-## API (Secret) Key Authentication
+### API (Secret) Key Authentication
 
 Some Function Health services authenticate via `FunctionHealthSecretKey`, which
 expects a Fernet-encrypted JSON payload in the `Authorization` header. To
@@ -95,7 +92,7 @@ generate a token for a deployed environment:
    token = Fernet(key).encrypt(payload).decode()
    ```
 
-## Cloud Run Proxy
+### Cloud Run Proxy
 
 Cloud Run services with ingress set to `internal-and-cloud-load-balancing` are
 not reachable from the public internet. Use `gcloud run services proxy` to
@@ -108,7 +105,7 @@ gcloud run services proxy <service> --region=<region> \
 
 Then access the service at `http://localhost:8080`.
 
-## Cloud SQL Auth Proxy
+### Cloud SQL Auth Proxy
 
 Function Health databases run on private VPC IPs and are not directly reachable
 from local machines. Use the Cloud SQL Auth Proxy to tunnel in:
@@ -139,7 +136,7 @@ gcloud secrets versions access latest \
   --secret=<secret-name> --project=<project>
 ```
 
-### Prod Databases (IAM Group Auth)
+#### Prod Databases (IAM Group Auth)
 
 Prod databases do not expose static `POSTGRES_PASSWORD` credentials to
 engineers. Authenticate via Cloud SQL IAM group authentication:
@@ -189,7 +186,7 @@ Access][1].
 
 [1]: https://www.notion.so/345b0b10ae8c80b7a9ede57ff7975ece
 
-## GKE kubeconfig
+### GKE kubeconfig
 
 Function Health GKE clusters live across `function-health-dev-env`,
 `function-health-prod-env`, and `function-health-sandbox-env`. To generate or
@@ -205,20 +202,20 @@ The script lives at
 `Kubernetes Engine Admin` (or read-equivalent) on the relevant projects via
 ConductorOne.
 
-## Backend Coding Conventions
+### Backend Coding Conventions
 
-### Architecture
+#### Architecture
 
 Services use a 6-layer pattern: `api/` -> `schemas/` -> `services/` ->
 `models/` -> `listeners/` -> `utils/`. Dependencies flow top-down only. Never
 import upward (e.g., models must not import services).
 
-### Transaction Management
+#### Transaction Management
 
 The API layer commits; services never call `db.commit()`. This keeps services
 composable across multiple calls in one transaction.
 
-### Error Handling
+#### Error Handling
 
 - Services raise custom domain exceptions (`ServiceError`, `NotFoundError`,
   `InvalidTransitionError`, `GraphQLError`, `OptimisticLockingError`), never
@@ -231,7 +228,7 @@ composable across multiple calls in one transaction.
   automatically. Duplicate logging wastes GCP budget and clutters analysis.
 - Always chain exceptions with `from e`.
 
-### Logging
+#### Logging
 
 - Structured logging via `extra={"json_fields": {...}}`.
 - Cast UUIDs to `str()` inside `json_fields`.
@@ -239,7 +236,7 @@ composable across multiple calls in one transaction.
 - Use pattern strings in logger calls (no f-strings) so identical messages
   aggregate.
 
-### Database
+#### Database
 
 - SQLModel over plain SQLAlchemy.
 - Every foreign key must have `index=True`.
@@ -253,7 +250,7 @@ composable across multiple calls in one transaction.
 - Audit trails use SQLAlchemy `after_update` event listeners in
   `app/listeners/audit_trail.py`.
 
-### Pub/Sub
+#### Pub/Sub
 
 - Push endpoints: route prefix `/api/v1/pubsub/push_subscriptions`; function
   names end with `_subscription`; route constants end with `_EVENT`; OIDC token
@@ -266,7 +263,7 @@ composable across multiple calls in one transaction.
   `GOOGLE_CLOUD_PROJECT` before publishing (silently skip if unset); publish
   then commit DB.
 
-### GraphQL (Strawberry)
+#### GraphQL (Strawberry)
 
 - All mutations require `permission_classes=[permission.IsAuthorized]`.
 - Class naming: `MutationEntityName`, `QueryEntityName`.
@@ -274,20 +271,20 @@ composable across multiple calls in one transaction.
 - Use `strawberry.UNSET` for optional update fields, not `None`.
 - `db` from `info.context.db`; `user` from `info.context.user`.
 
-### Pagination
+#### Pagination
 
 - Use `CursorWithTotalPage[T]` from `fastapi-pagination`.
 - Always add a default `order_by(models.Item.id)` for cursor stability.
 - Ordering convention: `field` (asc), `-field` (desc).
 
-### Finite State Machines
+#### Finite State Machines
 
 - Use the `transitions` library with a dedicated state manager class.
 - Define a `TERMINAL_STATES` constant.
 - Make transitions idempotent (state listed in its own source list).
 - Instantiate FSMs in the service layer only, never on models.
 
-### Constants and TODOs
+#### Constants and TODOs
 
 - `typing.Final` for all constants; immutable collections only (`tuple`,
   `frozenset`), never `list` or `set`.
@@ -295,14 +292,14 @@ composable across multiple calls in one transaction.
   line (`# FUN-123`). Use `NOBUG-1` for untracked items. `FIXME` is reserved
   for known bugs.
 
-### Testing
+#### Testing
 
 - pytest with `asyncio_mode = "auto"`.
 - `factory_boy` for test data; `pytest-httpx` for HTTP mocking.
 - Database fixtures use transaction rollback.
 - unittest files named `{module}_test.py` alongside implementation.
 
-### CI/CD
+#### CI/CD
 
 - Three standard workflows: `pytest.yml`, `ruff.yml`, `type_check.yml`.
 - Python 3.12; Poetry with venv caching.
@@ -310,26 +307,25 @@ composable across multiple calls in one transaction.
 - Pyright with `skip-unannotated: true`.
 - Line-length 100.
 
-### Git Conventions
+#### Git Conventions
 
 Follow ~/.codex/rules/git.md.
 
-## Services/Repo-specific
+### Services/Repo-specific
 
-### Service Naming
+#### Service Naming
 
 Service names use either their repo name (`transaction-service`) or Title Case
 (Transaction Service), never a hybrid like Transaction-Service.
 
-### Member App Middleware (MAM)
+#### Member App Middleware (MAM)
 
 Always review member-app-middleware PRs against the guidelines in
 `.github/docs/CONTRIBUTING.md` before submitting.
 
 ## git
 
-
-## General
+### General
 
 - Follow ~/.codex/rules/typography.md for all Git content (PR descriptions, commit
   messages).
@@ -342,7 +338,7 @@ Always review member-app-middleware PRs against the guidelines in
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
 
-## Worktrees
+### Worktrees
 
 - Always create worktrees in the root of the bare repo as peer directories
   (e.g., `transaction-service/BYB-934` alongside `transaction-service/dev`).
@@ -351,9 +347,9 @@ Always review member-app-middleware PRs against the guidelines in
   worktree for operations like `git log`, `git diff`, and rebasing. Do not
   operate from the bare repo root.
 
-## Commits
+### Commits
 
-### Commit Messages
+#### Commit Messages
 
 - **Subject line** (first line):
   - 50 characters or less
@@ -366,13 +362,13 @@ Always review member-app-middleware PRs against the guidelines in
 - Never use "WIP" or other throwaway messages.
 - Use bulleted lists for Git messages, not long, comma-separated items.
 
-### Squashing Commits
+#### Squashing Commits
 
 A pull request should contain a single commit unless each commit represents
 a logical grouping of changes. If you commit often during development, squash
 before merging.
 
-### Pushing
+#### Pushing
 
 Always run CI (tests, linting) locally before pushing. Do not push code that
 you have not verified passes the project's CI.
@@ -380,7 +376,7 @@ you have not verified passes the project's CI.
 After pushing, run `$fix-ci` until all checks pass. Do not consider the job
 done while any check is non-passing (including neutral or pending).
 
-### Retriggering CI
+#### Retriggering CI
 
 Never close and reopen a pull request to retrigger CI. It rewrites timestamps,
 fires PR-lifecycle webhooks with side effects, and leaves the original failed
@@ -394,12 +390,12 @@ the branch's required-status-checks ruleset before treating it as blocking. Do
 not reach for destructive shortcuts like close/reopen, force-push, or empty
 commits to make a failed check go away.
 
-### Rebasing
+#### Rebasing
 
 Do not merge master into a branch to integrate upstream changes. Use `git
 rebase` instead.
 
-## Stacked PRs
+### Stacked PRs
 
 For dependent changes, stack PRs by targeting each PR against its parent branch
 (e.g., `BYB-1053` targets `BYB-891`, `BYB-1054` targets `BYB-1053`). This keeps
@@ -407,9 +403,9 @@ each review focused on only the relevant delta. When a parent branch merges
 and is deleted, GitHub automatically retargets the child PR to the default
 branch.
 
-## Pull Requests
+### Pull Requests
 
-### General Rules
+#### General Rules
 
 - Lead with the "what" using a declarative verb ("Adds", "Removes",
   "Determines", "Retrieves"). Do not write "This PR does..." or "In this PR,
@@ -427,11 +423,11 @@ branch.
 - When adding PR review comments, attach them to the specific line or line
   range in the diff where the issue occurs.
 
-### Descriptions
+#### Descriptions
 
 Scale the description with the complexity of the change.
 
-#### Trivial Changes
+##### Trivial Changes
 
 Use a single declarative sentence or leave the body empty.
 
@@ -443,7 +439,7 @@ Service should not be publicly available.
 Determines document upload status from Google Cloud Storage.
 ```
 
-#### Small to Medium Changes
+##### Small to Medium Changes
 
 Open with a brief declarative summary (no header needed). Include code
 snippets, error messages, or links to related code when they add clarity.
@@ -460,7 +456,7 @@ error: "GcpStorageConfig" is not a known attribute of module "gcp_storage_sdk"
 Basically just makes the module's public API more clear and fixes the pyright error.
 ```
 
-#### Larger Changes
+##### Larger Changes
 
 Use `## Overview` as the primary header with a concise summary. Add additional
 sections as needed:
@@ -487,7 +483,6 @@ poetry run uvicorn ai_chat.apps_sdk.server.main:app --host 0.0.0.0 --port 8000
 
 ## gws
 
-
 - ALWAYS check the entire Google Sheet, not just the first X rows.
 - ALWAYS use `gws` to access Google Drive files. Do not use MCP tools or other
   methods to read Google Docs, Sheets, or other Drive files.
@@ -503,7 +498,7 @@ poetry run uvicorn ai_chat.apps_sdk.server.main:app --host 0.0.0.0 --port 8000
   messages send`), pass body fields via `--json`, not `--params`. `--params` is
   only for URL/query parameters like `userId` and `id`.
 
-## Account Switching
+### Account Switching
 
 - Determine the profile from the working directory:
   - `~/Function-Health/*`: Use `function` profile.
@@ -517,7 +512,6 @@ poetry run uvicorn ai_chat.apps_sdk.server.main:app --host 0.0.0.0 --port 8000
   `gcloud config configurations activate personal`
 
 ## linear
-
 
 - Follow ~/.codex/rules/typography.md for all Linear content.
 - Issue titles should use Title Case.
@@ -544,20 +538,18 @@ Linear issues should use the following format:
 
 ## notion
 
-
 - Follow ~/.codex/rules/typography.md for all Notion content.
 - Remove extra newlines (e.g., if lines use &lt;80 characters for human
   readability). If available, use the `clean_markdown.py` script.
 
 ## secrets
 
-
 Personal API keys and credentials live in the macOS Login Keychain. Use the
 `security` CLI to retrieve them. Never write a secret value to a file, embed
 one as a literal in a command line, or echo one back to the user in chat
 output. Always retrieve via command substitution at point of use.
 
-## Retrieval
+### Retrieval
 
 Retrieve a secret with:
 
@@ -577,7 +569,7 @@ The first time a non-Apple binary reads an entry, macOS may prompt for
 permission. Click "Always Allow" once. Subsequent reads are silent as long as
 the Login Keychain is unlocked.
 
-## Inventory
+### Inventory
 
 All entries below use the account `function-health`.
 
@@ -589,9 +581,9 @@ All entries below use the account `function-health`.
 | `stripe-test`                | Stripe restricted key (Test)   |
 | `stripe-prod`                | Stripe restricted key (Live)   |
 
-## Per-Application Usage
+### Per-Application Usage
 
-### ConductorOne (`cone`)
+#### ConductorOne (`cone`)
 
 Pass both `client_id` and `client_secret` as flags:
 
@@ -604,7 +596,7 @@ cone \
 
 Alternatively, configure them once via `cone login` and omit the flags.
 
-### Statsig
+#### Statsig
 
 Statsig's Console API authenticates via the `STATSIG-API-KEY` header:
 
@@ -615,7 +607,7 @@ curl \
   https://statsigapi.net/console/v1/gates
 ```
 
-### Stripe
+#### Stripe
 
 Stripe uses HTTP basic auth with the API key as the username and an empty
 password (note the trailing colon):
@@ -630,7 +622,7 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
 - `stripe-prod`: Restricted key scoped for agents. Live mode, read-only.
   Never use this for write operations.
 
-## Adding a New Secret
+### Adding a New Secret
 
 ```
 security add-generic-password \
@@ -651,7 +643,7 @@ The `-U` flag updates the entry if it already exists. Naming conventions:
 
 After adding a secret, update the Inventory table in this file.
 
-## When Not to Use the Keychain
+### When Not to Use the Keychain
 
 - **Function Health service secrets**: Service-to-service credentials live in
   GCP Secret Manager. Fetch via `gcloud secrets versions access latest --secret=<name>`.
@@ -661,13 +653,12 @@ After adding a secret, update the Inventory table in this file.
 
 ## slack
 
-
 - Follow ~/.codex/rules/typography.md for all Slack content.
 - ALWAYS send messages using the `slack_send_message_draft` tool, never
   `slack_send_message`. The user reviews and approves drafts before they
   are sent.
 
-## Tables
+### Tables
 
 When sharing a Markdown table or tabular data in Slack, convert it to TSV
 (tab-separated values). Pasted TSV renders as a native formatted table in
@@ -680,7 +671,6 @@ Slack.
 - The first row is the column headers.
 
 ## typography
-
 
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
@@ -743,11 +733,10 @@ Slack.
 
 ## writing
 
-
 This guide codifies the writing style used by Nickolas Kraus. Follow these
 conventions when writing or editing blog posts, articles, and essays.
 
-## Voice and Tone
+### Voice and Tone
 
 - Write in active voice. Reserve passive voice for describing system behavior
   where the acting agent is the infrastructure itself.
@@ -763,7 +752,7 @@ conventions when writing or editing blog posts, articles, and essays.
   posts; allow richer, more literary vocabulary for personal essays and
   reviews.
 
-## Person
+### Person
 
 - Use "I" freely for personal experience, methodology, decisions, and opinions.
 - Use "we" when walking the reader through a shared exercise or describing team
@@ -773,7 +762,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Do not use "I think" or "in my opinion" as softeners. State opinions as
   convictions.
 
-## Sentence Structure
+### Sentence Structure
 
 - Keep sentences short to medium length (10-25 words on average).
 - Favor declarative statements. Follow a short declarative sentence with
@@ -783,7 +772,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Use semicolons to join related independent clauses when appropriate, but do
   not overuse them.
 
-## Paragraphs
+### Paragraphs
 
 - Keep paragraphs short: 1-4 sentences for technical content, up to 5-6 for
   essays.
@@ -791,7 +780,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Always use a single introductory sentence before a code block. Do not launch
   into a code block without context.
 
-## Structure and Headers
+### Structure and Headers
 
 - Use `##` (H2) as the primary structural divider, `###` for subsections,
   `####` for sub-subsections.
@@ -803,7 +792,7 @@ conventions when writing or editing blog posts, articles, and essays.
   it to 1-3 sentences.
 - Use Title Case for section headers.
 
-## Openings
+### Openings
 
 - Lead with personal context or a concrete statement, then state the article's
   purpose: "In the course of building an MCP server, I became somewhat of an
@@ -818,7 +807,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Never open with a generic "In this article, we will..." without first
   providing personal context.
 
-## Closings
+### Closings
 
 - For tutorials, use the signature "You now have..." pattern: "You now have
   your own static website hosted on AWS!"
@@ -829,7 +818,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - It is acceptable to simply end when the content is complete, without a formal
   conclusion.
 
-## Introducing Technical Concepts
+### Introducing Technical Concepts
 
 - Name the thing, then define it in one to two sentences: "Hugo is a static
   site generator. The purpose of a static site generator is to render content
@@ -841,7 +830,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - When explaining multiple sub-components, define each individually before
   showing how they compose together.
 
-## Code Examples
+### Code Examples
 
 - Always precede a code block with a short introductory sentence ending in
   a colon: "Generate RSA key pair:"
@@ -859,7 +848,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Use "has the following form:" when introducing resource or schema
   definitions.
 
-## Lists
+### Lists
 
 - Use numbered lists for sequential steps and ordered procedures.
 - Use bulleted lists for non-sequential items, features, or options.
@@ -867,7 +856,7 @@ conventions when writing or editing blog posts, articles, and essays.
   following are the characteristics of security group rules:"
 - Keep lists short (3-6 items). Avoid deeply nested lists.
 
-## Formatting Conventions
+### Formatting Conventions
 
 - Use `**NOTE**:` callouts for supplementary information, caveats, and tips.
 - Use `**WARNING**:` for critical caveats.
@@ -879,7 +868,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Use footnotes for tangential commentary, retrospective observations, humor,
   and self-corrections. Footnotes are the pressure valve for personality.
 
-## Punctuation
+### Punctuation
 
 - Never use em dashes. Use commas, parentheses, or rewrite the sentence.
 - Never use smart quotes. Use straight quotes only.
@@ -890,14 +879,14 @@ conventions when writing or editing blog posts, articles, and essays.
   "You now have...!").
 - Use ellipsis sparingly.
 
-## Markdown Conventions
+### Markdown Conventions
 
 - Use reference-style links (`[text][label]` with `[label]: URL` at the bottom
   of the file). Never use inline links.
 - Hard-wrap lines at approximately 80 characters.
 - Use fenced code blocks, never indented code blocks.
 
-## Transitions
+### Transitions
 
 - Use functional, understated transitions: "First,", "Next,", "However,",
   "Additionally,", "Furthermore,", "In addition,".
@@ -906,7 +895,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - Use "Simply" to signal ease: "Simply pass the exception..."
 - Avoid decorative or flowery transitions.
 
-## Analogies and Allusions
+### Analogies and Allusions
 
 - Use extended analogies to clarify complex technical concepts, developing them
   fully rather than as throwaway comparisons.
@@ -914,7 +903,7 @@ conventions when writing or editing blog posts, articles, and essays.
   point.
 - Keep analogies out of purely reference-style posts.
 
-## Content-Type Adaptation
+### Content-Type Adaptation
 
 - **Tutorials**: Numbered steps, **NOTE** callouts, code-heavy, personal
   narrative framing, "You now have..." closing.
@@ -926,7 +915,7 @@ conventions when writing or editing blog posts, articles, and essays.
 - **Curated notes**: Organized distillation of another source, minimal original
   prose, heavy code examples.
 
-## What to Avoid
+### What to Avoid
 
 - Filler introductions, unnecessary recaps, and artificial length.
 - SEO padding or motivational preambles.
@@ -937,7 +926,6 @@ conventions when writing or editing blog posts, articles, and essays.
 
 ## meta-learning
 
-
 After completing a skill, review how the run went. Only proceed if at least one
 of the following occurred:
 
@@ -947,7 +935,7 @@ of the following occurred:
 
 If none of these occurred, skip this step entirely.
 
-## Propose a Skill Update
+### Propose a Skill Update
 
 1. Identify which step or instruction was insufficient.
 2. Draft the minimal edit to the relevant file that would prevent the

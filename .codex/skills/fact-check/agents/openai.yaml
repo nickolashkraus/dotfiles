@@ -1,0 +1,12 @@
+interface:
+  display_name: Fact Check
+  short_description: >
+    Check the veracity of a claim against notes, documentation, and
+    resources. Takes a string argument or reads from the clipboard.
+  default_prompt: >
+    Use $fact-check for this task: Check the veracity of a claim against
+    notes, documentation, and resources. Takes a string argument or reads
+    from the clipboard.
+
+policy:
+  allow_implicit_invocation: true

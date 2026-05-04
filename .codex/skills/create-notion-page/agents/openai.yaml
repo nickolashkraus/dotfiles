@@ -1,0 +1,10 @@
+interface:
+  display_name: Create Notion Page
+  short_description: >
+    Create a Notion page with the Markdown contents of a local file.
+  default_prompt: >
+    Use $create-notion-page for this task: Create a Notion page with the
+    Markdown contents of a local file.
+
+policy:
+  allow_implicit_invocation: true
