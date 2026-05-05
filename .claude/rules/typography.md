@@ -1,5 +1,17 @@
 # Typography
 
+## Pre-flight checklist (apply before generating Markdown prose)
+
+- No em dashes (`—`). Use commas, parentheses, semicolons, or rewrite.
+- No smart quotes. Straight only.
+- After a colon: capitalize if a sentence/clause follows; lowercase if a value
+  or list-fragment follows.
+- Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
+  or ` — ` as the lead-in separator.
+- Wrap lines at <80 characters at the last word boundary.
+
+## Rules
+
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
 - Add a period to the end of bulleted lists. Exception: do not add
