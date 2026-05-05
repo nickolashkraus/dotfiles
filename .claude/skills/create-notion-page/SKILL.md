@@ -4,18 +4,20 @@ description: >
   Create a Notion page with the Markdown contents of a local file.
 disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__notion__notion-fetch, mcp__notion__notion-create-pages
-argument-hint: <file> <notion-parent-page-link>
+argument-hint: <file> [<notion-parent-page-link>]
 ---
 
 You are creating a Notion page from the contents of a local Markdown file.
 Follow @rules/notion.md for all formatting and content conventions.
 
-`$ARGUMENTS` contains two space-separated values: the path to the local file
-and the Notion parent page link.
+`$ARGUMENTS` contains the path to the local file and, optionally, a Notion
+parent page link separated by whitespace.
 
 ## Step 1: Parse arguments
 
-Extract the file path and Notion parent page link from `$ARGUMENTS`.
+Extract the file path and (optional) Notion parent page link from `$ARGUMENTS`.
+If only one argument is given, treat it as the file path and create the page
+without a parent (workspace-level private page).
 
 ## Step 2: Clean the Markdown file
 
@@ -41,18 +43,21 @@ H1, derive the title from the filename.
 Remove the first H1 header from the cleaned Markdown. The remaining content is
 the page body.
 
-## Step 5: Fetch the parent page
+## Step 5: Resolve the parent (only if a parent link was provided)
 
-Use the `notion-fetch` tool with the Notion parent page link to retrieve the
-parent page ID.
+If a parent link was provided in Step 1, use the `notion-fetch` tool with the
+Notion parent page link to retrieve the parent page ID. Otherwise, skip this
+step.
 
 ## Step 6: Create the page
 
-Use the `notion-create-page` tool to create a new child page under the parent
-with:
+Use the `notion-create-pages` tool with:
 
 - **title**: From Step 3.
 - **content**: From Step 4.
+- **parent**: The parent ID from Step 5 if available; otherwise omit the
+  `parent` parameter so the page is created as a workspace-level private page
+  the user can organize later.
 
 Print the new Notion page link when done.
 
