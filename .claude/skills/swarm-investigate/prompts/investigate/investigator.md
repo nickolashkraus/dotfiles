@@ -22,6 +22,21 @@ external systems.
    hypothesis space.
 5. Capture exact timestamps and queries so the synthesis can
    reconstruct a timeline.
+6. **Verify the system's self-heal mechanism.** When the symptom
+   involves persistent broken state (rows pointing at deleted
+   resources, stale references, accumulating phantom entries,
+   etc.), explicitly identify whether the system has a built-in
+   recovery path: delete-event webhooks, garbage-collection
+   crons, periodic reconcile jobs, on-error retry logic,
+   compensating transactions, etc. For each candidate self-heal
+   mechanism, verify it is actually deployed and firing in prod:
+   query logs for the handler's expected log lines, count
+   invocations against the rate the upstream event should fire,
+   check the relevant feature flag / handler registration on
+   the deployed revision (not just on the dev branch). The
+   investigation should explicitly answer: "what naturally
+   returns this state to healthy, and is that mechanism running
+   in prod right now?"
 
 ## Output
 

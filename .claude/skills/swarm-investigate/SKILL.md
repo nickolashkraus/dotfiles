@@ -32,6 +32,12 @@ If the cause becomes obvious within the first 5 minutes (e.g.,
 matches a known pattern, is reproduced trivially), abort the
 swarm and write a one-paragraph note instead.
 
+**Obviousness only applies to first-look obviousness.** Do not
+apply this heuristic to subsequent "this looks obvious now"
+moments after partial investigation. If the synthesis root-cause
+section has materially changed between rounds, the cause is not
+yet obvious; keep investigating rather than declaring victory.
+
 ## Step 1: Intake
 
 Parse `$ARGUMENTS` for the issue input and optional `--linear`
@@ -140,10 +146,26 @@ Spawn the four agents in parallel. Substitute
 Read all four verdicts. If any agent has concerns, address them
 and re-submit. Loop until all four approve, capped at 3 rounds.
 
+**Material-rewrite reset**: If the root-cause section is
+materially rewritten between rounds (a new bug identified, the
+failure mechanism reframed, the originating event reattributed,
+etc.), prior approvals from the unchanged-context agents are
+void. Restart synthesis-review from round 1 against the new
+synthesis. The 3-round cap applies per-version-of-synthesis,
+not globally.
+
 Write the final report to `{artifact_dir}/orchestrator/final.md`.
 
-**Fact-check gate**: Verify every factual claim in the report
-against the codebase, logs, or other primary sources. Note
+**Verification gate (standard, not optional)**: Spawn a
+dedicated verification agent that reads `final.md` end-to-end
+and produces a table (one row per concrete claim) with status
+Verified / Wrong / Unverifiable, evidence (file:line / SHA /
+URL / DB query result), and a "Material corrections needed"
+section listing every Wrong claim with replacement text. Every
+concrete factual claim must be checked: code references, PR
+numbers, ticket IDs, Slack timestamps, Notion docs, numerical
+figures, file:line citations, and quoted snippets. Apply every
+correction before presenting the report to the user. Mark
 unverifiable claims as "from agent analysis, not independently
 verified."
 
