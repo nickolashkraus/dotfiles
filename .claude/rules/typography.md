@@ -14,11 +14,11 @@
 
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
-- Add a period to the end of bulleted lists. Exception: do not add
-  periods to single-word or short-phrase list items (e.g., field
-  name enumerations like "Name", "Price", "Description").
-- Keep lines &lt;80 characters for human readability. Break lines at the last
-  word boundary before column 80, maximizing line length. Use the Vim `gq`
+- Do not add periods to the end of bulleted list items by default. Add a period
+  only when the item is a complete sentence or contains multiple sentences
+  (where internal punctuation makes a terminal period necessary for clarity).
+- Keep lines <80 characters for human readability. Break lines at the last word
+  boundary before column 80, maximizing line length. Use the Vim `gq`
   formatting behavior.
 - For lists, use the format (when appropriate):
 
@@ -43,9 +43,6 @@
 
 - Use backticks for inline code, file names, commands, resource names, and
   configuration values (e.g., `python`, `app.py`, `GET /api/users`).
-- For Markdown files, use HTML escape characters (&lt;, &gt;, etc.). Escape \$.
-  These characters break syntax highlighting in Vim, except when inside
-  backticks (`<br>`).
 - Markdown reference links should use `[text][label]`. Do not use the
   `[label][]` shorthand or bare `[label]` form, even when the text and label
   are the same.
