@@ -1,5 +1,7 @@
 # {research_title}
 
+## Executive Summary
+
 ## Topic
 
 ## Scope

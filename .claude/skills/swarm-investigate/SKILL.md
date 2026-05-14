@@ -125,6 +125,12 @@ Read the full analysis document and write the synthesis under
 
 The synthesis must include:
 
+- **Executive summary** (at the top of the file, before any other
+  section): ~20-30 lines. Root cause or leading hypothesis in 2-3
+  sentences, scope of impact, numbered recommended actions with
+  one sentence each, open questions, and current approval status.
+  This is what the user reads when the full document is too long
+  to skim.
 - **Root cause (or best hypothesis)**: One paragraph. If the
   cause is not yet certain, state the leading hypothesis and
   the evidence for and against it.

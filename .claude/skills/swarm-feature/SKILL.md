@@ -117,6 +117,11 @@ under `## Agent Synthesis`.
 
 The synthesis must include:
 
+- **Executive summary** (at the top of the file, before any other
+  section): ~20-30 lines. The feature's purpose in 2-3 sentences,
+  numbered work items with one sentence each, key acceptance
+  criteria, and current approval status. This is what the user
+  reads when the full document is too long to skim.
 - **Design**: One paragraph describing the chosen approach and
   why it was preferred over alternatives raised by Architect.
 - **Implementation plan**: Numbered list of work items, each

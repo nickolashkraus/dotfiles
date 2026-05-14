@@ -8,9 +8,12 @@ identifying candidate failure points.
 
 ## Instructions
 
-1. Read the relevant source files in {repo_path}. Start from
-   the symptom (error message, unexpected behavior) and trace
-   backward to candidate decision points.
+1. Read the relevant source files in {repo_path}. If multiple
+   candidate repos exist for the same surface (legacy + live,
+   monorepo + standalone), verify each working tree's last
+   commit date and skip frozen / legacy repos before tracing.
+   Start from the symptom (error message, unexpected behavior)
+   and trace backward to candidate decision points.
 2. Identify branches, fallback paths, and error handlers that
    the symptom could have flowed through.
 3. For each candidate failure point, describe the conditions

@@ -32,6 +32,15 @@ Verify, and Research, that document is the deliverable itself.
 In both cases the synthesis must stand alone without the
 investigator's context.
 
+Every final document must open with a `## Executive Summary`
+section (~20-30 lines, before any other content) that a human can
+read in under a minute. The summary captures the core finding,
+the proposed actions or verdicts, and the current approval status.
+Full agent analyses and synthesis details follow below for
+reviewers and implementation agents. The summary is what the user
+reads when the full document is too long to skim, and it stays
+with the artifact across sessions.
+
 ## Review Catches What Tests Cannot
 
 Tests verify code correctness. Review catches structural issues:
