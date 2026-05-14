@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 - @rules/coding.md
+- @rules/email.md
 - @rules/function-health.md
 - @rules/general.md
 - @rules/git.md

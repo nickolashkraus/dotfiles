@@ -27,3 +27,13 @@
 - For `gcloud`, activate the matching configuration:
   `gcloud config configurations activate function-dev`
   `gcloud config configurations activate personal`
+
+## Keyring Backend
+
+The personal `gws` profile must use the file-based keyring backend. Set
+`GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` (the export lives in
+`dotfiles/.config/shell/exports.sh`). The macOS Keychain backend
+intermittently fails with "User canceled the operation," which causes `gws`
+to delete `credentials.enc` on every run and break all personal Gmail and
+Drive access. When invoking `gws` from a script or subshell, ensure the
+env var is set. If personal auth breaks again, re-run `gws auth login`.
