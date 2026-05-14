@@ -64,6 +64,17 @@ Set `{artifact_dir}` to:
 ~/nickolashkraus/agent-os/{slug}/domains/{domain}/{projects|teams}/{name}/verifications/{slug}/
 ```
 
+If the user directs the verification into an existing agent-os
+worktree (e.g., a sibling investigation worktree), skip the
+`worktree add` step and use that worktree's path in place of
+`~/nickolashkraus/agent-os/{slug}/`. If a directory at the
+target `verifications/{slug}/` path already exists (likely
+because `{slug}` collides with a sibling `investigations/`,
+`features/`, or other bucket entry), suffix `{slug}` with a
+disambiguator that names what is being verified: `-plan`,
+`-claim`, `-doc`, `-review`. Commit on the existing worktree's
+current branch in Step 4 rather than creating a new branch.
+
 Create the artifact subdirectories:
 
 ```
@@ -120,7 +131,15 @@ For each numbered claim, collect the verdicts from all four
 agents and reconcile them. Write the synthesis under
 `## Agent Synthesis`.
 
-The synthesis must include, per claim:
+First, write an **Executive summary** at the top of the file
+(~20-30 lines, before any other section). Include the overall
+verdict in one phrase, the per-claim verdicts as a numbered
+list with one-line justifications, the most consequential
+counterexamples or conditions, and current approval status. This
+is what the user reads when the full document is too long to
+skim.
+
+Then, per claim:
 
 - **Verdict**: "Supported," "Partially supported," "Not
   supported," or "Unverifiable."

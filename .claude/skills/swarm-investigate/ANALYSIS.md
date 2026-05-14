@@ -1,5 +1,7 @@
 # {investigation_title}
 
+## Executive Summary
+
 ## Status
 
 ## Context

@@ -125,6 +125,13 @@ fix plan.
 
 The synthesis should include:
 
+- **Executive summary** (at the top of the file, before any other
+  section): ~20-30 lines. Current state in 2-3 sentences, the
+  most consequential tradeoffs, numbered recommendations with one
+  sentence each, what is settled vs. contested, and current
+  approval status. This is what the user reads when the full
+  document is too long to skim, and what gets cited or excerpted
+  when sharing the research with others.
 - **Current state**: What exists today, written so a reader
   unfamiliar with the system can follow.
 - **History**: How the system got to its current shape, with

@@ -1,5 +1,7 @@
 # {bug_title}
 
+## Executive Summary
+
 ## Description
 
 ## Expected Result

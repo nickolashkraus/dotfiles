@@ -127,6 +127,11 @@ write the initial synthesis under `## Agent Synthesis`.
 
 The synthesis must include:
 
+- **Executive summary** (at the top of the file, before
+  `## Description`): ~20-30 lines. Root cause in 2-3 sentences,
+  numbered fix layers with one sentence each, member or system
+  remediation if any, and current approval status. This is what
+  the user reads when the full document is too long to skim.
 - **Root cause**: One paragraph describing the compounding
   failure chain.
 - **Failure modes**: Numbered list, each with a trigger
@@ -242,9 +247,15 @@ surface them to the user.
 
 ## Step 7: Ship
 
-In the **code worktree**: squash commits, write the commit
-message (Linear issue slug prefix, summary of the fix), push the
-branch, and create the PR using `gh pr create`.
+In the **code worktree**: rebase onto the default branch, squash
+commits into a single commit, write the commit message (Linear
+issue slug prefix, summary of the fix), then **re-run local CI on
+the squashed result before pushing**. Rebasing and squashing can
+shift line numbers and trigger different lint diagnostics, and
+staging mistakes (e.g., a `git stash`/`pop` that left modifications
+unstaged) can produce a partial commit. Run `ruff` / `pyright` /
+the test suite once more and verify the diff includes every
+changed file before `git push`. Then create the PR using `gh pr create`.
 
 In the **agent-os worktree**: commit all artifacts on the
 `{slug}` branch with message `"swarm: {slug} bug analysis"` and

@@ -1,5 +1,7 @@
 # {feature_title}
 
+## Executive Summary
+
 ## Goal
 
 ## User Story

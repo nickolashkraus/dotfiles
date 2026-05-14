@@ -21,7 +21,14 @@ Read the other agents' findings from these files:
    attribution.
 4. If another agent's finding contradicts yours, explain the
    discrepancy and which interpretation you believe is correct.
-5. If you have nothing to add, write "No additional findings."
+5. Before declaring "Complete", re-read the original user framing
+   (topic, scope, stated invariants). If the swarm's emerging
+   consensus does not preserve the user's stated invariants
+   verbatim, surface the delta explicitly. The user's language is
+   more reliable than the swarm's internal coherence; a recommendation
+   that is internally consistent across agents but reframes the
+   user's invariants is a flag, not a verdict.
+6. If you have nothing to add, write "No additional findings."
 
 ## Output
 
