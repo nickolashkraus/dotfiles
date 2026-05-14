@@ -5,7 +5,7 @@ description: >
   the release branch, Notion doc, and deployment announcement.
 disable-model-invocation: false
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, mcp__linear__list_issues, mcp__linear__list_issue_statuses, mcp__linear__get_issue, mcp__notion__notion-create-pages, mcp__notion__notion-update-page, mcp__notion__notion-fetch, mcp__claude_ai_Slack__slack_send_message_draft
-argument-hint: [--date YYYY-MM-DD] [--team TEAM] [--notion URL] [--title TITLE]
+argument-hint: [--date YYYY-MM-DD] [--team TEAM] [--notion URL] [--title TITLE] [--cc USER_IDS_OR_HANDLES]
 ---
 
 You are cutting a release for a Function Health service. Follow every
@@ -33,6 +33,9 @@ Parse `$ARGUMENTS` for:
 - `--notion URL`: Notion page URL for the release document (Step 6).
 - `--title TITLE`: Release title (e.g., "PPP v1 - Bug Fixes"). If
   not provided, ask the user for a short release title.
+- `--cc USER_IDS_OR_HANDLES`: Comma-separated list of Slack user IDs (`U...`)
+  or `@handles` to cc on the deployment announcement (Step 7). Defaults to
+  empty. Pass `--cc ""` to omit the cc line entirely.
 
 Determine the default branch and `{owner}/{repo}`:
 

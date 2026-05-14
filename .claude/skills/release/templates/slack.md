@@ -11,7 +11,7 @@ Planning a release for <Service Name> today. <N> PR(s):
 2. ...
 Includes <migration/secret summary or "No migrations or new secrets.">.
 Release Doc: <notion-url|Service Name (date)>
-cc: <@U05NN4P8LAC> <@U065N71LRB7> <@U029CH9KPDH>
+cc: <@USERID1> <@USERID2>
 ```
 
 ## Formatting rules
@@ -19,5 +19,12 @@ cc: <@U05NN4P8LAC> <@U065N71LRB7> <@U029CH9KPDH>
 - Link PRs using Slack link syntax: `<url|text>`.
 - Link the Notion release doc the same way.
 - Summarize migrations and secrets in one line. If none, say so.
-- Always cc Gabi (`U05NN4P8LAC`), Santiago (`U065N71LRB7`), and Max
-  (`U029CH9KPDH`).
+
+## cc list
+
+Default cc list (used when `--cc` is not provided): "" (empty)
+
+If `--cc` is provided, replace the default list entirely.
+Accepts a comma-separated list of Slack user IDs (`U...`) or `@handles` that
+resolve to user IDs via `slack_search_users`. Render each as `<@USERID>`. Pass
+`--cc ""` (empty) to omit the cc line entirely.
