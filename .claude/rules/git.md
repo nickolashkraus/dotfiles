@@ -6,10 +6,14 @@
   messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
-- Branch names should be the Linear issue slug (e.g., `BYB-1337`) if
-  available, or a short description (e.g., `some-feature`).
+- Branch names should be the Linear issue slug (e.g., `BYB-1337`) if available,
+  or a short description (e.g., `some-feature`).
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
+- Always render Linear issue references as Markdown links (e.g.,
+  `[EPD-1337](https://linear.app/functionhealth/issue/EPD-1337)`) in PR
+  descriptions, not bare slugs like `EPD-1337` or bare URLs. This applies to
+  every reference, not just the primary one.
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
 
@@ -79,6 +83,14 @@ and is deleted, GitHub automatically retargets the child PR to the default
 branch.
 
 ## Pull Requests
+
+### Merging
+
+Never merge a pull request unless the user has explicitly said to merge it.
+"Deploy to X", "ship it", or "land it" do not count as merge approval, even
+when the PR targets a deployment branch and merging would trigger the deploy.
+Ask first. Merging is hard to reverse, fires deploy webhooks, and collapses the
+commit history; do not infer it from adjacent instructions.
 
 ### General Rules
 
