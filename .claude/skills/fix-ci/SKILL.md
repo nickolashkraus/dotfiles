@@ -154,10 +154,34 @@ If no actionable bot comments remain and all checks pass, go to Step 7.
 
 ### If `--in-place` was NOT set
 
-If there are actionable bot comments and `--in-place` was not passed, delegate
-to `/fix-bot-reviews <pr-number>` (pass through `--re-review <value>` if it was
-set). This creates a stacked fix PR for the bot comment fixes. Skip to Step
-7 after `/fix-bot-reviews` completes.
+**Pre-check**: Trivial fixes auto-promote to in-place. Before delegating, size
+up the actionable findings. If the total fix is *trivial*, apply in-place on
+the current branch instead of spinning up a stacked fix PR. The stacked-PR
+overhead (worktree, separate PR, separate CI run, separate review thread,
+summary cross-posts) is not worth it for a one-line fix.
+
+Treat a fix as trivial when **all** of the following hold:
+
+- Total affected files: 1-3
+- Total code delta: under ~15 lines (excluding test parametrize-list
+  adjustments).
+- No new helpers, abstractions, or refactors. Existing code shape is preserved;
+  you are tweaking constants, frozensets, guards, or conditionals.
+- Test changes are limited to parametrize lists, docstrings, or assertion-value
+  flips. No new test classes or fixtures.
+- The bot finding is precise and the suggested fix is well-defined. You are not
+  making a judgment call that could span multiple files.
+
+When in doubt, delegate. The asymmetry is: a small fix done in-place is cheap;
+a sprawling fix done in-place pollutes the parent branch's commit history and
+review surface, and the user cannot ask for the fix to be revised separately.
+
+If the fix is trivial: Act as if `--in-place` was passed and follow the
+in-place section below.
+
+If the fix is non-trivial: Delegate to `/fix-bot-reviews <pr-number>` (pass
+through `--re-review <value>` if it was set). This creates a stacked fix PR for
+the bot comment fixes. Skip to Step 7 after `/fix-bot-reviews` completes.
 
 ### If `--in-place` was set
 
