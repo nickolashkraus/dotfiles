@@ -30,6 +30,12 @@ Otherwise, diff all changes (staged, unstaged, and untracked) against the
 default branch. If there are untracked files, read them in full. You need the
 complete context to review.
 
+If the total review surface is large (e.g., >1500 lines or >5 files), delegate
+to an Explore sub-agent. When delegating typography fixes, specify that em dash
+replacement is contextual (`:`, `;`, `,`, `(...)`, or sentence break depending
+on the surrounding clause); never bulk-replace with a single character. Require
+the sub-agent to report a sample of replacements for spot-check.
+
 ## Step 4: Review the diff
 
 Go through every changed file. For each file, check for:
