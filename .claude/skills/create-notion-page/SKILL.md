@@ -21,14 +21,29 @@ without a parent (workspace-level private page).
 
 ## Step 2: Clean the Markdown file
 
-Run `clean_markdown.py` to remove 80-character line wraps and convert HTML
-escape characters:
+Run `clean_markdown.py` to remove 80-character line wraps, convert HTML escape
+characters, resolve reference-style links to inline links (Notion does not
+render reference-style links), rewrite local file links to their Notion URLs
+per the project's `manifest.yaml`, and convert Markdown footnotes to Notion
+`<callout>` blocks (Notion does not render `[^label]` natively):
 
 ```
-python scripts/clean_markdown.py --input <file>
+python scripts/clean_markdown.py --input <file> \
+  --resolve-refs --rewrite-local-links --notion-footnotes
 ```
 
-If the script is not available, read the file directly.
+`--rewrite-local-links` walks up from `<file>` to the nearest `manifest.yaml`,
+reads `notion.pages` (and any nested `children`), and replaces inline links
+whose target resolves to a `file` entry with the corresponding `url`. Pass
+`--manifest <path>` to override auto-detection.
+
+`--notion-footnotes` strips each `[^label]` reference from the body and each
+`[^label]: ...` definition from the bottom, inserting a `<callout>` block
+carrying the footnote's content at the end of the paragraph that referenced it.
+
+If the script is not available or no manifest exists yet, run without the flag
+(or read the file directly). Local links pointing at unmapped files are left
+unchanged.
 
 Read the cleaned output from `dist/<filename>`. This is the content you will
 use in subsequent steps.
@@ -48,6 +63,13 @@ the page body.
 If a parent link was provided in Step 1, use the `notion-fetch` tool with the
 Notion parent page link to retrieve the parent page ID. Otherwise, skip this
 step.
+
+**Placeholder Check**: If the fetched parent page is empty (no content) AND its
+title closely matches the file's H1, the user may have intended to populate the
+existing page rather than nest under it. Pause and confirm before creating.
+Offer two options: (a) create a child page under the placeholder as instructed,
+or (b) switch to `/update-notion-page` against the same URL to populate the
+existing page directly.
 
 ## Step 6: Create the page
 
