@@ -50,6 +50,9 @@ shift + alt - f: yabai -m window --grid 1:1:0:0:1:1
 # Floating window centered on screen.
 shift + alt - c: yabai -m window --grid 12:24:6:2:12:8
 
+# Floating window centered on screen (90% width, 90% height).
+shift + alt - d: yabai -m window --grid 20:20:1:1:18:18
+
 # Floating window fills top half of screen.
 shift + alt - up: yabai -m window --grid 2:1:0:0:2:1
 

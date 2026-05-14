@@ -1274,6 +1274,8 @@
 				<key>Red Component</key>
 				<real>0.23529493808746338</real>
 			</dict>
+			<key>Cursor Hidden When Unfocused</key>
+			<false/>
 			<key>Cursor Text Color</key>
 			<dict>
 				<key>Alpha Component</key>

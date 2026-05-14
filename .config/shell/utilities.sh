@@ -63,9 +63,14 @@ source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
 #
 # Key Bindings:
 #   Ctrl - r: Paste the selected command from history onto the command line.
-#   Ctrl - t: Paste the selected files and directories onto the command line.
+#   Alt - t: Paste the selected files and directories onto the command line.
 #   Alt - c: cd into the selected directory.
 source <(fzf --zsh)
+
+# Rebind the fzf file widget from Ctrl - t to Alt - t so that Ctrl - t can be
+# used by tmux to toggle the popup window.
+bindkey -r '^T'
+bindkey '\et' fzf-file-widget
 
 # Default fzf command (uses ripgrep).
 #   --files: Print each file without actually performing the search.
@@ -74,7 +79,7 @@ source <(fzf --zsh)
 #   --glob: Include or exclude files and directories that match the given glob.
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*" --glob "!node_modules/*"'
 
-# Use 'FZF_DEFAULT_COMMAND' for Ctrl - t.
+# Use 'FZF_DEFAULT_COMMAND' for Alt - t.
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Default fzf options.
@@ -89,7 +94,7 @@ export FZF_CTRL_R_OPTS="
 --header 'Press Ctrl - y to copy the selected command to the system clipboard.'
 "
 
-# Additional options for Ctrl - t.
+# Additional options for Alt - t.
 #
 # Press Ctrl - / to toggle file preview.
 export FZF_CTRL_T_OPTS="

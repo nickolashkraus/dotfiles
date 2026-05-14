@@ -27,10 +27,13 @@ project_doc_max_bytes = 65536
 
 [features]
   apps = true
-  codex_hooks = true
+  hooks = true
   multi_agent = true
   shell_snapshot = true
   unified_exec = true
+
+[hooks.state."/Users/nickolas/.codex/hooks.json:stop:0:0"]
+  trusted_hash = "sha256:b650575c0164863cd30ba1704fa406169aa44888ff8f2b7108d8f43f51cb0720"
 
 [projects."/"]
   trust_level = "trusted"
@@ -62,11 +65,15 @@ project_doc_max_bytes = 65536
 [projects."/Users/nickolas/nickolashkraus/agent-os/master"]
   trust_level = "trusted"
 
+[projects."/Users/nickolas/nickolashkraus/agent-os"]
+  trust_level = "trusted"
+
 [tui]
   theme = "base16"
+  vim_mode_default = true
 
 [tui.model_availability_nux]
-"gpt-5.5" = 3
+"gpt-5.5" = 4
 
 [plugins."github@openai-curated"]
 enabled = true

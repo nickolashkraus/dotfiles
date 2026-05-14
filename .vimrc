@@ -787,8 +787,8 @@ let g:vim_markdown_toml_frontmatter = 1
 " Enable JSON front matter.
 let g:vim_markdown_json_frontmatter = 1
 
-" Enable math syntax highlighting.
-let g:vim_markdown_math = 1
+" Disable math syntax highlighting so '$' is treated as a literal character.
+let g:vim_markdown_math = 0
 
 " Show table of contents.
 nnoremap <silent> <Leader>toc :Toc<CR>
@@ -802,6 +802,27 @@ let g:vim_markdown_no_default_key_mappings = 1
 augroup vim-markdown-sync
   autocmd!
   autocmd FileType markdown syntax sync fromstart
+augroup END
+
+" Treat '<' and '>' as literal characters by clearing the embedded HTML syntax
+" that vim-markdown pulls in via `runtime! syntax/html.vim`. The clear has to
+" run after all synchronous syntax loading settles (vim-markdown's syntax file
+" is sourced multiple times during file open, and other plugins can re-trigger
+" syntax loading after BufWinEnter fires), so defer it via a 0-delay timer
+" that runs on the next event-loop iteration.
+function! MarkdownClearHtml(...) abort
+  silent! syntax clear htmlTag htmlEndTag htmlTagN htmlTagName
+        \ htmlString htmlArg htmlValue htmlSpecialChar htmlComment
+        \ htmlPreStmt htmlEvent htmlCssDefinition htmlTagError
+        \ markdownAutomaticLink
+endfunction
+
+augroup markdown_no_html
+  autocmd!
+  autocmd BufWinEnter,BufEnter *.md,*.markdown
+        \ call timer_start(0, function('MarkdownClearHtml'))
+  autocmd Syntax markdown
+        \ call timer_start(0, function('MarkdownClearHtml'))
 augroup END
 
 " Prevent `gq` from inserting '-' in Markdown list continuation.

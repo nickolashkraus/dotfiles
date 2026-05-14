@@ -105,12 +105,13 @@ yabai -m config debug_output                  off
 ###############################################################################
 if [ "$display_count" -gt 1 ]; then
   yabai -m rule --add app=".*"                manage=off display=^2 sub-layer=below grid=24:12:2:6:8:12
+  yabai -m rule --add app="^iTerm2$"          manage=on  display=^1 grid=1:1:0:0:1:1
   yabai -m rule --add app="^System Settings$" manage=off display=^2 sub-layer=below grid=12:24:0:0:0:6
 else
-  yabai -m rule --add app=".*"                manage=off sub-layer=below grid=24:12:2:6:8:12
-  yabai -m rule --add app="^System Settings$" manage=off sub-layer=below grid=12:24:0:0:0:6
+  yabai -m rule --add app=".*"                manage=off grid=12:24:6:2:12:8
+  yabai -m rule --add app="^iTerm2$"          manage=off grid=12:24:6:2:12:8
+  yabai -m rule --add app="^System Settings$" manage=off grid=12:24:0:0:0:6
 fi
-yabai -m rule --add app="^iTerm2$"          manage=on  display=^1 grid=1:1:0:0:1:1
 
 ###############################################################################
 # JankyBorders

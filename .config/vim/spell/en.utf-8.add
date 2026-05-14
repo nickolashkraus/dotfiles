@@ -1,3 +1,6 @@
+A2
+A5
+A9
 ACK
 ACL
 ACLs
@@ -30,11 +33,13 @@ BFS
 BTR
 BYB
 BYBO
+Backfilling
 BaseURL
 Batchhelder
 Bootable
 Broadcom
 BrowserStack
+C1
 CDN
 CIDR
 CIMD
@@ -57,6 +62,7 @@ CoderPad
 ConductorOne
 Creatine
 Customizations
+Cutover
 DBs
 DCR
 DDL
@@ -75,6 +81,7 @@ Dev
 Dockerfile
 Drata
 DynamoDB
+E3
 EC2
 EFI
 EHR
@@ -85,6 +92,7 @@ EPD
 EPUB
 Ext4
 FHIR
+FK
 FQDNs
 FSA
 FastAPI
@@ -192,6 +200,8 @@ OpenAPI
 OpenID
 PCC
 PKCE
+PMB
+PMBs
 PNG
 PPP
 PPP's
@@ -286,6 +296,7 @@ UUIDs
 UX
 Uncomment
 Unmuted
+Upsert
 UserInfo
 VPC
 VUS
@@ -327,7 +338,9 @@ autocompletion
 b43
 backend
 backfill
+backfill's
 backfilled
+backfills
 backgrounded
 base64url
 binpacking
@@ -353,7 +366,9 @@ config
 creatine
 cryptographically
 customizable
+cutover
 dataclass
+dedup
 dkms
 docstrings
 dotfiles
@@ -367,6 +382,7 @@ eponymously
 factly
 fallback's
 fallbacks
+fallthrough
 fhir
 filesystem
 filesystems
@@ -387,11 +403,13 @@ glibc
 gmail
 gruvbox
 gws
+hardcode
 hardcoded
 hostname
 https
 iFax
 iOS
+idempotency
 idempotently
 impactful
 infrable
@@ -410,6 +428,7 @@ kth
 lifecycle
 localhost
 loopback
+lossy
 mTLS
 macOS
 mcp
@@ -427,6 +446,7 @@ nickolashanskraus
 nickolashkraus
 nickolaskraus
 nlog
+nullable
 offboarding
 og
 oidc
@@ -457,6 +477,7 @@ proxying
 px
 ramdisk
 rebasing
+reconciler
 repartition
 repo
 resource
@@ -501,7 +522,9 @@ timestamps
 uncomment
 unicode
 unmount
+unordered
 untrusted
+upsert
 url
 uvicorn
 v0
