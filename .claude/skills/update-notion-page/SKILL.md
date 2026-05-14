@@ -18,14 +18,29 @@ Extract the file path and Notion page link from `$ARGUMENTS`.
 
 ## Step 2: Clean the Markdown file
 
-Run `clean_markdown.py` to remove 80-character line wraps and convert HTML
-escape characters:
+Run `clean_markdown.py` to remove 80-character line wraps, convert HTML escape
+characters, resolve reference-style links to inline links (Notion does not
+render reference-style links), rewrite local file links to their Notion URLs
+per the project's `manifest.yaml`, and convert Markdown footnotes to Notion
+`<callout>` blocks (Notion does not render `[^label]` natively):
 
 ```
-python scripts/clean_markdown.py --input <file>
+python scripts/clean_markdown.py --input <file> \
+  --resolve-refs --rewrite-local-links --notion-footnotes
 ```
 
-If the script is not available, read the file directly.
+`--rewrite-local-links` walks up from `<file>` to the nearest `manifest.yaml`,
+reads `notion.pages` (and any nested `children`), and replaces inline links
+whose target resolves to a `file` entry with the corresponding `url`. Pass
+`--manifest <path>` to override auto-detection.
+
+`--notion-footnotes` strips each `[^label]` reference from the body and each
+`[^label]: ...` definition from the bottom, inserting a `<callout>` block
+carrying the footnote's content at the end of the paragraph that referenced it.
+
+If the script is not available or no manifest exists yet, run without the flag
+(or read the file directly). Local links pointing at unmapped files are left
+unchanged.
 
 Read the cleaned output from `dist/<filename>`. This is the content you will
 use in subsequent steps.
