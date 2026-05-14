@@ -21,6 +21,11 @@ Draft the issue body from the current conversation context and write it to
 `/tmp/linear-drafts/<short-slug>.md`. If the conversation has no obvious topic
 to draft from, ask the user before writing a draft.
 
+The `/tmp` draft is required even if a draft already exists elsewhere in the
+conversation (e.g., in a working doc). It serves as the canonical pre-creation
+artifact and lets the user diff the as-saved description against the as-sent
+payload. Do not skip this step.
+
 ## Step 3: Resolve the project
 
 Use `list_projects` with the project name from Step 1 as the `query` parameter.
