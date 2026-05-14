@@ -1,5 +1,15 @@
 # General
 
+- Apply @rules/typography.md to every piece of generated text, regardless of
+  destination: source code, comments, commit messages, PR descriptions, GitHub
+  issues, Linear issues, Notion pages, Slack messages, blog posts, scratch
+  notes, and chat responses to me. Run the pre-flight checklist at the top of
+  `typography.md` before emitting any text, and re-scan the output for
+  violations before sending or saving. The destination is never a reason to
+  relax the rules, and "it's just chat" or "it's just a commit message" is not
+  an exception. A typography violation is a defect. The only carve-out is
+  reproducing existing content verbatim (quoted passages, file contents being
+  edited in place, captured log output).
 - Never reference or link to internal or local-only documents (e.g., scratch
   notes under `~/nickolashkraus/agent-os/`, files on disk that are not in
   a public repo, private working docs) from external content (GitHub PRs,
