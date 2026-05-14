@@ -14,6 +14,9 @@
     "defaultMode": "bypassPermissions",
     "additionalDirectories": []
   },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "hooks": {
     "PostCompact": [
       {
@@ -28,8 +31,10 @@
       }
     ]
   },
+  "spinnerTipsEnabled": false,
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
-  "spinnerTipsEnabled": false
+  "theme": "dark-ansi",
+  "editorMode": "vim"
 }

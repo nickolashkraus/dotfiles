@@ -2,6 +2,7 @@
 
 - @rules/coding.md
 - @rules/function-health.md
+- @rules/general.md
 - @rules/git.md
 - @rules/gws.md
 - @rules/linear.md
