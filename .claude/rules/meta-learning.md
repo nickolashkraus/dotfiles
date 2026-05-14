@@ -9,13 +9,13 @@ of the following occurred:
 
 If none of these occurred, skip this step entirely.
 
-## Propose a Skill Update
+## Apply a Skill Update
 
 1. Identify which step or instruction was insufficient.
-2. Draft the minimal edit to the relevant file that would prevent the
-   same issue next time.
-3. Present the proposed change as a diff (old text vs. new text) and explain
-   why.
-4. Do not apply the edit. Wait for the user to approve or reject it.
+2. Make the minimal edit to the relevant file that would prevent the same issue
+   next time.
+3. Apply the edit directly. Everything is in source control, so the user can
+   review the modification manually.
+4. Briefly note what was changed and why.
 
 Any files (other skills, rules files, `CLAUDE.md`, etc.) are in scope.

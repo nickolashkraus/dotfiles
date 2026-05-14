@@ -16,6 +16,13 @@
   every reference, not just the primary one.
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
+- Always use the GitHub username (e.g., `nickolashkraus`) for `TODO` owner tags
+  in source code, in every repo. Do not use an email address, a short first
+  name, or any other handle. The format is:
+  ```
+  # TODO(<github-username>): <description>
+  See: <linear-issue-url>
+  ```
 
 ## Worktrees
 
@@ -149,8 +156,11 @@ Use `## Overview` as the primary header with a concise summary. Add additional
 sections as needed:
 
 - `## Implementation Details` for how it works, with commands or code examples.
-- `## Testing` for a checklist of verification steps.
 - `## References` for links to documentation, related issues, or specs.
+
+Do not add a `## Testing`, `## Tests`, or `## Test plan` section. Tests are
+visible in the diff and CI; restating them in prose adds noise without adding
+context the reviewer can't already see.
 
 ```
 ## Overview

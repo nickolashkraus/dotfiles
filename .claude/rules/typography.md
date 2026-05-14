@@ -43,6 +43,10 @@
 
 - Use backticks for inline code, file names, commands, resource names, and
   configuration values (e.g., `python`, `app.py`, `GET /api/users`).
+- Always use single backticks. Never use double backticks (``code``). This
+  includes Python docstrings: do not switch to reStructuredText conventions
+  inside `"""..."""`. The codebase reads as Markdown everywhere, including
+  comments and docstrings.
 - Markdown reference links should use `[text][label]`. Do not use the
   `[label][]` shorthand or bare `[label]` form, even when the text and label
   are the same.
