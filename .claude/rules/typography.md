@@ -19,7 +19,11 @@
   (where internal punctuation makes a terminal period necessary for clarity).
 - Keep lines <80 characters for human readability. Break lines at the last word
   boundary before column 80, maximizing line length. Use the Vim `gq`
-  formatting behavior.
+  formatting behavior. This rule applies to files in the repo: Markdown docs,
+  code comments, commit messages. For text written to platforms that handle
+  their own wrapping (Slack messages, GitHub PR/issue comments, Notion pages,
+  emails), let lines run to natural length. Hard line breaks render poorly in
+  those contexts.
 - For lists, use the format (when appropriate):
 
   ```markdown

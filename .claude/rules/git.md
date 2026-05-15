@@ -16,6 +16,10 @@
   every reference, not just the primary one.
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
+- Single-quoted heredocs (`<<'EOF'`) preserve backticks, `$`, and `\` literally.
+  Never escape these characters defensively inside the body. Escaped backticks
+  render as literal `` \` `` in the output and escaped `$` as `\$`. Only escape
+  inside an unquoted heredoc (`<<EOF`), where shell expansion is active.
 - Always use the GitHub username (e.g., `nickolashkraus`) for `TODO` owner tags
   in source code, in every repo. Do not use an email address, a short first
   name, or any other handle. The format is:
@@ -47,6 +51,14 @@
   - Explain *what* and *why*, not *how*
 - Never use "WIP" or other throwaway messages.
 - Use bulleted lists for Git messages, not long, comma-separated items.
+- When the branch maps to a Linear issue, the subject is `SLUG: Exact Issue
+  Title` (e.g., `BYB-1345: Membership Upgrade Creates Duplicate Active
+  Subscriptions in Stripe`). Use the verbatim Linear issue title, not
+  a paraphrase.
+- When there is no Linear issue, use a clean imperative subject. Never
+  fabricate a placeholder slug like `BYB-NOBUG:`, `NOBUG:`, `NOBUG-1:`, or
+  `EPD-NONE:`. The `NOBUG` convention is for in-source TODO tags only, never
+  commit subjects.
 
 ### Squashing Commits
 
@@ -58,6 +70,15 @@ before merging.
 
 Always run CI (tests, linting) locally before pushing. Do not push code that
 you have not verified passes the project's CI.
+
+Run the **full** repo lint and test suite, not file-scoped invocations. For
+Python repos that means `ruff format --check .` and `ruff check .` across the
+whole repo, plus the full pytest suite (e.g., `poetry run python -m pytest
+--no-cov`), and `poetry run pyright` where it applies. Narrow invocations like
+`ruff format <changed_files>` miss reformat-needed files that the editor never
+surfaced, and the CI lint baseline may still flag them. If the local
+environment is broken (missing DB password, services down), fix it before
+pushing rather than skipping verification.
 
 After pushing, run `/fix-ci` until all checks pass. Do not consider the job
 done while any check is non-passing (including neutral or pending).
@@ -81,6 +102,27 @@ commits to make a failed check go away.
 Do not merge master into a branch to integrate upstream changes. Use `git
 rebase` instead.
 
+### Release Branches
+
+Release branches (`release/*`) accept only pure cherry-picked merge or squash
+commits from the default branch. Never push a manually-edited, hand-crafted,
+or in-place fix commit to a release branch or release PR, even if a bot leaves
+a review on the release PR. The merge-commit-only invariant is what makes the
+release line auditable back to a merged dev PR.
+
+When a bot or human leaves a review on a release PR, two valid responses:
+
+1. The finding is stale (commit force-pushed away or no longer on the release
+   tip): reply inline explaining and move on.
+2. The finding is real on the release tip: do not fix it on the release
+   branch. Either reply inline noting that the finding is being carried into
+   the follow-up release/remediation PR, or fix it on the default branch via
+   a normal PR, get it merged, and cherry-pick that merge commit onto the
+   release branch.
+
+"Address this review inline" while you are on a release PR means "reply
+inline," not "fix in code and push." Confirm before any code edit.
+
 ## Stacked PRs
 
 For dependent changes, stack PRs by targeting each PR against its parent branch
@@ -98,6 +140,21 @@ Never merge a pull request unless the user has explicitly said to merge it.
 when the PR targets a deployment branch and merging would trigger the deploy.
 Ask first. Merging is hard to reverse, fires deploy webhooks, and collapses the
 commit history; do not infer it from adjacent instructions.
+
+Before merging any PR, including an intra-stack one that does not need human
+review, check for open bot reviews and bot review comments. Run:
+
+```
+gh pr view <pr-number> --json reviews,comments
+```
+
+If any bot (CodeRabbit, Cursor Bugbot, Cursor Security Review, Seer Code
+Review, sre-terraform-review-bot, etc.) has posted a review with state
+`CHANGES_REQUESTED` or has left unresolved review comments with actionable
+suggestions, do not merge. Address the comment or file a follow-up and note
+inline why it is being deferred. CI rollup being green is not a substitute.
+The "no-human-review-intra-stack" rule applies only to human reviewers; bot
+reviews still gate the merge.
 
 ### General Rules
 
@@ -120,6 +177,14 @@ commit history; do not infer it from adjacent instructions.
 ### Descriptions
 
 Scale the description with the complexity of the change.
+
+For any non-trivial PR body, write the Markdown to a temp file (e.g.,
+`/tmp/pr-<N>-body.md`) and pass it via `gh pr create --body-file` or
+`gh pr edit <N> --body-file`. Do not inline the body via
+`--body "$(cat <<'EOF' ... EOF)"`. Defensive escapes inside an inline heredoc
+have a way of leaking through as literal `` \` `` and `\$` in the rendered
+description. The same rule applies to `gh issue create` and `gh pr comment`
+for any body longer than a single short line.
 
 #### Trivial Changes
 
