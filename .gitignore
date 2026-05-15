@@ -1,1 +1,5 @@
+# Compiled Vim spell files generated from `.add` sources via `:mkspell`.
 *.spl
+
+# Codex-managed system directory, regenerated locally and not user-authored.
+.codex/skills/.system
