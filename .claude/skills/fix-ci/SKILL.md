@@ -10,6 +10,23 @@ argument-hint: [--in-place] [--re-review [all | unresolved]] [pr-number]
 
 You are fixing CI failures on a pull request. Follow every step in order.
 
+## Step 0: Invoke this skill explicitly
+
+If you reached this workflow by improvising a manual loop (polling `gh pr
+checks`, replying to bot comments inline, etc.) without invoking `Skill(skill:
+"fix-ci")` first, stop and invoke it now. The procedure below is not a list of
+suggestions; it encodes the inline-reply, Evidence-block, and findings-table
+conventions that downstream reviewers and re-runs depend on.
+
+If you tried to delegate this to a sub-agent (e.g., via the `Agent` tool) and
+the spawn failed (worktree-isolation error, missing hook, etc.), the failed
+delegation does **not** excuse skipping the skill. Run the skill yourself on
+every affected PR. The fallback for a failed agent spawn is not ad-hoc bash; it
+is "run the skill in this conversation, one PR at a time."
+
+When working a stack of PRs, run the skill once per PR in stack order. Do not
+batch-loop across PRs without re-entering the procedure for each one.
+
 ## Step 1: Determine the pull request
 
 Parse `$ARGUMENTS` for flags and an optional PR number:
@@ -195,11 +212,22 @@ a comment if it is clearly wrong:
 - The suggestion would break existing behavior.
 - The suggestion contradicts project conventions.
 - The suggestion contradicts the product or feature specification.
+- The suggestion contradicts the function's own docstring or in-tree comments.
+  Before mutating a function based on a "sibling pattern" or "consistency"
+  argument, read the docstring of the function being changed. If the docstring
+  documents an intentional divergence (e.g., "preserved on relink" vs siblings
+  that reset), trust the docstring; the bot's analogy is likely missing
+  context.
 
 For each comment:
 
 - **Legitimate issue** (default): Read the relevant source files to understand
-  context, then apply the fix directly.
+  context, then apply the fix directly. When the finding identifies a fix in
+  one of a parallel pair/set of helpers (e.g., `_try_customer_fallback` vs
+  `_try_member_id_fallback`, or sibling upsert helpers), grep for the parallel
+  sites and apply the same fix to each. A bot reporting on one site rarely
+  means the issue is unique to that site; the omission almost always exists
+  symmetrically.
 - **Clearly illegitimate**: Reply with a brief explanation of why the
   suggestion does not apply:
 
@@ -252,8 +280,31 @@ each one.
 
 If any bot comments were addressed (fixed or dismissed), post a summary comment
 on the PR using tables. Number findings sequentially (F-01, F-02, ... for
-fixed; D-01, D-02, ... for dismissed). Use each bot comment's `html_url` for
-the link column. The Fix column should contain:
+fixed; D-01, D-02, ... for dismissed).
+
+**Comment link format**: Do NOT use the API's `html_url`
+(`pull/N#discussion_r<id>`) directly. That anchor lives on the Conversation tab
+and is silently collapsed for outdated comments (any comment whose `line`
+attribute is now `null` because the underlying diff line changed). The link
+appears to do nothing because GitHub does not auto-expand the "Outdated"
+section on navigation. Instead, build the durable Files-tab anchor from the
+comment's `original_commit_id` and `id`:
+
+```
+https://github.com/<owner>/<repo>/pull/<N>/files/<original_commit_id>#r<id>
+```
+
+This anchor lives on the file/commit pair the bot actually reviewed, so it
+always scrolls to and expands the comment regardless of whether the line is
+"outdated" in the current diff. Fetch `id` and `original_commit_id` together
+when collecting findings:
+
+```
+gh api repos/{owner}/{repo}/pulls/<pr>/comments --paginate \
+  --jq '.[] | {id, original_commit_id}'
+```
+
+The Fix column should contain:
 
 - A linked commit SHA (e.g., [`abc1234`](commit-url)) if the fix was applied
   in-place.

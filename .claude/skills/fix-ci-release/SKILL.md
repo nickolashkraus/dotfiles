@@ -232,6 +232,23 @@ Tracked in [<linear-issue-slug>](<linear-issue-url>).
 
 ## Step 7: Summarize
 
+**Comment link format**: Do NOT use the API's `html_url`
+(`pull/N#discussion_r<id>`) directly. That anchor lives on the Conversation tab
+and is silently collapsed for outdated comments (any comment whose `line`
+attribute is now `null` because the underlying diff line changed). The link
+appears to do nothing because GitHub does not auto-expand the "Outdated"
+section on navigation. Instead, build the durable Files-tab anchor from the
+comment's `original_commit_id` and `id`:
+
+```
+https://github.com/<owner>/<repo>/pull/<N>/files/<original_commit_id>#r<id>
+```
+
+This anchor lives on the file/commit pair the bot actually reviewed, so it
+always scrolls to and expands the comment regardless of whether the line is
+"outdated" in the current diff. Use this format for every `<comment-url>`
+placeholder in the templates below (and in any inline-reply cross-references).
+
 Post a summary comment on the release PR:
 
 ```

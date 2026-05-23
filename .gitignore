@@ -3,3 +3,7 @@
 
 # Codex-managed system directory, regenerated locally and not user-authored.
 .codex/skills/.system
+
+# Python bytecode caches.
+*.py[cod]
+__pycache__/
