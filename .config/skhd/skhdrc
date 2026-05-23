@@ -45,19 +45,19 @@ shift + alt - 0 : yabai -m space --balance
 shift + alt - t : yabai -m window --toggle float --grid 12:24:6:2:12:8
 
 # Floating window fills screen.
-shift + alt - f: yabai -m window --grid 1:1:0:0:1:1
+shift + alt - f : yabai -m window --grid 1:1:0:0:1:1
 
 # Floating window centered on screen.
-shift + alt - c: yabai -m window --grid 12:24:6:2:12:8
+shift + alt - c : yabai -m window --grid 12:24:6:2:12:8
 
 # Floating window centered on screen (90% width, 90% height).
-shift + alt - d: yabai -m window --grid 20:20:1:1:18:18
+shift + alt - d : yabai -m window --grid 20:20:1:1:18:18
 
 # Floating window fills top half of screen.
-shift + alt - up: yabai -m window --grid 2:1:0:0:2:1
+shift + alt - up : yabai -m window --grid 2:1:0:0:2:1
 
 # Floating window fills bottom half of screen.
-shift + alt - down: yabai -m window --grid 2:1:0:1:2:1
+shift + alt - down : yabai -m window --grid 2:1:0:1:2:1
 
 # Floating window fills left half of screen.
 shift + alt - left : yabai -m window --grid 1:2:0:0:1:1
@@ -83,10 +83,16 @@ alt - m : yabai -m config menubar_opacity \
           && echo "0.0" || echo "0.5")
 
 # Send window to display 2.
-shift + alt - 1 : yabai -m window --display 2 --grid 24:12:2:6:8:12 --focus
+shift + alt - 1 : yabai -m window --display 2 --focus && \
+                  yabai -m query --windows --window \
+                    | jq -e '."is-floating"' >/dev/null && \
+                  yabai -m window --grid 24:12:2:6:8:12
 
 # Send window to display 1.
-shift + alt - 2 : yabai -m window --display 1 --grid 12:24:6:2:12:8 --focus
+shift + alt - 2 : yabai -m window --display 1 --focus && \
+                  yabai -m query --windows --window \
+                    | jq -e '."is-floating"' >/dev/null && \
+                  yabai -m window --grid 12:24:6:2:12:8
 
 # Fast focus between iTerm2 windows.
 ctrl - return : yabai -m query --windows \
