@@ -165,6 +165,10 @@ claim in the synthesis against the codebase. For each claim:
   agent analysis" unless you can query the database.
 - If a claim is wrong, correct it and note the correction.
 
+**Typography pass**: Run the typography pass from
+`~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline")
+against every artifact file authored in this run.
+
 **User gate**: Present the final analysis to the user. Ask:
 "Ready to implement, or do you want to adjust the fix plan?"
 Do not proceed until the user approves.

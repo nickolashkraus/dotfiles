@@ -98,6 +98,22 @@ against the actual code before they enter the final document. An
 incorrect claim in the spec produces an incorrect fix; an
 incorrect claim in a report misleads the reader.
 
+## Typography Discipline
+
+Every artifact file you author (orchestrator outputs like
+`analysis.md`, `checkpoint.md`, `final.md`, `verification.md`, and
+agent outputs like `investigation.md`, `synthesis.md`) is subject
+to `@~/.claude/rules/typography.md`. No em dashes, no smart quotes,
+lines wrapped at <80 characters except for tables, bullet items
+use `**Element**: Description` lead-in (never ` - ` or ` — ` as
+separator), and periods only on full-sentence bullets. Tables are
+exempt from line-length but must be evenly padded.
+
+Apply this pass before any verification or final-delivery step.
+The Orchestrator writes prose-heavy synthesis sections and is the
+most common source of em-dash violations; run `grep -c '—'` across
+all artifact files to confirm zero before advancing.
+
 ## Artifacts Live in `agent-os`
 
 Every swarm run creates a new worktree of the bare repo at

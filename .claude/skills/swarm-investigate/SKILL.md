@@ -162,6 +162,10 @@ not globally.
 
 Write the final report to `{artifact_dir}/orchestrator/final.md`.
 
+**Typography pass (before verification)**: Run the typography pass from
+`~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline")
+against every artifact file authored in this run.
+
 **Verification gate (standard, not optional)**: Spawn a
 dedicated verification agent that reads `final.md` end-to-end
 and produces a table (one row per concrete claim) with status

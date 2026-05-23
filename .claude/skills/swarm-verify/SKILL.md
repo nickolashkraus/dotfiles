@@ -170,6 +170,10 @@ Write the final memo to `{artifact_dir}/orchestrator/final.md`.
 primary source. If the verification swarm gets the verdict
 wrong, the entire deliverable is worthless.
 
+**Typography pass**: Run the typography pass from
+`~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline")
+against every artifact file authored in this run.
+
 **User gate**: Present the final memo to the user. Ask:
 "Approve the verification, or do you want to adjust the verdict
 on any claim?" Do not proceed until the user approves.

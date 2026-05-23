@@ -152,6 +152,10 @@ Write the final analysis to `{artifact_dir}/orchestrator/final.md`.
 code, schemas, or APIs against the codebase. Correct any wrong
 claim and note the correction.
 
+**Typography pass**: Run the typography pass from
+`~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline")
+against every artifact file authored in this run.
+
 **User gate**: Present the final analysis to the user. Ask:
 "Ready to implement, or do you want to adjust the design?" Do
 not proceed until the user approves.

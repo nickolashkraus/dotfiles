@@ -162,6 +162,10 @@ system against the codebase, and historical claims against
 git history or the cited primary source. Note unverified
 claims explicitly.
 
+**Typography pass**: Run the typography pass from
+`~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline")
+against every artifact file authored in this run.
+
 **User gate**: Present the final document to the user. Ask:
 "Approve the research, or do you want to adjust the synthesis
 or recommendations?" Do not proceed until the user approves.
