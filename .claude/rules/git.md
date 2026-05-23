@@ -7,13 +7,24 @@
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
 - Branch names should be the Linear issue slug (e.g., `BYB-1337`) if available,
-  or a short description (e.g., `some-feature`).
+  or a short description (e.g., `some-feature`). Always use the uppercase slug
+  verbatim from Linear. Do not lowercase it (`byb-1337` is wrong). The same
+  applies to worktree directory names, which mirror the branch.
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - Always render Linear issue references as Markdown links (e.g.,
   `[EPD-1337](https://linear.app/functionhealth/issue/EPD-1337)`) in PR
   descriptions, not bare slugs like `EPD-1337` or bare URLs. This applies to
   every reference, not just the primary one.
+- Only add Linear issue references to source code (comments, docstrings, test
+  names, regression guards) when absolutely necessary. The code needs to be
+  evergreen and stand on its own; once a PR merges, the Linear context goes
+  stale while the code persists. Branch names, PR titles, PR descriptions, and
+  commit messages remain the right places for Linear refs. If a comment needs
+  a Linear link to make sense, the comment is probably restating context that
+  belongs in the PR description, not in the source. The bar for inclusion is "a
+  future reader cannot reconstruct the rationale from the code, and the ticket
+  is the only durable record".
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
 - Single-quoted heredocs (`<<'EOF'`) preserve backticks, `$`, and `\` literally.
@@ -25,8 +36,9 @@
   name, or any other handle. The format is:
   ```
   # TODO(<github-username>): <description>
-  See: <linear-issue-url>
   ```
+  Add a `See: <linear-issue-url>` follow-up line only when the TODO depends on
+  external work that the description cannot summarize inline.
 
 ## Worktrees
 
@@ -173,6 +185,10 @@ reviews still gate the merge.
   wrapping, so each paragraph should be a single unwrapped line.
 - When adding PR review comments, attach them to the specific line or line
   range in the diff where the issue occurs.
+- Never add `Closes: <Linear issue>` (or `Fixes:`, `Resolves:`) to a PR
+  description. The Linear issue is already linked elsewhere in the body, and
+  GitHub does not auto-close Linear issues from these keywords. The line is
+  redundant noise.
 
 ### Descriptions
 
@@ -206,14 +222,14 @@ snippets, error messages, or links to related code when they add clarity.
 Use `**NOTE**` or `**NOTE**:` for important asides or to call out secondary
 decisions (e.g., refactoring done alongside the main change).
 
-```
+````
 Fixes the following error:
-\`\`\`
+```
 error: "GcpStorageConfig" is not a known attribute of module "gcp_storage_sdk"
-\`\`\`
+```
 
 Basically just makes the module's public API more clear and fixes the pyright error.
-```
+````
 
 #### Larger Changes
 
@@ -227,7 +243,7 @@ Do not add a `## Testing`, `## Tests`, or `## Test plan` section. Tests are
 visible in the diff and CI; restating them in prose adds noise without adding
 context the reviewer can't already see.
 
-```
+````
 ## Overview
 
 Adds authentication to the MCP server using Auth0.
@@ -238,7 +254,7 @@ This adds authentication to the MCP server for protected MCP tool calls.
 
 Run the MCP server:
 
-\`\`\`bash
+```bash
 poetry run uvicorn ai_chat.apps_sdk.server.main:app --host 0.0.0.0 --port 8000
-\`\`\`
 ```
+````
