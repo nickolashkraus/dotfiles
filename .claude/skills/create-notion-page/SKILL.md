@@ -48,17 +48,35 @@ unchanged.
 Read the cleaned output from `dist/<filename>`. This is the content you will
 use in subsequent steps.
 
-## Step 3: Determine the title
+## Step 3: Strip internal references
+
+Per `rules/general.md`, external content must never reference internal or
+local-only documents. Before publishing, scan the cleaned file and remove any
+of the following:
+
+- Paths under `~/nickolashkraus/` or `agent-os/` (e.g., `tasks/...md`,
+  `investigations/...`, `notes/daily/...`, `final.md`) that did not get
+  rewritten to a Notion URL by `--rewrite-local-links`.
+- File paths that are not in a shared repo readers can open (private scratch
+  notes, working docs, manifests).
+- Bare references like "the runbook" or "the spec" that only resolve to an
+  internal file.
+
+When the underlying detail matters, inline a one-sentence summary in place of
+the reference. References to shared repo paths (e.g., `enterprise-service/...`)
+or fully-rewritten Notion URLs are fine.
+
+## Step 4: Determine the title
 
 Use the first H1 header (`# ...`) in the file as the page title. If there is no
 H1, derive the title from the filename.
 
-## Step 4: Prepare the content
+## Step 5: Prepare the content
 
 Remove the first H1 header from the cleaned Markdown. The remaining content is
 the page body.
 
-## Step 5: Resolve the parent (only if a parent link was provided)
+## Step 6: Resolve the parent (only if a parent link was provided)
 
 If a parent link was provided in Step 1, use the `notion-fetch` tool with the
 Notion parent page link to retrieve the parent page ID. Otherwise, skip this
@@ -71,13 +89,13 @@ Offer two options: (a) create a child page under the placeholder as instructed,
 or (b) switch to `/update-notion-page` against the same URL to populate the
 existing page directly.
 
-## Step 6: Create the page
+## Step 7: Create the page
 
 Use the `notion-create-pages` tool with:
 
-- **title**: From Step 3.
-- **content**: From Step 4.
-- **parent**: The parent ID from Step 5 if available; otherwise omit the
+- **title**: From Step 4.
+- **content**: From Step 5.
+- **parent**: The parent ID from Step 6 if available; otherwise omit the
   `parent` parameter so the page is created as a workspace-level private page
   the user can organize later.
 

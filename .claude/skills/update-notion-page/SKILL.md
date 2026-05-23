@@ -45,12 +45,30 @@ unchanged.
 Read the cleaned output from `dist/<filename>`. This is the content you will
 use in subsequent steps.
 
-## Step 3: Fetch the Notion page
+## Step 3: Strip internal references
+
+Per `rules/general.md`, external content must never reference internal or
+local-only documents. Before publishing, scan the cleaned file and remove any
+of the following:
+
+- Paths under `~/nickolashkraus/` or `agent-os/` (e.g., `tasks/...md`,
+  `investigations/...`, `notes/daily/...`, `final.md`) that did not get
+  rewritten to a Notion URL by `--rewrite-local-links`.
+- File paths that are not in a shared repo readers can open (private scratch
+  notes, working docs, manifests).
+- Bare references like "the runbook" or "the spec" that only resolve to an
+  internal file.
+
+When the underlying detail matters, inline a one-sentence summary in place of
+the reference. References to shared repo paths (e.g., `enterprise-service/...`)
+or fully-rewritten Notion URLs are fine.
+
+## Step 4: Fetch the Notion page
 
 Use the `notion-fetch` tool with the Notion page link to retrieve the current
 page state.
 
-## Step 4: Update the Notion page
+## Step 5: Update the Notion page
 
 Use the `notion-update-page` tool with the `replace_content` command to replace
 the page content with the cleaned Markdown.
