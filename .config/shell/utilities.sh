@@ -27,8 +27,18 @@
 # See: https://brew.sh
 ###############################################################################
 
-# Set up Homebrew.
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# `brew shellenv` spawns the brew entrypoint on every shell startup. Cache its
+# output and regenerate only when the brew binary is newer than the cache.
+_brew_bin="/opt/homebrew/bin/brew"
+_brew_cache="$HOME/.cache/brew-shellenv.zsh"
+if [[ -x $_brew_bin ]]; then
+  if [[ ! -f $_brew_cache || $_brew_bin -nt $_brew_cache ]]; then
+    mkdir -p "$HOME/.cache"
+    "$_brew_bin" shellenv >"$_brew_cache"
+  fi
+  source "$_brew_cache"
+fi
+unset _brew_bin _brew_cache
 
 ###############################################################################
 # Gruvbox
@@ -220,10 +230,14 @@ _pyenv_bin="$(command -v pyenv 2>/dev/null)"
 if [[ -n $_pyenv_bin ]]; then
   if [[ ! -f $_pyenv_cache || $_pyenv_bin -nt $_pyenv_cache ]]; then
     mkdir -p "$HOME/.cache"
+    # Strip `command pyenv rehash` from the cached init. Rehash spawns the
+    # pyenv binary and scans every installed Python version. It only needs to
+    # run after installing new tools (e.g., `pip install`, `pipx install`);
+    # invoke `pyenv rehash` manually when that happens.
     {
       pyenv init -
       pyenv virtualenv-init -
-    } >"$_pyenv_cache"
+    } | grep -v '^command pyenv rehash$' >"$_pyenv_cache"
   fi
   source "$_pyenv_cache"
 
