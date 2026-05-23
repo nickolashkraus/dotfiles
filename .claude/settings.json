@@ -29,6 +29,72 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-status.sh working",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-status.sh working",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__create_draft|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/lint-outbound.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-status.sh input",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-status.sh idle",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-status.sh clear",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "spinnerTipsEnabled": false,
