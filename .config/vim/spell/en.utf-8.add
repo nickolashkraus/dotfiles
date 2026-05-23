@@ -21,6 +21,7 @@ Analytics
 Andreessen
 Anthropic's
 ApiGateway
+Application
 Auditability
 Auth0
 Authenticator
@@ -476,12 +477,12 @@ proration
 proxying
 px
 ramdisk
+reStructuredText
 rebasing
 reconciler
 repartition
 repo
 resource
-reStructuredText
 retargets
 retrigger
 rollout
