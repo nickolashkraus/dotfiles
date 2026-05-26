@@ -15,6 +15,14 @@ allowed; `git push --force` is not. `gh pr merge --merge --auto` (the
 Allowlist: when the input command starts with `# user-approved:` (a
 literal comment), the hook lets it through. The model uses this prefix
 on the retry after the user has explicitly approved the action.
+
+Text-passing carve-out: `git commit -m "..."`, `gh pr create --body
+"..."`, and similar commands often embed risky-pattern literals in
+the message body (changelog entries, PR descriptions). Heredoc bodies
+and `--body`/`-m` flag values are stripped from the command before
+pattern matching, but only when the outer command is a known text
+tool. Interpreter heredocs (`bash <<EOF ... EOF`) are left intact so
+their contents are still scanned.
 """
 
 from __future__ import annotations
@@ -22,6 +30,34 @@ from __future__ import annotations
 import json
 import re
 import sys
+
+HEREDOC_RE = re.compile(
+    r"<<[-]?\s*['\"]?(\w+)['\"]?\s*\n(.*?)\n\s*\1\b",
+    re.DOTALL,
+)
+FLAG_VALUE_RE = re.compile(
+    r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
+    r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
+)
+TEXT_PASSING_RE = re.compile(
+    r"\b(git\s+commit|gh\s+(pr|issue)\s+(create|edit|comment))\b"
+)
+
+
+def strip_text_payloads(cmd: str) -> str:
+    """
+    Strip heredoc bodies and `-m` / `--body` flag values from text-passing
+    commands so risky-pattern literals embedded in commit messages or PR
+    bodies do not trip the hook. Only applied when the outer command is
+    `git commit`, `gh pr ...`, or `gh issue ...`; interpreter heredocs
+    like `bash <<EOF ... EOF` are left intact.
+    """
+    if not TEXT_PASSING_RE.search(cmd):
+        return cmd
+    cmd = HEREDOC_RE.sub("", cmd)
+    cmd = FLAG_VALUE_RE.sub("", cmd)
+    return cmd
+
 
 RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (
@@ -73,9 +109,11 @@ def main() -> int:
     if cmd.lstrip().startswith(ALLOWLIST_PREFIX):
         return 0
 
+    scan_target = strip_text_payloads(cmd)
+
     matches: list[str] = []
     for pattern, label in RISKY_PATTERNS:
-        if pattern.search(cmd):
+        if pattern.search(scan_target):
             matches.append(label)
 
     if not matches:

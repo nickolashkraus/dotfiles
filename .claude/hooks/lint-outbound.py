@@ -53,6 +53,60 @@ PR_AUTOCLOSE_RE = re.compile(
 )
 
 
+LIST_MARKER_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
+
+
+def detect_hard_wraps(text: str) -> list[int]:
+    """
+    Return line numbers of lines that look like hard wraps within paragraphs
+    or wrapped bullets. External content (PR bodies, Linear, Notion, Slack)
+    must be single-line-per-paragraph per rules/git.md and rules/writing.md;
+    Markdown renderers handle wrapping. This catches in-source soft wraps
+    that look fine in an editor but ship as flow-prose to the destination.
+
+    Skipped: code blocks, tables (lines containing `|`), blockquotes (lines
+    starting with `>`), and blocks where every continuation line is itself
+    a list item (nested lists are sub-items, not wraps).
+    """
+    in_code = False
+    block: list[tuple[int, str]] = []
+    violations: list[int] = []
+
+    def flush() -> None:
+        if len(block) < 2:
+            block.clear()
+            return
+        has_table = any("|" in line for _, line in block)
+        has_blockquote = any(line.lstrip().startswith(">") for _, line in block)
+        if has_table or has_blockquote:
+            block.clear()
+            return
+        # Skip pure nested-list blocks: every continuation line is a list item.
+        if all(LIST_MARKER_RE.match(line) for _, line in block[1:]):
+            block.clear()
+            return
+        for ln, line in block[1:]:
+            if not LIST_MARKER_RE.match(line):
+                violations.append(ln)
+        block.clear()
+
+    for lineno, raw in enumerate(text.splitlines(), 1):
+        stripped = raw.lstrip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            flush()
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if not stripped:
+            flush()
+            continue
+        block.append((lineno, raw))
+    flush()
+
+    return violations
+
+
 def scrub_inline_code(line: str) -> str:
     """
     Remove inline code spans from a line so violations inside backticks are
@@ -76,8 +130,8 @@ def lint_text(
     the tool input tripped the rule. `is_pr_body` enables the
     `Closes:`/`Fixes:`/`Resolves:` check, which is scoped to PR bodies
     only per rules/git.md. `check_local_paths` enables the local-path
-    check, which is scoped to outbound content per rules/general.md (the
-    in-repo dotfiles Markdown legitimately references local paths).
+    check AND the hard-wrap check; both apply only to outbound content
+    (Bash heredocs / MCP payloads), not to in-repo dotfiles Markdown.
     """
     violations: list[str] = []
 
@@ -93,6 +147,14 @@ def lint_text(
             "(forbidden in PR descriptions per rules/git.md; render the "
             "Linear ref as a Markdown link instead)"
         )
+
+    if check_local_paths:
+        for ln in detect_hard_wraps(text):
+            violations.append(
+                f"{field} line {ln}: hard-wrapped paragraph (external "
+                "content should be a single unwrapped line per paragraph "
+                "per rules/git.md; Markdown renderers handle wrapping)"
+            )
 
     in_code = False
     for lineno, raw in enumerate(text.splitlines(), 1):
@@ -205,6 +267,22 @@ def extract_bash_content(
 
 MARKDOWN_EXTENSIONS = (".md", ".markdown")
 
+# Paths under these prefixes are in-repo Markdown that follows the <80 char
+# typography rule and can reference local-only paths. Markdown outside these
+# prefixes (typically `/tmp/*.md` PR/Linear/Notion body drafts) is treated as
+# external content and gets the full lint.
+IN_REPO_PREFIXES = (
+    "/Users/nickolas/nickolashkraus/",
+    "/Users/nickolas/Function-Health/",
+    "/Users/nickolas/Function-Health-Terraform-Modules/",
+    "/Users/nickolas/infrable-io/",
+    "/Users/nickolas/grind-rip/",
+)
+
+
+def is_in_repo_path(path: str) -> bool:
+    return any(path.startswith(p) for p in IN_REPO_PREFIXES)
+
 
 def extract_fields(
     tool_name: str, tool_input: dict
@@ -234,14 +312,15 @@ def extract_fields(
             return out
         if not file_path.endswith(MARKDOWN_EXTENSIONS):
             return out
+        is_external = not is_in_repo_path(file_path)
         if tool_name == "Edit":
             new_string = tool_input.get("new_string", "")
             if isinstance(new_string, str) and new_string:
-                out.append(("new_string", new_string, True, False, False))
+                out.append(("new_string", new_string, True, False, is_external))
         else:
             content = tool_input.get("content", "")
             if isinstance(content, str) and content:
-                out.append(("content", content, True, False, False))
+                out.append(("content", content, True, False, is_external))
         return out
 
     for label, value in walk_strings(tool_input):
