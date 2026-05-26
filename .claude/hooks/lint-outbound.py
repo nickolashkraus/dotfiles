@@ -148,7 +148,11 @@ def lint_text(
             "Linear ref as a Markdown link instead)"
         )
 
-    if check_local_paths:
+    # Hard-wrap detection applies to external content (PR bodies,
+    # Linear/Notion/Slack payloads, out-of-repo Markdown drafts) but NOT
+    # to commit messages, which wrap at 72 chars per rules/git.md.
+    # `allow_coauthor=False` is the signal that this is a commit body.
+    if check_local_paths and allow_coauthor:
         for ln in detect_hard_wraps(text):
             violations.append(
                 f"{field} line {ln}: hard-wrapped paragraph (external "
