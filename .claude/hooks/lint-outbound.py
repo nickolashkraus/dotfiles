@@ -286,11 +286,14 @@ def extract_bash_content(
 
 MARKDOWN_EXTENSIONS = (".md", ".markdown")
 
-# Paths under these prefixes are in-repo Markdown that follows the <80 char
-# typography rule and can reference local-only paths. Markdown outside these
-# prefixes (typically `/tmp/*.md` PR/Linear/Notion body drafts) is treated as
-# external content and gets the full lint.
+# Paths under these prefixes are internal Markdown (source-control'd
+# project files OR Claude Code's own state directories like
+# `~/.claude/projects/<proj>/memory/`). They follow the <80 char
+# typography rule and can reference local-only paths. Markdown outside
+# these prefixes (typically `/tmp/*.md` PR/Linear/Notion body drafts) is
+# treated as external content and gets the full lint.
 IN_REPO_PREFIXES = (
+    "/Users/nickolas/.claude/",
     "/Users/nickolas/nickolashkraus/",
     "/Users/nickolas/Function-Health/",
     "/Users/nickolas/Function-Health-Terraform-Modules/",
