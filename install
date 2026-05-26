@@ -416,6 +416,7 @@ ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 #   * .claude/settings.json
 ###############################################################################
 check_dir_exists "${dotfiles}/.claude/hooks" || exit 1
+check_dir_exists "${dotfiles}/.claude/git-hooks" || exit 1
 check_dir_exists "${dotfiles}/.claude/rules" || exit 1
 check_dir_exists "${dotfiles}/.claude/skills" || exit 1
 check_file_exists "${dotfiles}/.claude/CLAUDE.md" || exit 1
@@ -431,6 +432,14 @@ ln -s "${dotfiles}/.claude/rules" "${HOME}/.claude/rules"
 ln -s "${dotfiles}/.claude/skills" "${HOME}/.claude/skills"
 ln -s "${dotfiles}/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
 ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
+
+# Wire `.claude/git-hooks/pre-commit` as the dotfiles repo's pre-commit
+# hook. Validates staged `.claude/` changes (YAML parse, JSON parse,
+# Python syntax, typography) at commit time, catching the kinds of
+# bugs that silently shipped before (e.g., the `argument-hint:` flow-
+# sequence trap that broke 7 skills). Writes to the bare repo's shared
+# config, which all current and future worktrees inherit automatically.
+git -C "${dotfiles}" config core.hooksPath .claude/git-hooks
 
 ###############################################################################
 # Codex Configuration

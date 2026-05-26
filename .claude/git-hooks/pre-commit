@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""
+Git pre-commit hook: validates staged files in `.claude/` for the kinds
+of bugs that previously shipped silently because the harness has no CI.
+
+Catches:
+  - YAML parse errors in `SKILL.md` frontmatter (e.g., the `argument-hint:
+    [foo] [bar]` flow-sequence trap that broke 7 skills before it was
+    isolated).
+  - Missing or empty `description:` in skill frontmatter.
+  - `description:` in inline plain `"..."` form when the description
+    contains inner double quotes (silently breaks YAML, registry falls
+    back to body opener).
+  - JSON parse errors in `settings.json` and `*.json`.
+  - Python syntax errors in `hooks/*.py`.
+  - Em dashes, smart quotes, `**X** -` list lead-ins, and `[label][]`
+    reference-link shorthand in any staged `.md` file (in-repo typography
+    rules; mirrors the `lint-outbound.py` checks with the in-repo
+    carve-out).
+
+Install once per clone:
+
+    git config core.hooksPath .claude/git-hooks
+
+Bypass for a single commit:
+
+    git commit --no-verify
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+SMART_QUOTES = {
+    "“": "left double quote",
+    "”": "right double quote",
+    "‘": "left single quote",
+    "’": "right single quote",
+}
+EM_DASH = "—"
+EN_DASH = "–"
+LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
+LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
+    r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
+)
+REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
+
+
+def staged_files() -> list[Path]:
+    out = subprocess.check_output(
+        ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM", "-z"]
+    )
+    return [Path(p) for p in out.decode().split("\0") if p]
+
+
+def staged_content(path: Path) -> str:
+    """Return the staged (about-to-be-committed) content of `path`."""
+    try:
+        return subprocess.check_output(
+            ["git", "show", f":{path}"],
+            stderr=subprocess.DEVNULL,
+        ).decode()
+    except subprocess.CalledProcessError:
+        return ""
+
+
+def scrub_inline_code(line: str) -> str:
+    return re.sub(r"`[^`\n]*`", "", line)
+
+
+def lint_markdown(text: str, path: str) -> list[str]:
+    violations: list[str] = []
+    in_code = False
+    for lineno, raw in enumerate(text.splitlines(), 1):
+        stripped = raw.lstrip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        line = scrub_inline_code(raw)
+        if EM_DASH in line:
+            violations.append(f"{path}:{lineno}: em dash")
+        if EN_DASH in line:
+            violations.append(f"{path}:{lineno}: en dash")
+        for ch, name in SMART_QUOTES.items():
+            if ch in line:
+                violations.append(f"{path}:{lineno}: {name}")
+                break
+        if LIST_LEADIN_RE.match(raw):
+            violations.append(
+                f"{path}:{lineno}: list item uses `**X** -` (use `**X**:`)"
+            )
+        if LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
+            violations.append(
+                f"{path}:{lineno}: bullet `**Element**: lowercase` where "
+                "a clause follows (capitalize first word after the colon)"
+            )
+        if REF_LINK_SHORTHAND_RE.search(line):
+            violations.append(
+                f"{path}:{lineno}: ref-link shorthand `[label][]` "
+                "(use `[text][label]`)"
+            )
+    return violations
+
+
+def validate_skill_frontmatter(text: str, path: str) -> list[str]:
+    """
+    Validate a SKILL.md frontmatter block. Catches the failure modes that
+    historically shipped silently.
+    """
+    violations: list[str] = []
+    if not text.startswith("---\n"):
+        violations.append(f"{path}: missing frontmatter")
+        return violations
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        violations.append(f"{path}: frontmatter not terminated")
+        return violations
+    fm_raw = parts[1]
+
+    try:
+        import yaml
+    except ImportError:
+        return violations
+
+    try:
+        fm = yaml.safe_load(fm_raw)
+    except yaml.YAMLError as e:
+        violations.append(f"{path}: YAML parse failed: {e}")
+        return violations
+
+    if not isinstance(fm, dict):
+        violations.append(f"{path}: frontmatter is not a mapping")
+        return violations
+
+    desc = fm.get("description")
+    if not desc:
+        violations.append(f"{path}: missing or empty `description:`")
+    elif not isinstance(desc, str):
+        violations.append(
+            f"{path}: `description:` is not a string (got {type(desc).__name__})"
+        )
+
+    if "name" not in fm:
+        violations.append(f"{path}: missing `name:`")
+
+    return violations
+
+
+def validate_python(text: str, path: str) -> list[str]:
+    try:
+        compile(text, path, "exec")
+        return []
+    except SyntaxError as e:
+        return [f"{path}: Python syntax error at line {e.lineno}: {e.msg}"]
+
+
+def validate_json(text: str, path: str) -> list[str]:
+    try:
+        json.loads(text)
+        return []
+    except json.JSONDecodeError as e:
+        return [f"{path}: JSON parse error at line {e.lineno}: {e.msg}"]
+
+
+def main() -> int:
+    files = staged_files()
+    if not files:
+        return 0
+
+    violations: list[str] = []
+    for f in files:
+        sp = str(f)
+        try:
+            text = staged_content(f)
+        except UnicodeDecodeError:
+            continue
+        if not text:
+            continue
+
+        if sp.endswith("/SKILL.md") or sp == "SKILL.md":
+            violations.extend(validate_skill_frontmatter(text, sp))
+        if sp.endswith(".md"):
+            violations.extend(lint_markdown(text, sp))
+        if sp.endswith(".py"):
+            violations.extend(validate_python(text, sp))
+        if sp.endswith(".json"):
+            violations.extend(validate_json(text, sp))
+
+    if not violations:
+        return 0
+
+    sys.stderr.write(
+        "pre-commit: validation failed. Fix the issues below and re-stage.\n\n"
+    )
+    for v in violations:
+        sys.stderr.write(f"  - {v}\n")
+    sys.stderr.write(
+        "\nBypass with `git commit --no-verify` if you know what you "
+        "are doing.\n"
+    )
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
