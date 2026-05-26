@@ -1,11 +1,12 @@
 ---
 name: write-trd
 description: >
-  Generates a Technical Requirements Document through structured
-  interviews and codebase analysis.
+  Generates a Technical Requirements Document through structured interviews and
+  codebase analysis. TRIGGER when: user asks for a TRD, requirements doc,
+  technical spec, or design doc via interview.
 disable-model-invocation: false
 allowed-tools: Agent, Bash, Glob, Grep, Read, Write
-argument-hint: [feature-name]
+argument-hint: "[feature-name]"
 ---
 
 You are writing a TRD. Follow every step in order.
@@ -115,5 +116,3 @@ Before delivering, confirm:
 - Risk table has 3+ rows with mitigation strategies.
 - In scope and out of scope explicitly stated.
 - Output filename follows the naming convention.
-
-@~/.claude/rules/meta-learning.md

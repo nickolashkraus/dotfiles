@@ -1,10 +1,12 @@
 ---
 name: create-notion-page
 description: >
-  Create a Notion page with the Markdown contents of a local file.
+  Create a Notion page with the Markdown contents of a local file. TRIGGER
+  when: user asks to create/publish a new Notion page from local Markdown.
+  SKIP: updating an existing page (use `update-notion-page`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__notion__notion-fetch, mcp__notion__notion-create-pages
-argument-hint: <file> [<notion-parent-page-link>]
+argument-hint: "<file> [<notion-parent-page-link>]"
 ---
 
 You are creating a Notion page from the contents of a local Markdown file.
@@ -100,5 +102,3 @@ Use the `notion-create-pages` tool with:
   the user can organize later.
 
 Print the new Notion page link when done.
-
-@~/.claude/rules/meta-learning.md

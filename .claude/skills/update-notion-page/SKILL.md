@@ -1,10 +1,12 @@
 ---
 name: update-notion-page
 description: >
-  Update a Notion page with the Markdown contents of a local file.
+  Update a Notion page with the Markdown contents of a local file. TRIGGER
+  when: user provides a Notion URL and a local Markdown file to push. SKIP:
+  creating a new page (use `create-notion-page`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__notion__notion-fetch, mcp__notion__notion-update-page
-argument-hint: <file> <notion-page-link>
+argument-hint: "<file> <notion-page-link>"
 ---
 
 You are updating a Notion page with the contents of a local Markdown file.
@@ -77,5 +79,3 @@ Strip the first H1 header from the content before replacing, since Notion uses
 the page title for that. Update the page title if it differs from the H1.
 
 Print the Notion page link when done.
-
-@~/.claude/rules/meta-learning.md

@@ -2,9 +2,12 @@
 name: babysit-pr
 description: >
   Monitors a PR for new commits, checks CI status, and deploys on approval.
+  TRIGGER when: user says "babysit", "watch this PR", "wait for CI and deploy",
+  or references a PR by URL/number with monitoring intent. SKIP: one-off CI fix
+  (use `fix-ci`) or release PR (use `fix-ci-release`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, Glob, Grep
-argument-hint: <pr-url-or-number> [deploy-script]
+argument-hint: "<pr-url-or-number> [deploy-script]"
 ---
 
 You are monitoring a pull request, checking CI, and deploying when approved.
@@ -76,5 +79,3 @@ If a deploy script was provided:
 3. Report the result: success or failure with relevant output.
 
 After a successful deploy, stop monitoring. The loop can be cancelled.
-
-@~/.claude/rules/meta-learning.md

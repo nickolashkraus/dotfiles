@@ -1,9 +1,12 @@
 ---
 name: update-linear-issue
-description: Update a Linear issue from context.
+description: >
+  Update a Linear issue from context. TRIGGER when: user provides a Linear slug
+  to update/edit, modify the description, or change status. SKIP: creating a
+  new issue (use `create-linear-issue`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__get_issue
-argument-hint: <linear-issue>
+argument-hint: "<linear-issue>"
 ---
 
 You are updating a Linear issue from the current conversation context.
@@ -32,7 +35,7 @@ description payload in Step 6. If the script is not available, unwrap manually:
 each paragraph and each bullet must be one unbroken line.
 
 ```
-python3 /Users/nickolas/nickolashkraus/agent-os/master/scripts/clean_markdown.py \
+python3 ~/nickolashkraus/agent-os/master/scripts/clean_markdown.py \
   --input /tmp/linear-drafts/<issue-id>.md \
   --output /tmp/linear-drafts/clean/
 ```
@@ -66,5 +69,3 @@ Use the `save_issue` tool with the `id` parameter to update the issue with:
 - **description**: The output from Step 4.
 
 Print the issue identifier when done.
-
-@~/.claude/rules/meta-learning.md

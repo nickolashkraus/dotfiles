@@ -63,6 +63,19 @@ phase to prevent unbounded iteration. If consensus is not
 reached, the Orchestrator surfaces the remaining disagreements
 to the user.
 
+## Material-Rewrite Reset
+
+If the load-bearing section of a synthesis is materially
+rewritten between rounds (in `/swarm-bug` and `/swarm-investigate`
+the root-cause section; in `/swarm-feature` the design or
+approach; in `/swarm-research` the recommendations or tradeoff
+table; in `/swarm-verify` the verdict), prior approvals from the
+unchanged-context agents are void. Restart the review loop from
+round 1 against the new synthesis. The 3-round cap applies
+per-version-of-synthesis, not globally. Without this rule, a late
+pivot consumes the round budget on approvals that were given
+against a now-stale document.
+
 ## Context Management
 
 The Orchestrator runs the entire workflow. Without management,

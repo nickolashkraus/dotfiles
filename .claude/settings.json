@@ -1,18 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(git *)",
-      "Bash(npm *)",
-      "Edit",
-      "Glob",
-      "Grep",
-      "LSP",
-      "Read",
-      "WebFetch",
-      "WebSearch"
-    ],
-    "defaultMode": "bypassPermissions",
-    "additionalDirectories": []
+    "defaultMode": "bypassPermissions"
   },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
@@ -53,12 +41,22 @@
         ]
       },
       {
-        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__create_draft|Bash",
+        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__create_draft|Bash|Edit|Write",
         "hooks": [
           {
             "type": "command",
             "command": "~/.claude/hooks/lint-outbound.py",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/confirm-risky.py",
+            "timeout": 5
           }
         ]
       }

@@ -1,8 +1,9 @@
 ---
 name: remote
 description: >
-  Polls for remote tasks submitted via Obsidian (iOS) and executes them
-  on macOS. Pair with /loop for continuous polling.
+  Polls for remote tasks submitted via Obsidian (iOS) and executes them on
+  macOS. Pair with /loop for continuous polling. TRIGGER when: user says "poll
+  remote", "check remote tasks", "run remote", or invokes inside `/loop`.
 disable-model-invocation: false
 allowed-tools: >
   Bash, Edit, Glob, Grep, Read, Write, Agent,
@@ -196,5 +197,3 @@ timing:
 - **Idle**: If no tasks were processed (nothing pending, nothing
   newly unblocked), schedule the next poll in **270 seconds**. This
   keeps the cache warm without wasting cycles.
-
-@~/.claude/rules/meta-learning.md

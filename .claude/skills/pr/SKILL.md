@@ -1,9 +1,12 @@
 ---
 name: pr
-description: Creates a branch and pull request from the current commit(s).
+description: >
+  Create a branch and pull request from the current commits. TRIGGER when: user
+  has commits ready and wants a branch + push + PR. SKIP: still need to commit
+  (use `commit`) or want the full pipeline (use `ship`).
 disable-model-invocation: false
 allowed-tools: Bash, Read
-argument-hint: [--worktree] [linear-issue]
+argument-hint: "[--worktree] [linear-issue]"
 ---
 
 You are creating a pull request. Follow every step in order.
@@ -61,5 +64,3 @@ Create the pull request using `gh pr create` against the default branch:
 - Do not add boilerplate sections the change does not warrant.
 
 Print the pull request URL when done.
-
-@~/.claude/rules/meta-learning.md

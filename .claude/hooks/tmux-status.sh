@@ -14,7 +14,11 @@
 # when the pane is destroyed. Window state lives in @claude_status; the
 # Powerline format prepends it to the window status.
 
-log=/tmp/claude-tmux-debug.log
+if [ -n "${CLAUDE_TMUX_DEBUG:-}" ]; then
+  log=/tmp/claude-tmux-debug.log
+else
+  log=/dev/null
+fi
 state="${1:-idle}"
 echo "[$(date +%T)] state=$state TMUX_PANE=${TMUX_PANE:-unset}" >>"$log"
 

@@ -1,20 +1,25 @@
 ---
 name: swarm-investigate
 description: >
-  Multi-agent swarm for investigating a contemporaneous issue
-  (production incident, anomaly, mysterious behavior). Produces
-  a written report; no implementation phase.
+  Multi-agent swarm for investigating a contemporaneous issue (production
+  incident, anomaly, mysterious behavior). Produces a written report; no
+  implementation phase. TRIGGER when: live production incident, anomaly,
+  mysterious behavior, or "what is going on with X right now". SKIP:
+  implementing a known fix (use `swarm-bug` or direct implementation).
 disable-model-invocation: false
-allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, Write
-argument-hint: <issue-description-or-file> [--linear <issue-slug>]
+allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, SendMessage, Skill, WebFetch, Write, mcp__linear__get_issue, mcp__notion__notion-fetch
+argument-hint: "<issue-description-or-file> [--linear <issue-slug>]"
 ---
 
 You are the Orchestrator in a 5-agent swarm for investigating
 an issue. The deliverable is a written report, not a code
 change. Follow every step in order.
 
-Read `~/.claude/skills/swarm-core/PRINCIPLES.md` for the shared
-swarm design principles.
+Shared design principles, mechanics, and snippets:
+
+@~/.claude/skills/swarm-core/PRINCIPLES.md
+
+@~/.claude/skills/swarm-core/STEPS.md
 
 ## Agents
 
@@ -151,14 +156,8 @@ Spawn the four agents in parallel. Substitute
 
 Read all four verdicts. If any agent has concerns, address them
 and re-submit. Loop until all four approve, capped at 3 rounds.
-
-**Material-rewrite reset**: If the root-cause section is
-materially rewritten between rounds (a new bug identified, the
-failure mechanism reframed, the originating event reattributed,
-etc.), prior approvals from the unchanged-context agents are
-void. Restart synthesis-review from round 1 against the new
-synthesis. The 3-round cap applies per-version-of-synthesis,
-not globally.
+If the root-cause section is materially rewritten between rounds,
+apply the "Material-Rewrite Reset" rule from `swarm-core/PRINCIPLES.md`.
 
 Write the final report to `{artifact_dir}/orchestrator/final.md`.
 
@@ -198,5 +197,3 @@ final report using `/create-linear-issue`.
 If the recommended actions include code changes, suggest
 running `/swarm-bug` (for a single bug fix) or `/swarm-feature`
 (for a larger remediation) to drive implementation.
-
-@~/.claude/rules/meta-learning.md

@@ -1,12 +1,16 @@
 ---
 name: review-file
-description: Review a file for typos, bugs, inaccuracies, and inconsistencies.
+description: >
+  Review a single file at a given path for typos, bugs, inaccuracies, and
+  inconsistencies. TRIGGER when: user provides a specific file path (or paths)
+  to review/audit. SKIP: full diff against the default branch (use
+  `review-diff`).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: <file>
+argument-hint: "<file>"
 ---
 
-You are reviewing a file. The file path is `$ARGUMENTS`.
+You are reviewing a single file. The file path is `$ARGUMENTS`.
 
 If `$ARGUMENTS` is a directive like "all unstaged files", "all changed files",
 or "all files in the diff", resolve it to a concrete list via `git` (e.g., `git
@@ -56,5 +60,3 @@ If you find issues, fix them directly. If the fix is ambiguous, prompt the user
 for input. Lean more toward just fixing the issue.
 
 If the file is clean, say so.
-
-@~/.claude/rules/meta-learning.md

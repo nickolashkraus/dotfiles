@@ -1,20 +1,26 @@
 ---
 name: swarm-bug
 description: >
-  Multi-agent swarm for fixing hard bugs. Independent parallel
-  investigation, structured synthesis, implementation in a code
-  worktree, and multi-agent review.
+  Multi-agent swarm for fixing hard bugs. Independent parallel investigation,
+  structured synthesis, implementation in a code worktree, and multi-agent
+  review. TRIGGER when: bug is genuinely hard, multi-cause, or spans multiple
+  subsystems and benefits from parallel lenses. SKIP: simple or obvious bug
+  (just fix it inline).
 disable-model-invocation: false
-allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, Write
-argument-hint: <bug-report> [--linear <issue-slug>]
+allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, SendMessage, Skill, WebFetch, Write, mcp__linear__get_issue, mcp__notion__notion-fetch
+argument-hint: "<bug-report> [--linear <issue-slug>]"
 ---
 
 You are the Orchestrator in a 5-agent swarm for fixing hard
 bugs. Follow every step in order.
 
-Read `~/.claude/skills/swarm-core/PRINCIPLES.md` for the shared
-swarm design principles, then `~/.claude/skills/swarm-bug/PRINCIPLES.md`
-for bug-specific lessons.
+Shared design principles, mechanics, and snippets:
+
+@~/.claude/skills/swarm-core/PRINCIPLES.md
+
+@~/.claude/skills/swarm-core/STEPS.md
+
+@~/.claude/skills/swarm-bug/PRINCIPLES.md
 
 ## Agents
 
@@ -268,5 +274,3 @@ the user requests one.
 
 After the code PR is created, run `/fix-ci` until all checks
 pass.
-
-@~/.claude/rules/meta-learning.md

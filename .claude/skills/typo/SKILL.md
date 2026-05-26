@@ -2,7 +2,8 @@
 name: typo
 description: >
   Check macOS clipboard for typos and formatting issues, fix them, and re-paste
-  to clipboard.
+  to clipboard. TRIGGER when: user says "typo", "fix the clipboard", "clean
+  this up" with no file path, or sends a single-word "typo" message.
 disable-model-invocation: false
 allowed-tools: Bash
 ---
@@ -46,5 +47,3 @@ If issues found: list each issue and its fix in a short table, then pipe the
 corrected text back to the clipboard with `pbcopy`.
 
 Confirm the clipboard has been updated.
-
-@~/.claude/rules/meta-learning.md
