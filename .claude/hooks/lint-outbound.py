@@ -30,6 +30,14 @@ EM_DASH = "—"
 EN_DASH = "–"
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
+# Bullet items with `**Element**: lowercase_word ...` (multi-word value)
+# violate rules/typography.md and rules/general.md, both of which require
+# capitalizing the first word after a colon when a sentence or clause
+# follows. Single-word values (`**Status**: active`) and values starting
+# with non-alphabetic chars (paths, code spans) are not matched.
+LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
+    r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
+)
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -188,6 +196,13 @@ def lint_text(
             violations.append(
                 f"{field} line {lineno}: list item uses `**X** -` "
                 "(use `**X**:` per rules/typography.md)"
+            )
+        if LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
+            violations.append(
+                f"{field} line {lineno}: bullet `**Element**: lowercase` "
+                "where a clause follows (capitalize the first word after "
+                "the colon per rules/typography.md; single-word values "
+                "are exempt and not matched by this rule)"
             )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(

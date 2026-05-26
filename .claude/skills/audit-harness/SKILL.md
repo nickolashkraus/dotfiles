@@ -59,22 +59,22 @@ Collect the following inputs into context. Cap each at ~100 lines via
 Read the collected inputs and look for these recurring patterns. Each
 pattern is a candidate signal of a harness gap.
 
-- **Manual recovery**: a skill was invoked but the user had to step in
+- **Manual recovery**: A skill was invoked but the user had to step in
   with an inline correction ("no, do X instead", "stop", "actually
   use Y"). The skill's instructions are insufficient.
-- **Repeat fix**: the same kind of fix landed across multiple sessions
+- **Repeat fix**: The same kind of fix landed across multiple sessions
   (e.g., "fix typography in PR body" three days in a row). Suggests
   a missing lint check or a stale rule.
-- **Tool errors**: an MCP or built-in tool call failed repeatedly with
+- **Tool errors**: An MCP or built-in tool call failed repeatedly with
   the same error. Suggests auth/config drift or a missing precondition
   the skill should set up.
-- **Pre-commit / hook failures**: the pre-commit or `lint-outbound`
+- **Pre-commit / hook failures**: The pre-commit or `lint-outbound`
   hook fired on the same pattern repeatedly. Suggests a rule that
   should be promoted to a positive enforcement (auto-fix, template,
   or upstream change) rather than just a block.
-- **Slow skills**: a skill took multiple rounds of agent calls that
+- **Slow skills**: A skill took multiple rounds of agent calls that
   could have been one focused call. Suggests over-decomposition.
-- **Untouched skills**: a skill has not been invoked in the window
+- **Untouched skills**: A skill has not been invoked in the window
   despite the kind of work it covers being done manually. Suggests
   weak discoverability (missing TRIGGER cue or wrong description).
 
@@ -85,10 +85,10 @@ window to count.
 
 For each candidate, estimate:
 
-- **Impact**: how much time / how many sessions does fixing this save
+- **Impact**: How much time / how many sessions does fixing this save
   per week?
-- **Effort**: how long would the fix take (minutes, hours, days)?
-- **Risk**: what could the fix break?
+- **Effort**: How long would the fix take (minutes, hours, days)?
+- **Risk**: What could the fix break?
 
 Rank by impact-per-effort. Drop anything with high effort and unclear
 impact.

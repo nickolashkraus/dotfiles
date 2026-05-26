@@ -203,13 +203,13 @@ from an ADR or the failure-mode bullets from a PR body loses real value.
   substantive design point, not per file), rollback or operational notes
   when relevant, and the Linear link. Drop only pure narration that
   restates the diff.
-- **Code comments and docstrings**: keep docstrings on non-trivial
+- **Code comments and docstrings**: Keep docstrings on non-trivial
   functions (2-4 lines: what it returns, non-obvious caveats). Keep ADR
   comments on files that genuinely embody an architectural decision
   (20-40 lines is fine; 90+ is not). Always keep the *why* on non-obvious
   decisions. Drop pure narration, restatements of signatures, section
   dividers, and ASCII-art tables.
-- **Orchestration messages to agents**: tight, but include the context the
+- **Orchestration messages to agents**: Tight, but include the context the
   recipient needs to act. Reviews with concrete file or line references
   beat single-word acknowledgments when the agent needs to know what to do.
   Acknowledgments after a clean ping can be one word ("Acked.").

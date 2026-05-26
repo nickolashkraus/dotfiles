@@ -45,6 +45,9 @@ SMART_QUOTES = {
 EM_DASH = "—"
 EN_DASH = "–"
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
+LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
+    r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
+)
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 
 
@@ -92,6 +95,11 @@ def lint_markdown(text: str, path: str) -> list[str]:
         if LIST_LEADIN_RE.match(raw):
             violations.append(
                 f"{path}:{lineno}: list item uses `**X** -` (use `**X**:`)"
+            )
+        if LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
+            violations.append(
+                f"{path}:{lineno}: bullet `**Element**: lowercase` where "
+                "a clause follows (capitalize first word after the colon)"
             )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(
