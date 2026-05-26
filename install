@@ -437,8 +437,8 @@ ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 # hook. Validates staged `.claude/` changes (YAML parse, JSON parse,
 # Python syntax, typography) at commit time, catching the kinds of
 # bugs that silently shipped before (e.g., the `argument-hint:` flow-
-# sequence trap that broke 7 skills). Set per worktree; other worktrees
-# need this re-run.
+# sequence trap that broke 7 skills). Writes to the bare repo's shared
+# config, which all current and future worktrees inherit automatically.
 git -C "${dotfiles}" config core.hooksPath .claude/git-hooks
 
 ###############################################################################
