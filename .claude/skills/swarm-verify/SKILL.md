@@ -1,12 +1,13 @@
 ---
 name: swarm-verify
 description: >
-  Multi-agent swarm for verifying a claim, document, or proposal
-  against reality. Produces a verdict and supporting evidence;
-  no implementation phase.
+  Multi-agent swarm for verifying a claim, document, or proposal against
+  reality. Produces a verdict and supporting evidence; no implementation phase.
+  TRIGGER when: claim, document, or proposal needs adversarial verification
+  against the actual code/system. SKIP: simple fact lookup (use `fact-check`).
 disable-model-invocation: false
-allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, Write
-argument-hint: <claim-or-file> [--source <url>]
+allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, SendMessage, Skill, WebFetch, Write, mcp__linear__get_issue, mcp__notion__notion-fetch
+argument-hint: "<claim-or-file> [--source <url>]"
 ---
 
 You are the Orchestrator in a 5-agent swarm for verifying a
@@ -14,8 +15,11 @@ claim, document, plan, or set of assertions. The deliverable is
 a verdict ("supported," "partially supported," "not supported,"
 or "unverifiable") with evidence. Follow every step in order.
 
-Read `~/.claude/skills/swarm-core/PRINCIPLES.md` for the shared
-swarm design principles.
+Shared design principles, mechanics, and snippets:
+
+@~/.claude/skills/swarm-core/PRINCIPLES.md
+
+@~/.claude/skills/swarm-core/STEPS.md
 
 ## Agents
 
@@ -93,6 +97,13 @@ Copy `~/.claude/skills/swarm-verify/ANALYSIS.md` to
 the input into a numbered list of atomic, individually
 verifiable claims. A document with five embedded assertions
 becomes five claims, each verifiable independently.
+
+**User gate**: Present the claim list to the user. Ask: "Approve
+these claims, or adjust the decomposition?" Do not spawn the
+parallel investigators until the user approves. The claim list
+drives 4 parallel agents plus a convergence round (8 agent calls
+minimum), so getting the decomposition right before spending the
+budget is cheap.
 
 ## Step 2: Investigate (parallel)
 
@@ -188,5 +199,3 @@ If the user wants to share the memo, suggest the appropriate
 channel (`/outbox` for Slack, `/update-notion-page` if the
 original source was a Notion doc, `/update-linear-issue` if a
 Linear issue exists).
-
-@~/.claude/rules/meta-learning.md

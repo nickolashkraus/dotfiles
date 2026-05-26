@@ -1,14 +1,17 @@
 ---
-name: review
+name: review-diff
 description: >
-  Reviews the diff against the default branch for typos, bugs, and
-  inconsistencies.
+  Review the diff against the default branch for typos, bugs, and
+  inconsistencies. TRIGGER when: user says "review my changes / diff", before
+  commit or push, after substantive edits. SKIP: single file at a known path
+  (use `review-file`); PR review (use the built-in `review` plugin).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
-argument-hint: [--staged]
+argument-hint: "[--staged]"
 ---
 
-You are reviewing a set of changes. Follow every step in order.
+You are reviewing the diff against the default branch (not a single file).
+Follow every step in order.
 
 ## Step 1: Parse arguments
 
@@ -56,5 +59,3 @@ After fixing, re-run the diff to confirm your fixes are correct.
 If the diff is clean, say so and move on.
 
 Run CI (formatting, linting, tests, etc.) to ensure the changes will pass.
-
-@~/.claude/rules/meta-learning.md

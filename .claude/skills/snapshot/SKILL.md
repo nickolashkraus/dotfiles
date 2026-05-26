@@ -2,7 +2,9 @@
 name: snapshot
 description: >
   Snapshots dirty working tree to a dated backup branch, then restores the
-  dirty state on the default branch.
+  dirty state on the default branch. TRIGGER when: user wants to save
+  uncommitted work without committing on the default branch, context-switch
+  safely, or "stash this somewhere safe".
 disable-model-invocation: false
 allowed-tools: Bash, Read, Skill
 ---
@@ -67,5 +69,3 @@ git push -u origin SNAPSHOT-YYYY-MM-DD.XX
 
 Print the snapshot branch name and confirm that the default branch is back to
 its original dirty state (`git status`).
-
-@~/.claude/rules/meta-learning.md

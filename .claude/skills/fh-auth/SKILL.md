@@ -1,10 +1,12 @@
 ---
 name: fh-auth
 description: >
-  Function Health authentication runbooks: CLI login (Auth0,
-  ConductorOne), API secret-key (Fernet) token generation, Cloud Run
-  proxy for internal services, and Admin App GraphQL token exchange
-  (Okta -> FH JWT) for staff operations like `updatePatient`.
+  Function Health authentication runbooks: CLI login (Auth0, ConductorOne), API
+  secret-key (Fernet) token generation, Cloud Run proxy for internal services,
+  and Admin App GraphQL token exchange (Okta -> FH JWT) for staff operations
+  like `updatePatient`. TRIGGER when: user mentions FH auth failure,
+  Auth0/ConductorOne login, Okta -> FH JWT exchange, GraphQL 401, Cloud Run
+  proxy for an internal FH service, or needs a Fernet API key.
 disable-model-invocation: false
 allowed-tools: Bash, Read
 ---

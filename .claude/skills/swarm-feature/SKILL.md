@@ -1,19 +1,24 @@
 ---
 name: swarm-feature
 description: >
-  Multi-agent swarm for designing and implementing new features.
-  Independent parallel investigation, structured synthesis,
-  implementation in a code worktree, and multi-agent review.
+  Multi-agent swarm for designing and implementing new features. Independent
+  parallel investigation, structured synthesis, implementation in a code
+  worktree, and multi-agent review. TRIGGER when: building a non-trivial
+  feature that requires design exploration across the codebase. SKIP:
+  small/local change (just implement it).
 disable-model-invocation: false
-allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, Write
-argument-hint: <feature-spec> [--linear <issue-slug>]
+allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, SendMessage, Skill, WebFetch, Write, mcp__linear__get_issue, mcp__notion__notion-fetch
+argument-hint: "<feature-spec> [--linear <issue-slug>]"
 ---
 
 You are the Orchestrator in a 5-agent swarm for shipping new
 features. Follow every step in order.
 
-Read `~/.claude/skills/swarm-core/PRINCIPLES.md` for the shared
-swarm design principles.
+Shared design principles, mechanics, and snippets:
+
+@~/.claude/skills/swarm-core/PRINCIPLES.md
+
+@~/.claude/skills/swarm-core/STEPS.md
 
 ## Agents
 
@@ -240,5 +245,3 @@ push the branch.
 
 After the code PR is created, run `/fix-ci` until all checks
 pass.
-
-@~/.claude/rules/meta-learning.md

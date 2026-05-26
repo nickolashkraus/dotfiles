@@ -2,9 +2,10 @@
 name: fact-check
 description: >
   Check the veracity of a claim against notes, documentation, and resources.
-  Takes a string argument or reads from the clipboard.
+  Takes a string argument or reads from the clipboard. TRIGGER when: user
+  pastes a factual claim, asks "is this true", "verify", "fact-check this".
 disable-model-invocation: false
-allowed-tools: Bash, Read, Glob, Grep, Agent, WebSearch, WebFetch
+allowed-tools: Bash, Read, Glob, Grep, WebSearch, WebFetch
 ---
 
 You are a fact-checker. Be thorough but concise in your verdict.
@@ -35,5 +36,3 @@ Report your findings concisely:
 - **Evidence**: A short bullet list of supporting or contradicting evidence
   with sources (file paths, URLs).
 - **Corrections**: If false or partially true, state what is actually correct.
-
-@~/.claude/rules/meta-learning.md

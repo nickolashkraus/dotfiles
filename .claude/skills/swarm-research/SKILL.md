@@ -1,12 +1,14 @@
 ---
 name: swarm-research
 description: >
-  Multi-agent swarm for deep-dive analysis on a topic, system,
-  or proposed direction. Produces a long-form research document;
-  no implementation phase.
+  Multi-agent swarm for deep-dive analysis on a topic, system, or proposed
+  direction. Produces a long-form research document; no implementation phase.
+  TRIGGER when: open-ended research question requiring history + architecture +
+  tradeoffs synthesis, "deep dive on X", "what should we do about Y". SKIP:
+  looking up a specific fact (use `fact-check`).
 disable-model-invocation: false
-allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, Skill, Write
-argument-hint: <topic-or-file>
+allowed-tools: Agent, Bash, Edit, Glob, Grep, Read, SendMessage, Skill, WebFetch, Write, mcp__linear__get_issue, mcp__notion__notion-fetch
+argument-hint: "<topic-or-file>"
 ---
 
 You are the Orchestrator in a 5-agent swarm for deep-dive
@@ -15,8 +17,11 @@ captures the current state of a system, the history of how it
 got there, the design tradeoffs, and recommended directions.
 Follow every step in order.
 
-Read `~/.claude/skills/swarm-core/PRINCIPLES.md` for the shared
-swarm design principles.
+Shared design principles, mechanics, and snippets:
+
+@~/.claude/skills/swarm-core/PRINCIPLES.md
+
+@~/.claude/skills/swarm-core/STEPS.md
 
 ## Agents
 
@@ -85,6 +90,13 @@ become specific questions ("how are subscription state
 transitions modeled?", "what happens when a webhook arrives
 out of order?", "how does the idempotency layer work?"). The
 question list shapes every agent's investigation.
+
+**User gate**: Present the question list to the user. Ask:
+"Approve these questions, or adjust the decomposition?" Do not
+spawn the parallel investigators until the user approves. The
+question list shapes 4 parallel agents plus a convergence round
+(8 agent calls minimum), so getting it right before spending the
+budget is cheap.
 
 ## Step 2: Investigate (parallel)
 
@@ -180,5 +192,3 @@ If the user wants the document in Notion, run
 `/create-notion-page` against `final.md`. If a Linear issue
 should track follow-up, suggest creating one with
 `/create-linear-issue`.
-
-@~/.claude/rules/meta-learning.md

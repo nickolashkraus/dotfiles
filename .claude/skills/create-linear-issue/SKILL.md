@@ -1,9 +1,12 @@
 ---
 name: create-linear-issue
-description: Create a Linear issue from context.
+description: >
+  Create a Linear issue from context. TRIGGER when: user asks to
+  file/open/create a Linear issue or ticket. SKIP: updating an existing issue
+  (use `update-linear-issue`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__list_projects
-argument-hint: <team> <project>
+argument-hint: "<team> <project>"
 ---
 
 You are creating a Linear issue from the current conversation context.
@@ -42,7 +45,7 @@ description payload in Step 6. If the script is not available, unwrap manually:
 each paragraph and each bullet must be one unbroken line.
 
 ```
-python3 /Users/nickolas/nickolashkraus/agent-os/master/scripts/clean_markdown.py \
+python3 ~/nickolashkraus/agent-os/master/scripts/clean_markdown.py \
   --input /tmp/linear-drafts/<slug>.md \
   --output /tmp/linear-drafts/clean/
 ```
@@ -83,5 +86,3 @@ Use the `save_issue` tool to create the issue with:
 - **state**: Todo.
 
 Print the issue identifier (e.g., EPD-123) when done.
-
-@~/.claude/rules/meta-learning.md

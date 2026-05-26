@@ -2,7 +2,9 @@
 name: monitor-slack
 description: >
   Monitors a Slack thread, channel, DM, or workspace for a topic, triaging
-  issues and drafting fixes for bugs.
+  issues and drafting fixes for bugs. TRIGGER when: user says "monitor Slack
+  for X", wants ongoing surveillance of a topic/thread/channel, drafts fixes
+  for incoming bug reports.
 disable-model-invocation: false
 allowed-tools: >
   Bash, Edit, Glob, Grep, Read, Write, Agent,
@@ -226,5 +228,3 @@ No new messages. Monitoring continues.
 
 If messages were processed, print a summary of actions taken (summaries
 printed, fixes drafted, messages queued).
-
-@~/.claude/rules/meta-learning.md

@@ -2,6 +2,8 @@
 name: outbox
 description: >
   Review, edit, approve, and send queued Slack messages from the outbox.
+  TRIGGER when: user references "outbox", asks to list/send/edit queued Slack
+  drafts, or completes `monitor-slack` and wants to drain the queue.
 disable-model-invocation: false
 allowed-tools: >
   Bash, Edit, Glob, Read, Write,
@@ -128,5 +130,3 @@ Outbox is empty.
 1. Count unchecked items.
 2. Ask: "Discard all N pending messages? (y/n)"
 3. On confirmation, change all `- [ ]` to `- [-]`.
-
-@~/.claude/rules/meta-learning.md

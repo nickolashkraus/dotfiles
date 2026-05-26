@@ -1,9 +1,11 @@
 ---
 name: fh-kubernetes
 description: >
-  Function Health GKE kubeconfig generation. Use when you need to
-  generate or refresh `~/.kube/function.yaml` for the `dev`, `prod`,
-  or `sandbox` clusters via `generate-fh-kubeconfig`.
+  Function Health GKE kubeconfig generation. Use when you need to generate or
+  refresh `~/.kube/function.yaml` for the `dev`, `prod`, or `sandbox` clusters
+  via `generate-fh-kubeconfig`. TRIGGER when: user needs kubectl access to an
+  FH cluster, refresh of FH kubeconfig, or hits an auth/expiry error against
+  the FH GKE control plane.
 disable-model-invocation: false
 allowed-tools: Bash, Read
 ---

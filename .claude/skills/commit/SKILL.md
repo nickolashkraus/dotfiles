@@ -1,9 +1,12 @@
 ---
 name: commit
-description: Creates a Git commit from the current changes.
+description: >
+  Create a Git commit from the current changes. TRIGGER when: user says
+  "commit", staged or unstaged changes need a commit message. SKIP: user wants
+  commit + push + open PR in one shot (use `ship`).
 disable-model-invocation: false
 allowed-tools: Bash, Read
-argument-hint: [--staged] [linear-issue]
+argument-hint: "[--staged] [linear-issue]"
 ---
 
 You are committing a set of changes. Follow every step in order.
@@ -36,5 +39,3 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
 
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
-
-@~/.claude/rules/meta-learning.md

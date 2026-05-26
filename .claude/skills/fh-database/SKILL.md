@@ -1,10 +1,12 @@
 ---
 name: fh-database
 description: >
-  Function Health database access via Cloud SQL Auth Proxy. Covers
-  Dev/Staging instances (static `POSTGRES_PASSWORD` from Secret
-  Manager) and Prod instances (IAM group authentication via
-  ConductorOne entitlements and `gcloud auth print-access-token`).
+  Function Health database access via Cloud SQL Auth Proxy. Covers Dev/Staging
+  instances (static `POSTGRES_PASSWORD` from Secret Manager) and Prod instances
+  (IAM group authentication via ConductorOne entitlements and `gcloud auth
+  print-access-token`). TRIGGER when: user wants to query the FH
+  Dev/Staging/Prod database, set up Cloud SQL Auth Proxy, or troubleshoot
+  Postgres auth for FH.
 disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
