@@ -230,6 +230,7 @@ Rebase
 Rebasing
 Redis
 RequisitionFilterOps
+Rescoping
 RestApi
 Retriggering
 Rollout
@@ -326,6 +327,7 @@ Zsh
 a16z
 acul
 ai
+analytics
 api
 args
 auditable
@@ -456,6 +458,7 @@ orchestrator
 os
 overcomplicate
 overcontributed
+parametrized
 passthrough
 passwordless
 perseveration
@@ -475,6 +478,7 @@ proxying
 px
 ramdisk
 reStructuredText
+rebase
 rebasing
 reconciler
 repartition
@@ -520,6 +524,8 @@ timestamp
 timestamps
 uncomment
 unicode
+unmapped
+unmerged
 unmount
 unordered
 untrusted
@@ -543,6 +549,7 @@ webhook
 webhooks
 whitespace
 wildcard
+winback
 wl
 workspace
 worktree
