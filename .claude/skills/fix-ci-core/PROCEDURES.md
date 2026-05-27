@@ -12,21 +12,29 @@ one place.
 
 ## Resolve the pull request
 
-Parse `$ARGUMENTS` for a PR number (any unflagged token). If a number was
-passed, use it. Otherwise, detect the current branch's open PR:
+Parse `$ARGUMENTS` for a PR reference (any unflagged token). It can be a PR
+number (e.g., `123`) or a PR URL (e.g.,
+`https://github.com/owner/repo/pull/123`). `gh pr view` accepts either form
+natively; if no reference was passed, it falls back to the current branch's
+open PR:
 
 ```
-gh pr view --json number,headRefName,baseRefName,title \
-  --jq '{number, headRefName, baseRefName, title}'
+gh pr view [<ref>] --json number,url,headRefName,baseRefName,title \
+  --jq '{number, url, headRefName, baseRefName, title}'
 ```
 
 If no PR is found, stop and tell the user.
 
-Also resolve `{owner}/{repo}` for `gh api` calls:
+Resolve `{owner}/{repo}` for `gh api` calls from the PR's `url` field (the
+segment between `github.com/` and `/pull/`, e.g.,
+`https://github.com/foo/bar/pull/123` becomes `foo/bar`). This works in
+both modes (ref passed vs. inferred from current branch) and resolves
+correctly even when the URL points at a different repo.
 
-```
-gh repo view --json nameWithOwner --jq '.nameWithOwner'
-```
+When invoking a sister skill downstream (e.g., `Skill(skill:
+"fix-bot-reviews", args: "<ref>")`), pass the original reference unchanged.
+If the user provided a URL, pass the URL through; the downstream skill
+re-parses it.
 
 Extract the Linear issue slug from the PR title (the prefix before the first
 colon, e.g., `BYB-1120` from `BYB-1120: Handle missing statuses`). The slug

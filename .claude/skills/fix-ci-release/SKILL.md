@@ -8,7 +8,7 @@ description: >
 disable-model-invocation: false
 allowed-tools:
   Bash, Read, Glob, Grep, mcp__linear__save_issue, mcp__linear__list_projects
-argument-hint: "[--re-review [all | unresolved]] [pr-number]"
+argument-hint: "[--re-review [all | unresolved]] [pr-ref]"
 ---
 
 You are fixing CI failures on a release PR (triage to Linear, do not commit).

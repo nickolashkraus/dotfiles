@@ -101,8 +101,8 @@ Add `AlembicMigration`/`NewSecret` labels if applicable.
 
 ## Step 5: Wait for CI
 
-Run `/fix-ci-release <pr-number>` to monitor CI and triage bot
-comments. This creates a Linear issue for findings instead of
+Run `/fix-ci-release <pr-ref>` (URL or number) to monitor CI and
+triage bot comments. This creates a Linear issue for findings instead of
 committing fixes directly (release branches only accept cherry-
 picked merge commits).
 

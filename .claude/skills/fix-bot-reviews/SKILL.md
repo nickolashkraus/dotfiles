@@ -7,7 +7,7 @@ description: >
   SKIP: failing CI checks (use `fix-ci`) or release PR (use `fix-ci-release`).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
-argument-hint: "[--re-review [all | unresolved]] [pr-number]"
+argument-hint: "[--re-review [all | unresolved]] [pr-ref]"
 ---
 
 You are fixing bot review comments on a pull request as a stacked worktree
@@ -102,10 +102,11 @@ Print the fix PR URL.
 
 ## Step 8: Hand off to `fix-ci`
 
-Invoke `Skill(skill: "fix-ci", args: "--in-place <new-pr-number>")` on the
-fix PR to handle any CI failures and new bot comments that appear. The
-`--in-place` flag ensures `fix-ci` fixes bot comments directly on the fix
-branch instead of recursing back into `fix-bot-reviews`.
+Invoke `Skill(skill: "fix-ci", args: "--in-place <new-pr-ref>")` on the fix
+PR (pass the URL returned by `gh pr create` or the new PR number) to handle
+any CI failures and new bot comments that appear. The `--in-place` flag
+ensures `fix-ci` fixes bot comments directly on the fix branch instead of
+recursing back into `fix-bot-reviews`.
 
 ## Step 9: Summarize
 

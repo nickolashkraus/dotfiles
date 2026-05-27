@@ -8,7 +8,7 @@ description: >
   PR (use `fix-ci-release`).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
-argument-hint: "[--in-place] [--re-review [all | unresolved]] [pr-number]"
+argument-hint: "[--in-place] [--re-review [all | unresolved]] [pr-ref]"
 ---
 
 You are fixing CI failures on a pull request. Follow every step in order.
@@ -93,10 +93,12 @@ If the fix is trivial: Act as if `--in-place` was passed and follow the
 in-place section below.
 
 If the fix is non-trivial: Invoke
-`Skill(skill: "fix-bot-reviews", args: "<pr-number> [--re-review <value>]")`,
-where `<value>` is the value remembered from Step 1 (omit the flag entirely
-if `--re-review` was not set on this invocation). This creates a stacked
-fix PR for the bot comment fixes. Skip to Step 7 after `fix-bot-reviews`
+`Skill(skill: "fix-bot-reviews", args: "<pr-ref> [--re-review <value>]")`,
+where `<pr-ref>` is the original PR URL or number the user passed (or the
+resolved number if the PR was inferred from the current branch), and
+`<value>` is the value remembered from Step 1 (omit the flag entirely if
+`--re-review` was not set on this invocation). This creates a stacked fix
+PR for the bot comment fixes. Skip to Step 7 after `fix-bot-reviews`
 completes.
 
 ### If `--in-place` was set
