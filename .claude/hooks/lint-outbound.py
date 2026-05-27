@@ -38,6 +38,24 @@ LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\
 LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
     r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
 )
+# Same rule applied to bullets whose Element is plain text instead of
+# `**bold**` (e.g., `- Stripe API: dotted-path expands ...`). Requires
+# a Title-case lead and a multi-word clause after the colon so plain
+# `- key: value` value-pairs don't match.
+LOWERCASE_AFTER_PLAIN_COLON_RE = re.compile(
+    r"^\s*[-*+]\s+[A-Z][^:\n*]*:\s+[a-z][\w-]*\s+\S+\s+\S"
+)
+# Mid-prose colon followed by a lowercase clause (e.g., `vacuous: both
+# candidates were ...`). Requiring a lowercase word before the colon
+# scopes this rule to prose; bulleted Title-case forms are caught by
+# LOWERCASE_AFTER_PLAIN_COLON_RE above, and free-floating Title-case
+# forms (`Note: ...` mid-paragraph) are treated as inline headings and
+# intentionally not flagged. The 2+ trailing words avoid matching
+# `word: value`. Inline code is scrubbed upstream, so URLs / file:line
+# / JSON / config snippets inside backticks don't trip this rule.
+LOWERCASE_AFTER_PROSE_COLON_RE = re.compile(
+    r"\b[a-z][a-z]+:\s+[a-z][\w-]*(?:\s+\S+){2,}"
+)
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -204,6 +222,20 @@ def lint_text(
                 "the colon per rules/typography.md; single-word values "
                 "are exempt and not matched by this rule)"
             )
+        if LOWERCASE_AFTER_PLAIN_COLON_RE.match(raw):
+            violations.append(
+                f"{field} line {lineno}: bullet `Element: lowercase` "
+                "where a clause follows (capitalize the first word after "
+                "the colon per rules/typography.md; `- key: value` "
+                "value-pairs are exempt)"
+            )
+        if LOWERCASE_AFTER_PROSE_COLON_RE.search(line):
+            violations.append(
+                f"{field} line {lineno}: mid-prose colon followed by "
+                "lowercase clause (capitalize the first word after the "
+                "colon per rules/typography.md; `word: value` pairs "
+                "are exempt)"
+            )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(
                 f"{field} line {lineno}: reference link shorthand "
@@ -248,6 +280,14 @@ FLAG_VALUE_RE = re.compile(
     r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
+# `gh api` uses `-f field=value` / `-F field=value` instead of `--body`.
+# Match the field names that carry user-visible prose (`body`, `title`)
+# so PR-comment, review-comment, and issue-comment posts via raw API get
+# linted just like `gh pr comment --body`.
+GH_API_FIELD_RE = re.compile(
+    r"(?:^|\s)-[fF]\s+(body|title)="
+    r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
+)
 
 
 def extract_bash_content(
@@ -260,7 +300,9 @@ def extract_bash_content(
     toggles the Co-Authored-By check; `is_pr_body` enables the
     `Closes:`/`Fixes:`/`Resolves:` check (PR bodies only per rules/git.md).
     """
-    if not re.search(r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+)", command):
+    if not re.search(
+        r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+|gh\s+api\b)", command
+    ):
         return []
 
     is_commit = bool(re.search(r"\bgit\s+commit\b", command))
@@ -280,6 +322,11 @@ def extract_bash_content(
             # there is also harmless.
             is_body = is_pr_body and m.group(2) in ("body", "body-file")
             fields.append((f"arg {flag}", value, is_commit, is_body))
+    for m in GH_API_FIELD_RE.finditer(redacted):
+        flag = f"-f {m.group(1)}"
+        value = m.group(3) if m.group(3) is not None else m.group(4)
+        if value:
+            fields.append((f"arg {flag}", value, is_commit, is_pr_body))
 
     return fields
 
