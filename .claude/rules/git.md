@@ -15,7 +15,31 @@
 - Always render Linear issue references as Markdown links (e.g.,
   `[EPD-1337](https://linear.app/functionhealth/issue/EPD-1337)`) in PR
   descriptions, not bare slugs like `EPD-1337` or bare URLs. This applies to
-  every reference, not just the primary one.
+  every reference, not just the primary one. Scope: Rendered Markdown surfaces
+  where the link resolves (PR descriptions and review comments). Do NOT render
+  link syntax in chat replies to the user, commit messages, branch names,
+  source code, or any other plain-text context. In those contexts a bare slug
+  (BYB-1216) is correct, since reference-style syntax with no definition block
+  renders as literal brackets.
+- Keep `## References` blocks short. Include only the references a reviewer
+  needs to understand or audit the change. That usually means the primary
+  Linear issue, the umbrella or parent if the work is part of a larger
+  initiative, the direct predecessor PRs whose contracts this change depends
+  on, and any spec or design doc that is load-bearing. Do not pad the list with
+  every adjacent ticket, every sibling phase, or every issue mentioned in
+  passing. A long reference list dilutes the important links and signals that
+  the body did not do the work of identifying what actually matters. The bar
+  for inclusion is "the reviewer cannot understand the change without this".
+  Five entries is typical; ten is almost always too many. If a link is useful
+  as context-while-reading but not as a standing reference, inline it in the
+  prose instead.
+- When a Linear reference is followed by a colon and a description (e.g., in
+  a `## References` list in a PR description), use the verbatim Linear issue
+  title, not a paraphrase or abbreviation. Paraphrases ("Typed status reducer",
+  "Resolver and stripe_price_id") drift from the issue and force the reader to
+  open Linear to confirm the mapping. When two issues share a relationship
+  annotation, split them onto separate lines rather than grouping under one
+  paraphrase, since each has a distinct verbatim title.
 - Only add Linear issue references to source code (comments, docstrings, test
   names, regression guards) when absolutely necessary. The code needs to be
   evergreen and stand on its own; once a PR merges, the Linear context goes
