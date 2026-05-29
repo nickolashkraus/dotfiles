@@ -29,13 +29,14 @@ the Login Keychain is unlocked.
 
 All entries below use the account `function-health`.
 
-| Service                      | Purpose                        |
-| ---------------------------- | ------------------------------ |
-| `conductorone-client-id`     | ConductorOne PCC client ID     |
-| `conductorone-client-secret` | ConductorOne PCC client secret |
-| `statsig-console`            | Statsig Console API key        |
-| `stripe-test`                | Stripe restricted key (Test)   |
-| `stripe-prod`                | Stripe restricted key (Live)   |
+| Service                      | Purpose                                      |
+| ---------------------------- | -------------------------------------------- |
+| `conductorone-client-id`     | ConductorOne PCC client ID                   |
+| `conductorone-client-secret` | ConductorOne PCC client secret               |
+| `statsig-console`            | Statsig Console API key                      |
+| `stripe-test`                | Stripe restricted key (Test)                 |
+| `stripe-prod`                | Stripe restricted key (Live, read-only)      |
+| `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write) |
 
 ## Per-Application Usage
 
@@ -77,6 +78,11 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
   Use for all Test-mode work.
 - `stripe-prod`: Restricted key scoped for agents. Live mode, read-only.
   Never use this for write operations.
+- `stripe-prod-webhooks`: Restricted key scoped for agents. Live mode, scope
+  `webhook_endpoints:write` only. Use exclusively for managing
+  transaction-service webhook endpoint subscriptions; do not reach for this
+  when adding Live write capability for any other Stripe resource. Mint
+  a separate narrowly-scoped key instead.
 
 ## Adding a New Secret
 
