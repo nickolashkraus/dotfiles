@@ -132,12 +132,12 @@ Bot comments live on two distinct endpoints; you must query both.
 Filter for comments left by review bots (Copilot, Cursor Bugbot, Sentry, or
 similar).
 
-Fetch `id` and `original_commit_id` together when collecting findings, since
-both are required for the durable comment link format:
+Fetch `id` and `pull_request_review_id` together when collecting findings,
+since both are required for the durable comment link format (see below):
 
 ```
 gh api repos/{owner}/{repo}/pulls/<pr>/comments --paginate \
-  --jq '.[] | {id, original_commit_id}'
+  --jq '.[] | {id, pull_request_review_id}'
 ```
 
 ## Filter bot comments by resolution status
@@ -205,16 +205,36 @@ comment whose `line` attribute is now `null` because the underlying diff
 line changed). The link appears to do nothing because GitHub does not
 auto-expand the "Outdated" section on navigation.
 
-Instead, build the durable Files-tab anchor from the comment's
-`original_commit_id` and `id`:
+Do NOT use the Files-tab range anchor either
+(`/files/<base>..<original_commit_id>#r<id>`). It depends on the file
+still being in the PR's current diff and on `original_commit_id` still
+being reachable from the PR's tip. Both assumptions break under rebase
+and under stacked PRs: GitHub redirects the URL to whichever PR can
+render the diff in its current state (often a parent PR), landing the
+reader far from the comment.
+
+Use the review wrapper instead, which has the following form:
 
 ```
-https://github.com/<owner>/<repo>/pull/<N>/files/<original_commit_id>#r<id>
+https://github.com/<owner>/<repo>/pull/<N>#pullrequestreview-<review_id>
 ```
 
-This anchor lives on the file/commit pair the bot actually reviewed, so it
-always scrolls to and expands the comment regardless of whether the line is
-"outdated" in the current diff.
+The review wrapper renders independently of diff context. It lands the
+reader on the bot's review header in the Conversation tab, where the
+inline comment is listed in the thread. This works under rebase, under
+stacked PRs, and for comments on files no longer in the diff.
+
+The tradeoff is precision. The reader may need to scroll a few comments
+to find the specific finding. Mitigate by writing a self-contained
+Description column in the summary table (one short sentence naming the
+bot and the substance of the finding), so the link is a convenience and
+not the primary information channel.
+
+Fetch `pull_request_review_id` per comment:
+
+```
+gh api repos/<owner>/<repo>/pulls/comments/<id> --jq '.pull_request_review_id'
+```
 
 ## Findings summary
 
