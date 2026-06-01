@@ -54,6 +54,12 @@ rather than presenting an unverified guess as a fix.
   TABLE`, `ADD COLUMN`). DML migrations handle data operations (`INSERT`,
   `UPDATE`, `DELETE`). This allows each to land, fail, and roll back
   independently.
+- When a rebase produces multiple Alembic heads, re-parent the branch's
+  bottom-most migration onto the new tip in place. Do not add a no-op merge
+  migration. The branch's migrations have not shipped yet, so editing
+  `down_revision` is safe and keeps the production migration history linear.
+  Reserve `alembic merge` migrations for the case where both chains have
+  already been deployed and rewriting history is no longer an option.
 
 ## Docker
 
