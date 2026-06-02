@@ -263,8 +263,15 @@ Use this template for skills that fix and dismiss findings inline (`fix-ci`,
 `fix-bot-reviews`). For the Tracked variant (`fix-ci-release`), see that
 skill's Step 7.
 
+Always write the summary body to `/tmp/pr-<pr-number>-summary.md` and post via
+`gh pr comment --body-file`. Never inline this body via `--body "$(cat <<'EOF'
+... EOF)"`: the table contains backticks, links, and shell-special characters
+that the typography pre-flight hook rejects when defensive escapes leak
+through. The summary is always multi-line by nature (findings table,
+dismissals, links), so the file path is the only correct path.
+
 ```
-gh pr comment <pr-number> --body "$(cat <<'EOF'
+cat > /tmp/pr-<pr-number>-summary.md <<'EOF'
 ## Bot Review Findings
 
 ### Fixed
@@ -281,7 +288,8 @@ gh pr comment <pr-number> --body "$(cat <<'EOF'
 | D-01 | [→](<comment-url>) | <description> | <reason> |
 | D-02 | [→](<comment-url>) | <description> | <reason> |
 EOF
-)"
+
+gh pr comment <pr-number> --body-file /tmp/pr-<pr-number>-summary.md
 ```
 
 The Fix column should contain:

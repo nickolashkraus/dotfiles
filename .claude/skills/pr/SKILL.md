@@ -62,5 +62,15 @@ Create the pull request using `gh pr create` against the default branch:
   - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
     `## References` as needed.
 - Do not add boilerplate sections the change does not warrant.
+- If the description has a `## References` block with Linear issues (entries
+  like `[BYB-NNNN](...)`), fetch each issue's verbatim title via
+  `mcp__linear__get_issue` and use it after the colon. Never paraphrase or
+  abbreviate the title; this matches the rule in @~/.claude/rules/git.md and
+  avoids a manual round-trip with the user.
+- For any non-trivial PR body, write the Markdown to `/tmp/pr-<N>-body.md` (or
+  `/tmp/pr-new-body.md` before the number is known) and pass it via `gh pr
+  create --body-file`. Do not inline the body via `--body "$(cat <<'EOF' ...
+  EOF)"`; defensive escapes inside an inline heredoc tend to leak through as
+  literal backticks and dollars.
 
 Print the pull request URL when done.
