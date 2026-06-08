@@ -1,0 +1,56 @@
+/*
+ * Firefox chrome stylesheet.
+ *
+ * Remaps the 9 built-in tab-group colors to the gruvbox-dark palette
+ * used by the companion Firefox Color theme (see `firefox-color.json`).
+ *
+ * Requires `toolkit.legacyUserProfileCustomizations.stylesheets=true`
+ * in `about:config` and a Firefox restart.
+ */
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+tab-group[color="blue"] {
+  --tab-group-color: #83a598;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="red"] {
+  --tab-group-color: #fb4934;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="yellow"] {
+  --tab-group-color: #fabd2f;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="green"] {
+  --tab-group-color: #b8bb26;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="pink"] {
+  --tab-group-color: #d3869b;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="purple"] {
+  --tab-group-color: #b16286;
+  --tab-group-color-invert: #ebdbb2;
+}
+
+tab-group[color="orange"] {
+  --tab-group-color: #fe8019;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="cyan"] {
+  --tab-group-color: #8ec07c;
+  --tab-group-color-invert: #1d2021;
+}
+
+tab-group[color="gray"] {
+  --tab-group-color: #928374;
+  --tab-group-color-invert: #ebdbb2;
+}
