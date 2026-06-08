@@ -84,7 +84,8 @@
 - **Blank line** between subject and body
 - **Body** (optional):
   - Wrap lines at 72 characters
-  - Explain *what* and *why*, not *how*
+  - Explain *what* and *why*, not *how*. Default to subject-only if the commit
+    is small. Most commits do not need a body.
 - Never use "WIP" or other throwaway messages.
 - Use bulleted lists for Git messages, not long, comma-separated items.
 - When the branch maps to a Linear issue, the subject is `SLUG: Exact Issue
