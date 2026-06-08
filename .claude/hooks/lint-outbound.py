@@ -15,8 +15,10 @@ false positives on legitimate code.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
+from pathlib import Path
 from typing import Iterable
 
 
@@ -306,6 +308,15 @@ GH_API_FIELD_RE = re.compile(
 BARE_VAR_RE = re.compile(r"^\$\{?\w+\}?$")
 AT_FILE_RE = re.compile(r"^@\S+$")
 
+# `gh ... --body-file <path>` and `git commit -F|--file <path>` point the
+# command at a file rather than carrying the body inline. The Write call
+# that created the file is linted only when it has a Markdown extension,
+# so non-`.md` bodies (like `/tmp/commit-msg.txt`) bypass the lint
+# entirely. Read the file contents at hook-eval time so the body is
+# always inspected regardless of file extension.
+BODY_FILE_FLAG_RE = re.compile(r"(?:^|\s)--body-file[=\s]+(\S+)")
+COMMIT_FILE_FLAG_RE = re.compile(r"(?:^|\s)(?:-F|--file)[=\s]+(\S+)")
+
 
 def extract_bash_content(
     command: str,
@@ -351,6 +362,33 @@ def extract_bash_content(
         redacted,
     ):
         fields.append((f"arg --field {m.group(1)}", m.group(2), is_commit, is_pr_body))
+
+    # `gh ... --body-file <path>` (any gh subcommand). Read the file so
+    # the body is linted regardless of its extension. Silent on OSError
+    # so a missing path does not block the command (gh itself will
+    # surface the file-not-found error at execution time).
+    for m in BODY_FILE_FLAG_RE.finditer(redacted):
+        path = m.group(1).strip("'\"")
+        try:
+            text = Path(os.path.expanduser(path)).read_text()
+            if text:
+                fields.append(
+                    (f"arg --body-file {path}", text, is_commit, is_pr_body)
+                )
+        except OSError:
+            pass
+
+    # `git commit -F|--file <path>`. Scoped to git commit because `-F`
+    # collides with `gh api -F field=value`.
+    if is_commit:
+        for m in COMMIT_FILE_FLAG_RE.finditer(redacted):
+            path = m.group(1).strip("'\"")
+            try:
+                text = Path(os.path.expanduser(path)).read_text()
+                if text:
+                    fields.append((f"arg -F {path}", text, is_commit, is_pr_body))
+            except OSError:
+                pass
 
     return fields
 

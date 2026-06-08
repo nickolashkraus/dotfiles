@@ -143,6 +143,72 @@ def test_extract_bash_payloads_gh_api() -> None:
         )
 
 
+def test_extract_bash_payloads_commit_F_flag() -> None:
+    section("extract_bash_payloads: git commit -F reads file content")
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".txt", delete=False
+    ) as f:
+        f.write("Add upgrade gate\n\nIntroduces the membership upgrade flag.\n")
+        path = f.name
+    try:
+        cmd = f"git commit -F {path}"
+        out = rc.extract_bash_payloads(cmd)
+        labels = [lbl for lbl, _ in out]
+        texts = [t for _, t in out]
+        check(
+            "extracts file content as commit body",
+            any("membership upgrade flag" in t for t in texts),
+            f"texts={texts!r}",
+        )
+        check(
+            "label is git commit -F <path>",
+            any("git commit message -F" in lbl for lbl in labels),
+            f"labels={labels!r}",
+        )
+    finally:
+        Path(path).unlink()
+
+
+def test_extract_bash_payloads_commit_long_file_flag() -> None:
+    section("extract_bash_payloads: git commit --file reads file content")
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".txt", delete=False
+    ) as f:
+        f.write("Fix race in upgrade flag\n\nReorders the locking.")
+        path = f.name
+    try:
+        cmd = f"git commit --file {path}"
+        out = rc.extract_bash_payloads(cmd)
+        texts = [t for _, t in out]
+        check(
+            "extracts file content via --file",
+            any("Reorders the locking" in t for t in texts),
+            f"texts={texts!r}",
+        )
+    finally:
+        Path(path).unlink()
+
+
+def test_extract_bash_payloads_gh_api_minus_F_not_treated_as_commit_file() -> None:
+    section(
+        "extract_bash_payloads: gh api -F field=value is NOT treated as a "
+        "commit-file path (no collision)"
+    )
+    cmd = "gh api repos/org/repo/issues -F body='Long enough body text to extract.'"
+    out = rc.extract_bash_payloads(cmd)
+    labels = [lbl for lbl, _ in out]
+    check(
+        "no -F file payload produced",
+        not any(lbl.endswith("-F field=value") for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "regular gh api -f body extraction still works",
+        any("-f body" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+
+
 def test_extract_bash_payloads_body_file() -> None:
     section("extract_bash_payloads: --body-file reads file content")
     with tempfile.NamedTemporaryFile(
@@ -355,6 +421,9 @@ TESTS = [
     test_extract_bash_payloads_gh_issue_create,
     test_extract_bash_payloads_gh_api,
     test_extract_bash_payloads_body_file,
+    test_extract_bash_payloads_commit_F_flag,
+    test_extract_bash_payloads_commit_long_file_flag,
+    test_extract_bash_payloads_gh_api_minus_F_not_treated_as_commit_file,
     test_extract_bash_payloads_unrelated_command,
     test_extract_mcp_payloads_linear,
     test_extract_mcp_payloads_nested_notion,

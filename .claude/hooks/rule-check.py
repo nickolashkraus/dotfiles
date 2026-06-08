@@ -77,6 +77,10 @@ GH_API_FIELD_RE = re.compile(
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
 BODY_FILE_RE = re.compile(r"(?:^|\s)--body-file[=\s]+(\S+)")
+# `git commit -F <path>` / `git commit --file <path>` reads the commit
+# message from a file. Scoped to git commit only because `-F` collides
+# with `gh api -F field=value` (handled separately by GH_API_FIELD_RE).
+COMMIT_FILE_RE = re.compile(r"(?:^|\s)(?:-F|--file)[=\s]+(\S+)")
 
 CMD_SUBST_PREFIX_RE = re.compile(r"^\$[\(\{]")
 
@@ -174,6 +178,16 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
                 out.append((f"{surface} --body-file {path}", text))
         except OSError:
             pass
+
+    if is_commit:
+        for m in COMMIT_FILE_RE.finditer(redacted):
+            path = m.group(1).strip("'\"")
+            try:
+                text = Path(os.path.expanduser(path)).read_text()
+                if text:
+                    out.append((f"{surface} -F {path}", text))
+            except OSError:
+                pass
 
     return out
 
