@@ -1,0 +1,49 @@
+name: eval (rule-check)
+
+on:
+  workflow_dispatch:
+    inputs:
+      parallel:
+        description: "Parallel workers"
+        required: false
+        default: "4"
+      filter:
+        description: "Substring filter (empty = run all)"
+        required: false
+        default: ""
+
+jobs:
+  eval:
+    name: rule-check Sonnet eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Stage dotfiles into HOME
+        run: |
+          mkdir -p "$HOME/.claude"
+          ln -sf "$GITHUB_WORKSPACE/.claude/rules" "$HOME/.claude/rules"
+          ln -sf "$GITHUB_WORKSPACE/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+          ln -sf "$GITHUB_WORKSPACE/.claude/hooks" "$HOME/.claude/hooks"
+      - name: Run rule-check eval
+        run: |
+          python3 .claude/evals/rule-check/eval.py \
+            --parallel "${{ github.event.inputs.parallel }}" \
+            --filter "${{ github.event.inputs.filter }}"
+      - name: Upload rule-check log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-check-log
+          path: ~/.claude/rule-check.log
+          if-no-files-found: ignore
