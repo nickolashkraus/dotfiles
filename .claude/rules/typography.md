@@ -4,8 +4,10 @@
 
 - No em dashes (`—`). Use commas, parentheses, semicolons, or rewrite.
 - No smart quotes. Straight only.
-- After a colon: capitalize if a sentence/clause follows; lowercase if a value
-  or list-fragment follows.
+- Always capitalize the first word after a colon. This applies to clauses,
+  values, and list-fragments alike. Non-alphabetic starts (paths like
+  `~/dir`, code spans like `` `foo` ``, numbers like `5min`, URLs) are
+  naturally exempt because there is no letter to capitalize.
 - Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
   or ` — ` as the lead-in separator.
 - Wrap lines at <80 characters at the last word boundary.
@@ -56,8 +58,6 @@
   are the same.
 - Use double space instead of `<br>` for newlines in Markdown.
 - Capitalize environment names: Dev, Staging, Prod. Treat them as proper nouns.
-- Capitalize the first word after a colon when it begins a complete sentence or
-  independent clause.
 - Always put colons outside of bold text (e.g., **Bold**:).
 - For YAML strings, follow these conventions:
   - Use unquoted strings by default when the value contains no special

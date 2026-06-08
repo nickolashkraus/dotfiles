@@ -30,41 +30,32 @@ EM_DASH = "—"
 EN_DASH = "–"
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
-# Bullet items with `**Element**: lowercase_word ...` (multi-word value)
-# violate rules/typography.md and rules/general.md, both of which require
-# capitalizing the first word after a colon when a sentence or clause
-# follows. Single-word values (`**Status**: active`) and values starting
-# with non-alphabetic chars (paths, code spans) are not matched.
-LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
-    r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
-)
-# Same rule applied to bullets whose Element is plain text instead of
-# `**bold**` (e.g., `- Stripe API: dotted-path expands ...`). Requires
-# a Title-case lead and a multi-word clause after the colon so plain
-# `- key: value` value-pairs don't match.
-LOWERCASE_AFTER_PLAIN_COLON_RE = re.compile(
-    r"^\s*[-*+]\s+[A-Z][^:\n*]*:\s+[a-z][\w-]*\s+\S+\s+\S"
-)
-# Mid-prose colon followed by a lowercase clause (e.g., `vacuous: both
-# candidates were ...`). Requiring a lowercase word before the colon
-# scopes this rule to prose; bulleted Title-case forms are caught by
-# LOWERCASE_AFTER_PLAIN_COLON_RE above, and free-floating Title-case
+# Bullet items with any lead-in followed by `: lowercase_word` violate
+# rules/typography.md, which requires the first word after a colon to
+# always be capitalized regardless of whether a clause, value, or
+# list-fragment follows. Lead-in may contain `**bold**`, plain text,
+# parentheticals, Markdown links, code spans, anything. The post-colon
+# guard `[a-z]\S*` requires an alphabetic start, so non-alphabetic
+# values (paths, code spans, numbers, URLs) are naturally exempt.
+LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(r"^\s*[-*+]\s+\S.*?:\s+[a-z]\S*")
+# Retained as an alias so any external consumer that imported the old
+# name keeps working; the broadened bullet rule above subsumes both
+# bold-lead and plain-text-lead cases.
+LOWERCASE_AFTER_PLAIN_COLON_RE = LOWERCASE_AFTER_BOLD_COLON_RE
+# Mid-prose colon followed by a lowercase word (e.g., `vacuous: both
+# candidates were ...`). Requires a lowercase word before the colon
+# to scope this rule to prose; bulleted forms are caught by
+# LOWERCASE_AFTER_BOLD_COLON_RE above, and free-floating Title-case
 # forms (`Note: ...` mid-paragraph) are treated as inline headings and
-# intentionally not flagged. The 2+ trailing words avoid matching
-# `word: value`. Inline code is scrubbed upstream, so URLs / file:line
-# / JSON / config snippets inside backticks don't trip this rule.
-LOWERCASE_AFTER_PROSE_COLON_RE = re.compile(
-    r"\b[a-z][a-z]+:\s+[a-z][\w-]*(?:\s+\S+){2,}"
-)
-# Markdown link followed by colon and lowercase clause: `[text](url):
+# intentionally not flagged. Inline code is scrubbed upstream, so URLs
+# / file:line / JSON / config snippets inside backticks don't trip
+# this rule.
+LOWERCASE_AFTER_PROSE_COLON_RE = re.compile(r"\b[a-z][a-z]+:\s+[a-z]\S*")
+# Markdown link followed by colon and lowercase word: `[text](url):
 # lowercase word ...`. Common in PR-comment replies like `Addressed in
 # [commit](url): added X to Y`. Not caught by the prose rule above
-# because the character before the colon is `)`, not a word. Trailing
-# `{2,}` requires 3+ words after the colon so `[label](url): value`
-# fragments don't trip.
-LOWERCASE_AFTER_LINK_COLON_RE = re.compile(
-    r"\]\([^)\n]+\):\s+[a-z][\w-]*(?:\s+\S+){2,}"
-)
+# because the character before the colon is `)`, not a word.
+LOWERCASE_AFTER_LINK_COLON_RE = re.compile(r"\]\([^)\n]+\):\s+[a-z]\S*")
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -89,6 +80,16 @@ PR_AUTOCLOSE_RE = re.compile(
 
 
 LIST_MARKER_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
+# Markdown reference-link definitions (`[label]: url ...`). Each one is a
+# standalone metadata line, not prose; consecutive reference defs should
+# not be mistaken for a wrapped paragraph.
+REF_DEF_RE = re.compile(r"^\s*\[[^\]\n]+\]:\s+\S")
+
+
+def is_structural_line(line: str) -> bool:
+    """A list item or a reference-link definition (treated as block-structural,
+    not prose, for hard-wrap detection)."""
+    return bool(LIST_MARKER_RE.match(line) or REF_DEF_RE.match(line))
 
 
 def detect_hard_wraps(text: str) -> list[int]:
@@ -116,12 +117,13 @@ def detect_hard_wraps(text: str) -> list[int]:
         if has_table or has_blockquote:
             block.clear()
             return
-        # Skip pure nested-list blocks: every continuation line is a list item.
-        if all(LIST_MARKER_RE.match(line) for _, line in block[1:]):
+        # Skip pure structural blocks: every continuation line is a list
+        # item or a reference-link definition.
+        if all(is_structural_line(line) for _, line in block[1:]):
             block.clear()
             return
         for ln, line in block[1:]:
-            if not LIST_MARKER_RE.match(line):
+            if not is_structural_line(line):
                 violations.append(ln)
         block.clear()
 
@@ -226,30 +228,22 @@ def lint_text(
             )
         if LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
             violations.append(
-                f"{field} line {lineno}: bullet `**Element**: lowercase` "
-                "where a clause follows (capitalize the first word after "
-                "the colon per rules/typography.md; single-word values "
-                "are exempt and not matched by this rule)"
-            )
-        if LOWERCASE_AFTER_PLAIN_COLON_RE.match(raw):
-            violations.append(
-                f"{field} line {lineno}: bullet `Element: lowercase` "
-                "where a clause follows (capitalize the first word after "
-                "the colon per rules/typography.md; `- key: value` "
-                "value-pairs are exempt)"
+                f"{field} line {lineno}: bullet has a lowercase word "
+                "after the colon (always capitalize the first word "
+                "after a colon per rules/typography.md; non-alphabetic "
+                "starts like paths or code spans are naturally exempt)"
             )
         if LOWERCASE_AFTER_PROSE_COLON_RE.search(line):
             violations.append(
                 f"{field} line {lineno}: mid-prose colon followed by "
-                "lowercase clause (capitalize the first word after the "
-                "colon per rules/typography.md; `word: value` pairs "
-                "are exempt)"
+                "a lowercase word (always capitalize the first word "
+                "after a colon per rules/typography.md)"
             )
         if LOWERCASE_AFTER_LINK_COLON_RE.search(line):
             violations.append(
                 f"{field} line {lineno}: Markdown link followed by "
-                "colon and lowercase clause (capitalize the first word "
-                "after the colon per rules/typography.md)"
+                "a colon and a lowercase word (always capitalize the "
+                "first word after a colon per rules/typography.md)"
             )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(
@@ -295,14 +289,22 @@ FLAG_VALUE_RE = re.compile(
     r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
-# `gh api` uses `-f field=value` / `-F field=value` instead of `--body`.
-# Match the field names that carry user-visible prose (`body`, `title`)
-# so PR-comment, review-comment, and issue-comment posts via raw API get
-# linted just like `gh pr comment --body`.
+# `gh api` uses `-f field=value` / `-F field=value` / `--field field=value`
+# / `--raw-field field=value` instead of `--body`. Match the field names
+# that carry user-visible prose (`body`, `title`) so PR-comment,
+# review-comment, and issue-comment posts via raw API get linted just like
+# `gh pr comment --body`.
 GH_API_FIELD_RE = re.compile(
-    r"(?:^|\s)-[fF]\s+(body|title)="
+    r"(?:^|\s)(?:-[fF]|--(?:raw-)?field)\s+(body|title)="
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
+# Bypass patterns: a bare shell-variable expansion (`"$var"` / `'$var'` /
+# `"${var}"`) or a gh-`@file` reference. When the extracted value matches
+# one of these, the literal string is what reaches `lint_text`, not the
+# expanded content, so typography violations slip through. Reject these
+# at extraction time and force the body through Write or a heredoc.
+BARE_VAR_RE = re.compile(r"^\$\{?\w+\}?$")
+AT_FILE_RE = re.compile(r"^@\S+$")
 
 
 def extract_bash_content(
@@ -315,9 +317,7 @@ def extract_bash_content(
     toggles the Co-Authored-By check; `is_pr_body` enables the
     `Closes:`/`Fixes:`/`Resolves:` check (PR bodies only per rules/git.md).
     """
-    if not re.search(
-        r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+|gh\s+api\b)", command
-    ):
+    if not re.search(r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+|gh\s+api\b)", command):
         return []
 
     is_commit = bool(re.search(r"\bgit\s+commit\b", command))
@@ -343,7 +343,39 @@ def extract_bash_content(
         if value:
             fields.append((f"arg {flag}", value, is_commit, is_pr_body))
 
+    # Also catch `--field body=@file` / `-F body=@file` (gh's read-from-file
+    # shorthand), which has no quote group for FLAG/FIELD regexes to match.
+    # Emit a synthetic "@file" value so the bypass guard below trips.
+    for m in re.finditer(
+        r"(?:^|\s)(?:-[fF]|--(?:raw-)?field)\s+(body|title)=(@\S+)",
+        redacted,
+    ):
+        fields.append((f"arg --field {m.group(1)}", m.group(2), is_commit, is_pr_body))
+
     return fields
+
+
+def is_bypass_value(value: str) -> str | None:
+    """Return a reason string if `value` is a lint-bypassing reference
+    (bare `$var` expansion or gh `@file` shorthand), or None if it's a
+    real string. These reach `lint_text` as literals, not as their
+    expanded content, so the body text is never actually inspected."""
+    if BARE_VAR_RE.match(value):
+        return (
+            "body argument is a bare shell-variable expansion; the hook "
+            "lints the literal `$var` string, not the expanded content. "
+            "Write the body to a file with the Write tool (which is "
+            "linted), then `gh ... --body-file <path>`. Heredoc bodies "
+            "(`<<'EOF' ... EOF`) are also linted."
+        )
+    if AT_FILE_RE.match(value):
+        return (
+            "body argument uses gh's `@file` shorthand; the hook cannot "
+            "see the file contents at parse time. Either inline the body "
+            "via a heredoc, or use `gh pr|issue ... --body-file <path>` "
+            "(the file's Write call is linted at write time)."
+        )
+    return None
 
 
 MARKDOWN_EXTENSIONS = (".md", ".markdown")
@@ -434,6 +466,10 @@ def main() -> int:
     all_violations: list[str] = []
     for label, text, allow_coauthor, is_pr_body, check_local_paths in fields:
         if not isinstance(text, str):
+            continue
+        bypass_reason = is_bypass_value(text)
+        if bypass_reason is not None:
+            all_violations.append(f"{label}: {bypass_reason}")
             continue
         all_violations.extend(
             lint_text(
