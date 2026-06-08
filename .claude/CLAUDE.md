@@ -13,6 +13,7 @@ applies to all projects on this machine.
 - @rules/gws.md
 - @rules/linear.md
 - @rules/meta-learning.md
+- @rules/migrations.md
 - @rules/notion.md
 - @rules/secrets.md
 - @rules/slack.md

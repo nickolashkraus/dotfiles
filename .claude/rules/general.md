@@ -20,3 +20,10 @@
   repo is private. When the underlying detail is useful, inline a summary
   instead. Internal context belongs in memory or daily task files, not in
   external posts.
+- Default to brief in chat responses. State results and decisions directly;
+  skip preamble, recap, and trailing summaries. A simple question gets a direct
+  answer, not headers and sections. When more detail is warranted, surface
+  a one-line offer ("Want the full breakdown?") rather than emitting it
+  preemptively. This rule applies to chat responses only, not to persistent
+  artifacts (PR bodies, ADRs, Linear issues, Notion pages, commit messages)
+  where @rules/writing.md density guidance governs.

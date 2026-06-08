@@ -8,6 +8,72 @@
 - **Grind**: ~/grind-rip
 - **Personal**: ~/nickolashkraus
 
+## Clarifying Before Implementing
+
+For non-trivial implementation directives (schema changes, contracts,
+migrations, multi-file refactors, anything that shapes a PR description or
+a Linear ticket), do not start writing code immediately. First write back
+a tight plan that surfaces:
+
+- The branch, base, and scope of the work.
+- Every load-bearing assumption (schema fields, ordering, predicates,
+  contracts).
+- The one or two clarifying questions whose answers unblock the work.
+
+Push back when the proposed approach doesn't fit invariants you can see, or
+when a simpler approach exists that I may not have considered. Diving straight
+in ships working but structurally wrong code; surfacing assumptions lets me
+redirect before the wrong shape is locked into commit history or PR review.
+
+Trivial tasks (single-file fix, obvious rename, mechanical refactor) do not
+need this gate. Do not interpret a prior "go" as covering every downstream
+micro-decision; restate the next load-bearing assumption when one surfaces.
+The complementary rule is to not ask multiple-choice questions on low-stakes
+choices you should just make and surface.
+
+## Production-Scale by Default
+
+Write every change under the assumption that it will run against production
+data and production traffic. CI green is necessary but not sufficient. Test
+environments with empty or near-empty tables hide O(n) and lock-contention bugs
+that are catastrophic at scale.
+
+Before merging any change that touches a table, query, or background job,
+answer these questions explicitly:
+
+- How many rows does this run against in Prod? Not in CI fixtures, not in Dev,
+  not in Staging.
+- What locks does it take, at what level, for how long?
+- What queues behind it? Lock queue, connection pool, downstream service,
+  Pub/Sub subscriber backlog.
+- What is the failure mode under retry, timeout, partial completion, or
+  concurrent execution with another release?
+
+A function whose test fixture has 5 rows tells you nothing about its behavior
+at 5M rows. When CI alone cannot answer the questions above, measure against
+the Prod data shape before merging. The minimum bar is the row count from the
+read replica, a query plan from `EXPLAIN (ANALYZE, BUFFERS)`, a runtime
+estimate, and the Postgres lock-mode catalog from the docs. "It passed tests"
+is not a release signal for any change that scales with table size,
+concurrency, or queue depth.
+
+This bar applies broadly:
+
+- Migrations and backfills (see the dedicated section).
+- Bulk operations such as exports, reports, scheduled jobs, and cron-driven
+  reconcilers.
+- New queries that risk missing indexes, accidental sequential scans, or N+1
+  patterns inside loops.
+- New endpoints whose response size, pagination, downstream fanout, or fan-in
+  joins are unbounded.
+- New background workers and Pub/Sub subscribers, where idempotency, retry
+  semantics, queue backpressure, and dead-letter behavior all matter.
+
+When a behavior degrades non-linearly with row count, concurrency, or queue
+depth, the safe assumption is that Prod will exercise the failure mode and CI
+will not catch it. Surface the assumption in the PR body and, when feasible,
+measure it.
+
 ## Comments
 
 - Follow @rules/typography.md for all comments.
@@ -49,17 +115,7 @@ rather than presenting an unverified guess as a fix.
 
 ## Migrations
 
-- Separate schema changes (DDL) and data changes (DML) into distinct
-  migrations. DDL migrations handle structural changes (`CREATE TABLE`, `ALTER
-  TABLE`, `ADD COLUMN`). DML migrations handle data operations (`INSERT`,
-  `UPDATE`, `DELETE`). This allows each to land, fail, and roll back
-  independently.
-- When a rebase produces multiple Alembic heads, re-parent the branch's
-  bottom-most migration onto the new tip in place. Do not add a no-op merge
-  migration. The branch's migrations have not shipped yet, so editing
-  `down_revision` is safe and keeps the production migration history linear.
-  Reserve `alembic merge` migrations for the case where both chains have
-  already been deployed and rewriting history is no longer an option.
+See @rules/migrations.md.
 
 ## Docker
 
