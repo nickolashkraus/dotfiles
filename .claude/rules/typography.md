@@ -10,12 +10,20 @@
   naturally exempt because there is no letter to capitalize.
 - Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
   or ` — ` as the lead-in separator.
+- Write "ID" in prose, never "id" or "Id". Code references in backticks keep
+  their verbatim casing (`id`, `user_id`, `userId`).
 - Wrap lines at <80 characters at the last word boundary.
 
 ## Rules
 
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
+- Always write "ID" (capitalized) in prose: "session ID", "the agent's ID".
+  Never "id" or "Id". It is an abbreviation of "identifier", and lowercase
+  "id" reads as the Freudian term. When referring to a literal field, column,
+  or variable, use backticks with the verbatim casing (`id`, `user_id`,
+  `session.id`, `userId`). The colon-capitalization rule does not force
+  a backticked `id` to `Id`; code spans are exempt.
 - Do not add periods to the end of bulleted list items by default. Add a period
   only when the item is a complete sentence or contains multiple sentences
   (where internal punctuation makes a terminal period necessary for clarity).
