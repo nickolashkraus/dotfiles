@@ -7,7 +7,9 @@
   readability). If available, use the `clean_markdown.py` script.
 - Add links to GitHub, Notion, etc. when appropriate.
 - When creating issue descriptions, do not use explicit file line numbers or
-  ranges.
+  ranges. Bare file paths are fine (e.g., `` `app/ppp/stripe_service.py` ``, ``
+  File: `app/foo/bar.py` ``); only the trailing line qualifiers (`:195-219`, `,
+  lines 180-196`, `, around line 38`) are out.
 
 Linear issues should use the following format:
 
