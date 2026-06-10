@@ -1,9 +1,9 @@
 {
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PostCompact": [
@@ -110,5 +110,6 @@
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "model": "claude-fable-5[1m]"
 }
