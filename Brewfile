@@ -89,7 +89,6 @@ brew "zlib"
 brew "zoxide"
 
 cask "alfred"
-cask "claude-code"
 cask "docker-desktop"
 cask "firefox"
 cask "gcloud-cli"

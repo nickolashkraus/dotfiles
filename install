@@ -543,3 +543,20 @@ npm install -g prettier
 npm install -g sort-package-json
 npm install -g typescript
 echo -e "${green}Done!\n${reset}" >&2
+
+###############################################################################
+# Claude Code
+#
+# Claude Code is installed via the native installer, the officially
+# recommended method. Unlike the Homebrew cask, the native install
+# auto-updates in the background. The installer is idempotent and
+# updates an existing installation in place.
+#
+# See: https://code.claude.com/docs/en/setup
+###############################################################################
+echo -e "${white}####################################################################${reset}" >&2
+echo -e "${white}Installing Claude Code...${reset}" >&2
+echo -e "${white}####################################################################${reset}" >&2
+check_command_exists "curl" || exit 1
+curl -fsSL https://claude.ai/install.sh | bash
+echo -e "${green}Done!\n${reset}" >&2
