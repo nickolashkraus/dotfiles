@@ -27,9 +27,19 @@ per the project's `manifest.yaml`, and convert Markdown footnotes to Notion
 `<callout>` blocks (Notion does not render `[^label]` natively):
 
 ```
-python scripts/clean_markdown.py --input <file> \
+python ~/nickolashkraus/agent-os/master/scripts/clean_markdown.py --input <file> \
+  --output /tmp/notion-clean/ \
   --resolve-refs --rewrite-local-links --notion-footnotes
 ```
+
+**NOTE**: The script lives in the `agent-os` repo `scripts/` dir, not under the
+skill base dir. `clean_markdown.py` does NOT enforce capitalize-after-colon,
+but the `lint-outbound.py` hook rejects the `notion-update-page` payload for
+any `[-*+]` bullet containing `: lowercase` (it checks the raw line, anywhere
+in the bullet, code spans included). After cleaning, run a capitalization pass
+that uppercases the first letter after each `: ` in bullet lines (protecting
+backtick code spans), and reword any `: lowercase` that sits inside a code span
+(e.g., a `foo: bar` type annotation) so the colon is outside backticks.
 
 `--rewrite-local-links` walks up from `<file>` to the nearest `manifest.yaml`,
 reads `notion.pages` (and any nested `children`), and replaces inline links
