@@ -495,6 +495,13 @@ echo -e "${white}Installing Homebrew packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_file_exists "${dotfiles}/Brewfile" || exit 1
 check_command_exists "brew" || exit 1
+# Homebrew 6.0.0 requires non-official taps to be explicitly trusted before
+# their formulae and casks can be loaded. Trust every tap the Brewfile declares
+# so `brew bundle` does not skip them.
+grep '^tap "' "${dotfiles}/Brewfile" | sed -E 's/^tap "([^"]+)".*/\1/' |
+  while read -r _tap; do
+    brew trust --tap "${_tap}"
+  done
 brew bundle --file="${dotfiles}/Brewfile"
 echo -e "${green}Done!\n${reset}" >&2
 
