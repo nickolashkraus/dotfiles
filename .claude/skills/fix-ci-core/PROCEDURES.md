@@ -64,12 +64,25 @@ For transient or infrastructure failures, re-run the specific check rather
 than committing a no-op or closing/reopening the PR.
 
 - **GitHub Actions**: `gh run rerun <run-id> --failed`.
+- **Default-setup CodeQL** (`gh run view <run-id> --json event` shows
+  `"event": "dynamic"`; no workflow file in the repo): There is no API retry
+  path. `gh run rerun` returns "cannot be retried" and the
+  check-run/check-suite rerequest endpoints 404. The run re-executes on the
+  next push to the branch, or the user can click "Re-run" in the GitHub UI. If
+  the failure is a GitHub-side infra blip and the check is not in the required
+  ruleset, report it rather than manufacturing a push.
 - **External check (e.g., Google Cloud Build)**: `gh run rerun` does not
   apply. First try GitHub's check-run rerequest:
   `gh api -X POST repos/{owner}/{repo}/check-runs/<check-run-id>/rerequest`.
   If that returns 404 (the app does not support rerequest), fall back to the
   provider's native retry. For Cloud Build:
-  `curl -X POST -H "Authorization: Bearer $(gcloud auth print-access-token)" https://cloudbuild.googleapis.com/v1/projects/<project>/builds/<build-id>:retry`
+
+  ```
+  curl -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  https://cloudbuild.googleapis.com/v1/projects/<project>/builds/<build-id>:retry
+  ```
+
   (`gcloud builds triggers run` does not work for GitHub PR triggers).
 
 **IMPORTANT**: Every check must pass, including non-required ones.
