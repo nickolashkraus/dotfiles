@@ -116,7 +116,11 @@ findings in any agent's prompt.
 four agents again with file references to each other's findings.
 Each agent appends under `## Convergence`. Write
 `{artifact_dir}/orchestrator/checkpoint.md` after each round.
-Repeat until all four report "complete," capped at 3 rounds.
+Repeat until all four report "complete," capped at 3 rounds. A
+later round may be targeted (spawn only the agents whose lens
+can settle the remaining disagreement) when the open items are
+narrow and the other agents' additions are mutually consistent;
+record the rationale in the checkpoint.
 
 Assemble the final agent files into
 `{artifact_dir}/orchestrator/analysis.md` under the
