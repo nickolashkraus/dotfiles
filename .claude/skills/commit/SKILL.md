@@ -39,3 +39,9 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
 
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
+
+When the change set spans multiple unrelated logical changes (per the squashing
+rule in rules/git.md), split it into one commit per logical grouping rather
+than one grab-bag commit. With `--staged`, splitting the already-staged set is
+fine (no new files); a file shared across groups can be staged incrementally by
+snapshotting its final version and applying its independent edits in stages.
