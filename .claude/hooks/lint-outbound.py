@@ -44,20 +44,12 @@ LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(r"^\s*[-*+]\s+\S.*?:\s+[a-z]\S*")
 # name keeps working; the broadened bullet rule above subsumes both
 # bold-lead and plain-text-lead cases.
 LOWERCASE_AFTER_PLAIN_COLON_RE = LOWERCASE_AFTER_BOLD_COLON_RE
-# Mid-prose colon followed by a lowercase word (e.g., `vacuous: both
-# candidates were ...`). Requires a lowercase word before the colon
-# to scope this rule to prose; bulleted forms are caught by
-# LOWERCASE_AFTER_BOLD_COLON_RE above, and free-floating Title-case
-# forms (`Note: ...` mid-paragraph) are treated as inline headings and
-# intentionally not flagged. Inline code is scrubbed upstream, so URLs
-# / file:line / JSON / config snippets inside backticks don't trip
-# this rule.
-LOWERCASE_AFTER_PROSE_COLON_RE = re.compile(r"\b[a-z][a-z]+:\s+[a-z]\S*")
-# Markdown link followed by colon and lowercase word: `[text](url):
-# lowercase word ...`. Common in PR-comment replies like `Addressed in
-# [commit](url): added X to Y`. Not caught by the prose rule above
-# because the character before the colon is `)`, not a word.
-LOWERCASE_AFTER_LINK_COLON_RE = re.compile(r"\]\([^)\n]+\):\s+[a-z]\S*")
+# Line-initial Markdown link lead-in followed by a colon and a lowercase word.
+# Catches reference-list lines like `[EPD-1337](url): lowercase title`.
+# Capitalization is required only for label/lead-in colons; a colon joining two
+# clauses inside a flowing sentence keeps lowercase per rules/typography.md, so
+# plain mid-prose colons and mid-prose links are intentionally not flagged.
+LOWERCASE_AFTER_LINK_COLON_RE = re.compile(r"^\s*\[[^\]\n]+\]\([^)\n]+\):\s+[a-z]\S*")
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -235,17 +227,11 @@ def lint_text(
                 "after a colon per rules/typography.md; non-alphabetic "
                 "starts like paths or code spans are naturally exempt)"
             )
-        if LOWERCASE_AFTER_PROSE_COLON_RE.search(line):
-            violations.append(
-                f"{field} line {lineno}: mid-prose colon followed by "
-                "a lowercase word (always capitalize the first word "
-                "after a colon per rules/typography.md)"
-            )
         if LOWERCASE_AFTER_LINK_COLON_RE.search(line):
             violations.append(
-                f"{field} line {lineno}: Markdown link followed by "
-                "a colon and a lowercase word (always capitalize the "
-                "first word after a colon per rules/typography.md)"
+                f"{field} line {lineno}: link lead-in followed by "
+                "a colon and a lowercase word (capitalize the first "
+                "word after a label colon per rules/typography.md)"
             )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(
@@ -372,9 +358,7 @@ def extract_bash_content(
         try:
             text = Path(os.path.expanduser(path)).read_text()
             if text:
-                fields.append(
-                    (f"arg --body-file {path}", text, is_commit, is_pr_body)
-                )
+                fields.append((f"arg --body-file {path}", text, is_commit, is_pr_body))
         except OSError:
             pass
 

@@ -4,10 +4,16 @@
 
 - No em dashes (`—`). Use commas, parentheses, semicolons, or rewrite.
 - No smart quotes. Straight only.
-- Always capitalize the first word after a colon. This applies to clauses,
-  values, and list-fragments alike. Non-alphabetic starts (paths like
-  `~/dir`, code spans like `` `foo` ``, numbers like `5min`, URLs) are
-  naturally exempt because there is no letter to capitalize.
+- Capitalize the first word after a colon when the colon ends a label or
+  lead-in: List elements (`**Element**: Description`), bold callouts
+  (`**NOTE**: ...`), line-initial link lead-ins (`[Link](url): Description`),
+  and other line-initial labels. When a colon joins two clauses inside
+  a flowing sentence, keep lowercase ("the entry was also stale: it
+  declared..."). Non-alphabetic starts (paths like `~/dir`, code spans like
+  `` `foo` ``, numbers like `5min`, URLs) are naturally exempt because there is
+  no letter to capitalize. Conventional-commit subject lines
+  (`fix(rules): flag x`) are exempt; the spec lowercases both the type and the
+  description (see rules/git.md).
 - Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
   or ` — ` as the lead-in separator.
 - Write "ID" in prose, never "id" or "Id". Code references in backticks keep
