@@ -67,6 +67,18 @@ When the underlying detail matters, inline a one-sentence summary in place of
 the reference. References to shared repo paths (e.g.,
 `enterprise-service/app/...`) are fine; those resolve for teammates.
 
+## Step 4.5: Typography pre-flight
+
+The `lint-outbound.py` hook rejects `save_issue` payloads with typography
+violations, so catch them before sending. Scan the cleaned draft against the
+checklist at the top of `rules/typography.md`, especially
+capitalize-after-colon. A lowercase word after a label or lead-in colon
+(`**Element**: ...`, line-initial links, bold callouts) is a violation unless
+the next token is a code span, path, number, or URL; a colon joining two
+clauses inside a flowing sentence keeps lowercase. Fix violations in the
+cleaned draft, not just the payload, so the on-disk artifact matches what was
+sent.
+
 ## Step 5: Resolve the project
 
 Use `list_projects` with the project name from Step 1 as the `query` parameter.
