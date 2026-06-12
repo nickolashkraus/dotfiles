@@ -81,6 +81,14 @@
   - 50 characters or less
   - Capitalized, imperative mood (e.g., "Fix bug in user login flow")
   - No period at the end
+- **Conventional Commits carve-out**: When the repository's convention is
+  Conventional Commits (a `CONTRIBUTING.md`, commitlint config, or the existing
+  log mandates `type(scope): description`), the repo convention wins over the
+  subject rules above. The type and description are lowercase (`fix(rules):
+  flag x`, never `Fix(rules): Flag x`), the subject may run to 72 characters to
+  absorb the prefix, and the capitalize-after-colon typography rule does not
+  apply to the subject line. Body conventions (blank line, 72-character wrap,
+  what/why) still apply unchanged.
 - **Blank line** between subject and body
 - **Body** (optional):
   - Wrap lines at 72 characters

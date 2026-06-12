@@ -255,7 +255,7 @@ Pay particular attention to these common drift modes:
 
 Surface-specific lens:
 
-- `git commit message`: subject 50 chars, imperative, no period; body wraps at 72 chars; no Co-Authored-By; bare Linear slug in subject is correct.
+- `git commit message`: subject 50 chars, imperative, no period; body wraps at 72 chars; no Co-Authored-By; bare Linear slug in subject is correct. Conventional Commits carve-out (rules/git.md): when the subject matches `type(scope): description` with a lowercase type (feat, fix, docs, test, chore, refactor, etc.), the repo convention wins. The lowercase type, lowercase description, lowercase-after-colon form, and subjects up to 72 chars are all CORRECT; do not flag any of them and do not demand `Fix(...)` capitalization.
 - `GitHub PR` body or comment: single line per paragraph (no hard wraps), Markdown links for Linear refs, verbatim Linear titles in References, no Closes/Fixes/Resolves, no internal paths.
 - Trivial PR bodies are allowed to be a single declarative sentence (rules/git.md explicitly permits "Service should not be publicly available." or "Routine version bump to pick up upstream type fixes." as valid trivial bodies). Do NOT demand a leading verb on these. Only flag the "lead with a declarative verb" rule for longer PR bodies and for openers like `This PR adds...` or `In this PR, I...`.
 - `Linear issue` (`save_issue`): standard sections (Overview, Acceptance Criteria, Implementation Details, References), Title Case for issue titles, no extra newlines for human readability.
