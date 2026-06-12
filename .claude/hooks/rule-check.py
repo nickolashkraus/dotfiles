@@ -96,6 +96,7 @@ def _is_real_prose_value(value: str | None) -> bool:
         return False
     return True
 
+
 VERDICT_SCHEMA = {
     "type": "object",
     "properties": {
@@ -355,6 +356,32 @@ def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
     return (verdict, violations)
 
 
+FORBIDDEN_CHAR_CLASSES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("‘’“”", ("smart quote", "curly", "quotation mark")),
+    ("—", ("em dash", "em-dash")),
+)
+
+
+def _is_phantom_char_violation(v: dict, payload: str) -> bool:
+    """Drop model findings about forbidden characters that the payload does
+    not actually contain. The deep-check prompt primes the model to hunt for
+    smart quotes and em dashes, and it occasionally hallucinates them in
+    straight-quoted text, re-rendering the excerpt with the curly characters
+    it imagined. Character presence is mechanically checkable, so the model's
+    claim is only accepted when the codepoints exist in the raw payload."""
+    blob = " ".join(
+        str(v.get(k, "")) for k in ("rule_quote", "payload_excerpt", "suggested_fix")
+    ).lower()
+    excerpt = v.get("payload_excerpt", "")
+    for chars, keywords in FORBIDDEN_CHAR_CLASSES:
+        about_class = any(kw in blob for kw in keywords) or any(
+            c in excerpt for c in chars
+        )
+        if about_class and not any(c in payload for c in chars):
+            return True
+    return False
+
+
 def main() -> int:
     if os.environ.get("CLAUDE_RULE_CHECK_DISABLE") == "1":
         return 0
@@ -389,6 +416,12 @@ def main() -> int:
         verdict, violations = run_check(rules, surface, text)
         if verdict == "fail":
             for v in violations:
+                if _is_phantom_char_violation(v, text):
+                    log(
+                        f"PHANTOM tool={tool_name} surface={surface} "
+                        f"dropped char finding: {v.get('rule_quote', '')[:80]}"
+                    )
+                    continue
                 all_violations.append((surface, v))
         log(
             f"CHECK tool={tool_name} surface={surface} verdict={verdict} "
