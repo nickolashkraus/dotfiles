@@ -103,6 +103,14 @@ completes.
 
 ### If `--in-place` was set
 
+Before editing, sync the local worktree to the PR head. A worktree left on an
+older commit (or a concurrent session's push) means you fix code that no longer
+matches the PR, and the resulting commit must be discarded. Run `git fetch
+origin <headRefName>` and, if `origin/<headRefName>` is ahead of `HEAD`, `git
+reset --hard origin/<headRefName>` (or rebase local-only work onto it) so the
+diff you read is the diff the bot reviewed. Re-read the flagged code from the
+synced tree, not from memory of an earlier read.
+
 For each remaining unresolved comment, apply "Bias toward fixing" in
 PROCEDURES.md. For dismissals, follow "Reply to a bot comment".
 
