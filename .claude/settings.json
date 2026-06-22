@@ -107,6 +107,8 @@
   },
   "spinnerTipsEnabled": false,
   "syntaxHighlightingDisabled": false,
+  "feedbackSurveyRate": 0,
+  "awaySummaryEnabled": false,
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
