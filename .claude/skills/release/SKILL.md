@@ -124,7 +124,7 @@ as a draft using `slack_send_message_draft`.
 ## Step 8: Create daily task file
 
 Read the template from `@templates/daily-task.md` and populate it.
-Write to `~/nickolashkraus/agent-os/tasks/daily/<date>.md`.
+Write to `~/nickolashkraus/agent-os/tasks/daily/<YYYY>/<MM>/<date>.md`.
 
 ## Step 9: Deploy
 

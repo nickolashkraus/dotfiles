@@ -1,6 +1,6 @@
 # Daily Task File Template
 
-Path: `~/nickolashkraus/agent-os/tasks/daily/<date>.md`
+Path: `~/nickolashkraus/agent-os/tasks/daily/<YYYY>/<MM>/<date>.md`
 
 ```
 # <date>

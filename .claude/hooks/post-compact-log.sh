@@ -18,7 +18,7 @@ for cmd in jq python3; do
   fi
 done
 
-log_dir="/Users/nickolas/nickolashkraus/agent-os/master/notes/daily/logs"
+log_dir="/Users/nickolas/nickolashkraus/agent-os/master/notes/logs"
 
 input=$(cat)
 
@@ -196,11 +196,14 @@ else:
 [ -n "${summary}" ] || exit 0
 
 d=$(date +%Y-%m-%d)
+y=$(date +%Y)
+m=$(date +%m)
 t=$(date +%H:%M)
 short_id=${session_id:0:8}
 dir_name=$(basename "${cwd}")
 
-mkdir -p "${log_dir}"
-f="${log_dir}/${d}.md"
+dest_dir="${log_dir}/${y}/${m}"
+mkdir -p "${dest_dir}"
+f="${dest_dir}/${d}.md"
 [ -f "${f}" ] || printf '# %s\n' "${d}" >"${f}"
 printf '\n## %s | %s | %s\n\n%s\n' "${t}" "${dir_name}" "${short_id}" "${summary}" >>"${f}"
