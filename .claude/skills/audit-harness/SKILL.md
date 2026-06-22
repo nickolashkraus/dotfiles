@@ -30,7 +30,7 @@ Collect the following inputs into context. Cap each at ~100 lines via
 `tail` or `head` to keep context lean.
 
 1. Daily compact logs from
-   `~/nickolashkraus/agent-os/master/notes/daily/logs/YYYY-MM-DD.md`
+   `~/nickolashkraus/agent-os/master/notes/logs/YYYY/MM/YYYY-MM-DD.md`
    for each date in the window. Skip dates with no log.
 
 2. Recent commits in `.claude/` of the dotfiles repo:

@@ -39,8 +39,8 @@ outbox (defaults to today).
 ## Outbox format
 
 Each day's outbox is a single file at
-`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md`. Messages are checklist
-items:
+`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY/MM/YYYY-MM-DD.md`. Messages
+are checklist items:
 
 ```markdown
 # YYYY-MM-DD
@@ -64,7 +64,7 @@ no subcommand, default to `list`. If `--date` is present, use that date;
 otherwise use today's date.
 
 Set the outbox path to
-`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md`.
+`~/nickolashkraus/agent-os/master/tasks/outbox/YYYY/MM/YYYY-MM-DD.md`.
 
 ## Step 2: Execute subcommand
 

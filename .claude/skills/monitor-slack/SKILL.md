@@ -162,8 +162,8 @@ issue):
 ## Step 6: Queue outbox messages
 
 For any Slack message that should be sent, append an entry to today's outbox
-file at `~/nickolashkraus/agent-os/master/tasks/outbox/YYYY-MM-DD.md` (using the
-current date).
+file at `~/nickolashkraus/agent-os/master/tasks/outbox/YYYY/MM/YYYY-MM-DD.md`
+(using the current date).
 
 If the file does not exist, create it with a heading:
 
@@ -185,7 +185,7 @@ Append each queued message as a checklist item:
 Do not send the message. Print a confirmation:
 
 ```
-Queued reply -> agent-os/tasks/outbox/YYYY-MM-DD.md
+Queued reply -> agent-os/tasks/outbox/YYYY/MM/YYYY-MM-DD.md
 ```
 
 ### Watching threads
