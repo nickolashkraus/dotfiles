@@ -6,10 +6,13 @@
   messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
-- Branch names should be the Linear issue slug (e.g., `BYB-1337`) if available,
-  or a short description (e.g., `some-feature`). Always use the uppercase slug
-  verbatim from Linear. Do not lowercase it (`byb-1337` is wrong). The same
-  applies to worktree directory names, which mirror the branch.
+- Branch names should be the Linear issue slug (e.g., `byb-1337`) if available,
+  or a short description (e.g., `some-feature`). Lowercase the slug for the
+  branch name (`byb-1337`, not `BYB-1337`). The same applies to worktree
+  directory names, which mirror the branch. This lowercasing is scoped to the
+  branch and worktree only: PR titles, commit subjects, `## References` entries,
+  and any prose reference still use the uppercase Linear slug verbatim (e.g.,
+  `BYB-1337`), since that is how Linear renders the issue.
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - Always render Linear issue references as Markdown links (e.g.,
@@ -67,7 +70,7 @@
 ## Worktrees
 
 - Always create worktrees in the root of the bare repo as peer directories
-  (e.g., `transaction-service/BYB-934` alongside `transaction-service/dev`).
+  (e.g., `transaction-service/byb-934` alongside `transaction-service/dev`).
   Never place them under subdirectories like `.claude/worktrees/`.
 - In a bare repo with worktrees, default to the `master` (or default) branch
   worktree for operations like `git log`, `git diff`, and rebasing. Do not
@@ -171,7 +174,7 @@ inline," not "fix in code and push." Confirm before any code edit.
 ## Stacked PRs
 
 For dependent changes, stack PRs by targeting each PR against its parent branch
-(e.g., `BYB-1053` targets `BYB-891`, `BYB-1054` targets `BYB-1053`). This keeps
+(e.g., `byb-1053` targets `byb-891`, `byb-1054` targets `byb-1053`). This keeps
 each review focused on only the relevant delta. When a parent branch merges
 and is deleted, GitHub automatically retargets the child PR to the default
 branch.
