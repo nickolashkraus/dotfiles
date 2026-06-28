@@ -290,6 +290,7 @@ TOML
 TOTP
 TRD
 TS's
+TSV
 Terraform
 Theanine
 Thorne
@@ -620,3 +621,4 @@ www
 x86
 yabai
 
+monospace
