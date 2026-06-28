@@ -68,6 +68,49 @@ engineers. Authenticate via Cloud SQL IAM group authentication:
    cone get --query "Cloud SQL Instance User" --justification "<reason>"
    ```
 
+   Newer Dev instances (e.g., `dev-ppp-service`) also use IAM group auth, not
+   a static `POSTGRES_PASSWORD`. The `db-<env>-<instance>-{ro,rw,adm}` groups
+   show up in `gcloud sql users list` as type `CLOUD_IAM_GROUP`; an individual
+   who has connected appears as `CLOUD_IAM_GROUP_USER`.
+
+   **Gotcha: `cone search`/`cone get --query` only match an entitlement's
+   `alias` field.** Newly synced entitlements have `alias: ""` and are
+   invisible to every query path, so the CLI returns "no entitlement found"
+   even though the entitlement exists and is requestable in the ConductorOne
+   web portal. Do not trust an empty `cone search` as proof an entitlement is
+   absent, and do not run `cone generate-alias` to fix it (it writes aliases
+   tenant-wide, and `--dry-run` needs super-admin/app-admin anyway). To request
+   an un-aliased entitlement programmatically, look it up by app and request it
+   by ID:
+
+   ```bash
+   # 1. Enumerate the owning app's entitlements (NOT alias-gated). DB groups
+   #    live under "Google (GCP + Google Workspace)".
+   cone search --app "Google (GCP + Google Workspace)" -o json > /tmp/ents.json
+
+   # 2. Find the group's appId + entitlement id. matchBatonId is the group
+   #    email.
+   python3 -c "
+   import json
+   ents = json.load(open('/tmp/ents.json')).get('entitlements', [])
+   for it in ents:
+       e = it.get('Entitlement', it)
+       if e.get('matchBatonId') == 'db-dev-ppp-service-rw@functionhealth.com':
+           print('app:', e['appId'], 'ent:', e['id'])
+   "
+
+   # 3. Request by ID. --duration is REQUIRED (max is shown in the error if
+   #    omitted, e.g. 12w6d).
+   cone get --app-id <appId> --entitlement-id <id> --duration 12w \
+     --justification "<reason>" --non-interactive
+   ```
+
+   A 409 `duplicate ticket found` means the request already exists (a prior
+   attempt that erred on duration validation can still create the ticket).
+   Verify with `cone task get <task-id> -o json`; `TASK_STATE_OPEN` means
+   pending. FH DB groups use the `eng-owner-approval` policy with
+   `allowSelfApproval: false`, so an entitlement owner must approve.
+
 2. Start the proxy with `--auto-iam-authn`:
 
    ```bash
