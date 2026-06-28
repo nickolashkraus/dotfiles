@@ -1,6 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1"
   },
   "permissions": {
     "defaultMode": "bypassPermissions"
@@ -105,12 +106,13 @@
       }
     ]
   },
+  "feedbackSurveyRate": 0,
   "spinnerTipsEnabled": false,
   "syntaxHighlightingDisabled": false,
-  "feedbackSurveyRate": 0,
-  "awaySummaryEnabled": false,
   "effortLevel": "high",
+  "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "tui": "fullscreen"
 }

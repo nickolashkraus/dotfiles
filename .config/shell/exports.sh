@@ -35,3 +35,8 @@ export AWS_PROFILE=master.root
 
 # Use file-based storage for gws credentials instead of macOS Keychain.
 export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file
+
+# Stop Claude Code from capturing mouse events so tmux scrollback and terminal
+# text selection keep working. Claude Code's fullscreen renderer enables mouse
+# tracking, which otherwise sends the scroll wheel to the app instead of tmux.
+export CLAUDE_CODE_DISABLE_MOUSE=1
