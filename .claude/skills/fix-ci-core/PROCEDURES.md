@@ -276,6 +276,14 @@ Use this template for skills that fix and dismiss findings inline (`fix-ci`,
 `fix-bot-reviews`). For the Tracked variant (`fix-ci-release`), see that
 skill's Step 7.
 
+The `rule-check.py` hook rejects tables whose columns are not padded to equal
+width (each column's header, separator, and data cells must share one width
+with a 1-space buffer). Wide Description/Reason cells make hand-alignment
+error-prone, so build the table programmatically (pad each column to its
+longest cell) and keep the Comment cell short with a reference-style link
+(`[→](url)` plus an `[r1]: <url>` definition below the table) rather than an
+inline one.
+
 Always write the summary body to `/tmp/pr-<pr-number>-summary.md` and post via
 `gh pr comment --body-file`. Never inline this body via `--body "$(cat <<'EOF'
 ... EOF)"`: the table contains backticks, links, and shell-special characters
