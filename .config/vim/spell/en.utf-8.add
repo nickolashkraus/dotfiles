@@ -12,6 +12,7 @@ AUR
 AWS
 Acetyl
 Activations
+Agentic
 AirPlay
 Ames
 Analytics
@@ -109,6 +110,7 @@ Firestore
 FitCSVTool
 Fivetran
 Freshpaint
+Fullstack
 GCP
 GCR
 GCS
@@ -187,10 +189,13 @@ Merrill
 MethodResponse
 MiB
 Mixpanel
+Monetization
 MongoDB
 MySQL
 NERDTree
+NVIDIA
 Nataly
+NeMo
 Neovim
 OAuth
 OIDC
@@ -235,6 +240,7 @@ R4
 RDP
 RESTful
 RPA
+RSUs
 RTC
 RTO
 Rebase
@@ -260,6 +266,7 @@ SQLModel
 SRE
 SSO
 SVG
+SWE
 Sahoo
 Salesforce
 Salesloft
@@ -474,6 +481,7 @@ microservice
 middleware
 mis
 misconfigured
+monospace
 namespace
 nerdtree
 networkd
@@ -621,4 +629,3 @@ www
 x86
 yabai
 
-monospace
