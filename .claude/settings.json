@@ -111,8 +111,8 @@
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
   "awaySummaryEnabled": false,
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
-  "editorMode": "vim",
-  "tui": "fullscreen"
+  "editorMode": "vim"
 }
