@@ -64,18 +64,31 @@ gcp_current_config() (
 )
 
 # Automatically activate the Poetry environment when entering a directory that
-# contains a pyproject.toml with a Poetry section. Deactivates and restores the
-# default pyenv virtualenv when leaving.
+# belongs to a Poetry project (the current directory or any ancestor contains a
+# pyproject.toml with a Poetry section). Deactivates and restores the default
+# pyenv virtualenv when leaving the project tree.
 #
 # The Python version is resolved from the `python` dependency in pyproject.toml
 # (e.g., "^3.12", "~=3.12", ">=3.12") and matched to the latest installed
 # pyenv version for that minor release.
+#
+# The activated project root is tracked in _POETRY_ACTIVE_ROOT so that moving
+# between subdirectories of the same project (or re-entering it) is a no-op,
+# avoiding a redundant ~0.3s `poetry env activate` on every chpwd.
 _poetry_auto_activate() {
-  # Check for a Poetry project in the current directory.
-  if [[ -f pyproject.toml ]] && grep -q '\[tool\.poetry\]' pyproject.toml 2>/dev/null; then
+  # Walk up to the nearest ancestor containing a pyproject.toml.
+  local root=$PWD
+  while [[ $root != / && ! -f $root/pyproject.toml ]]; do
+    root=${root:h}
+  done
+
+  if [[ -f $root/pyproject.toml ]] && grep -q '\[tool\.poetry\]' $root/pyproject.toml 2>/dev/null; then
+    # Already active for this project: nothing to do.
+    [[ $root == $_POETRY_ACTIVE_ROOT ]] && return
+
     # Extract the minor version (e.g., "3.12") from the Python dependency.
     local py_constraint
-    py_constraint=$(grep -E '^\s*python\s*=' pyproject.toml | head -1 | grep -oE '[0-9]+\.[0-9]+')
+    py_constraint=$(grep -E '^\s*python\s*=' $root/pyproject.toml | head -1 | grep -oE '[0-9]+\.[0-9]+')
     if [[ -z "$py_constraint" ]]; then
       return
     fi
@@ -97,10 +110,10 @@ _poetry_auto_activate() {
     pyenv shell --unset 2>/dev/null
     pyenv shell "$py_version"
     eval "$(poetry env activate 2>/dev/null)"
-    export _POETRY_AUTO_ACTIVATED=1
-  elif [[ -n "$_POETRY_AUTO_ACTIVATED" ]]; then
-    # Left a Poetry project. Restore defaults.
-    unset _POETRY_AUTO_ACTIVATED
+    export _POETRY_ACTIVE_ROOT=$root
+  elif [[ -n "$_POETRY_ACTIVE_ROOT" ]]; then
+    # Left the Poetry project tree. Restore defaults.
+    unset _POETRY_ACTIVE_ROOT
     deactivate 2>/dev/null
     pyenv shell --unset
     pyenv activate default 2>/dev/null
