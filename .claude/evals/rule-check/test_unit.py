@@ -387,6 +387,153 @@ def test_load_rules_smoke() -> None:
         check("returns empty when no rules dir", text == "", f"got {len(text)} chars")
 
 
+def test_interpreter_heredoc_skipped() -> None:
+    section("extract_bash_payloads: interpreter heredocs are not prose")
+    cmd = (
+        "gh api graphql -f query='...' && python3 - <<'PY'\n"
+        "import sys\n"
+        "print('this is source code, not outbound prose')\n"
+        "PY"
+    )
+    out = rc.extract_bash_payloads(cmd)
+    check(
+        "python3 heredoc not extracted",
+        not any("heredoc" in lbl for lbl, _ in out),
+        f"got {out!r}",
+    )
+    cat_cmd = "git commit -F- <<'EOF'\nSubject line here\n\nBody.\nEOF"
+    out = rc.extract_bash_payloads(cat_cmd)
+    check(
+        "git-owned heredoc still extracted",
+        any("heredoc" in lbl for lbl, _ in out),
+        f"got {out!r}",
+    )
+
+
+def test_compound_command_per_flag_surfaces() -> None:
+    section(
+        "extract_bash_payloads: compound `git commit && gh pr create` labels "
+        "flags by owning command"
+    )
+    cmd = (
+        "git commit -m 'Add upgrade gate' && "
+        "gh pr create --title 'BYB-1: A Long PR Title Well Past Fifty Chars OK' "
+        "--body 'Adds the upgrade gate column to members.'"
+    )
+    out = rc.extract_bash_payloads(cmd)
+    labels = [lbl for lbl, _ in out]
+    check(
+        "-m labeled git commit message",
+        any(lbl.startswith("git commit message") and "-m" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "--title labeled GitHub PR (never a commit subject)",
+        any(lbl.startswith("GitHub PR") and "--title" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "--body labeled GitHub PR",
+        any(lbl.startswith("GitHub PR") and "--body" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+
+
+def test_gh_api_at_file_read() -> None:
+    section("extract_bash_payloads: gh api -F body=@file reads file content")
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write("Comment body loaded from disk for the fixture.")
+        path = f.name
+    try:
+        cmd = f"gh api repos/org/repo/issues/1/comments -F body=@{path}"
+        out = rc.extract_bash_payloads(cmd)
+        texts = [t for _, t in out]
+        check(
+            "reads @file content",
+            any("loaded from disk" in t for t in texts),
+            f"texts={texts!r}",
+        )
+    finally:
+        Path(path).unlink()
+    out = rc.extract_bash_payloads("gh api graphql -F query=@- <<'EOF'\nq\nEOF")
+    check(
+        "@- (stdin) produces no file payload",
+        not any("@-" in lbl for lbl, _ in out),
+        f"got {out!r}",
+    )
+
+
+def test_width_arithmetic_filter() -> None:
+    section("_is_width_arithmetic_violation: drops char-counting findings")
+    table_finding = {
+        "rule_quote": "Pad all columns to equal width",
+        "payload_excerpt": "| --- |",
+        "suggested_fix": (
+            "The separator row's Reason column has 2 extra dashes compared "
+            "to the header rows (107 vs 105 chars)."
+        ),
+    }
+    check(
+        "table-width finding dropped",
+        rc._is_width_arithmetic_violation(table_finding),
+        "not dropped",
+    )
+    subject_finding = {
+        "rule_quote": "50 characters or less",
+        "payload_excerpt": "BYB-3384: Something",
+        "suggested_fix": "Shorten the subject; it exceeds 50 characters.",
+    }
+    check(
+        "subject-length finding dropped",
+        rc._is_width_arithmetic_violation(subject_finding),
+        "not dropped",
+    )
+    semantic_finding = {
+        "rule_quote": "Always render Linear issue references as Markdown links",
+        "payload_excerpt": "| BYB-3384 | pending | ---- |",
+        "suggested_fix": "Replace the bare slug with a Markdown link.",
+    }
+    check(
+        "semantic finding about a table cell kept",
+        not rc._is_width_arithmetic_violation(semantic_finding),
+        "wrongly dropped",
+    )
+
+
+def test_verdict_cache_roundtrip() -> None:
+    section("cache: key determinism and save/load roundtrip")
+    k1 = rc.cache_key("digest", "surface", "payload")
+    k2 = rc.cache_key("digest", "surface", "payload")
+    k3 = rc.cache_key("digest", "surface", "payload2")
+    check("identical inputs give identical keys", k1 == k2, f"{k1} != {k2}")
+    check("payload change gives new key", k1 != k3, "collision")
+
+    original = rc.CACHE_FILE
+    with tempfile.TemporaryDirectory() as tmpdir:
+        rc.CACHE_FILE = Path(tmpdir) / "cache.json"
+        try:
+            import time as _time
+
+            check(
+                "missing cache file loads empty",
+                rc.load_cache() == {},
+                "expected {}",
+            )
+            fresh = {"verdict": "fail", "violations": [], "ts": _time.time()}
+            stale = {"verdict": "pass", "violations": [], "ts": 0}
+            rc.save_cache({"fresh": fresh, "stale": stale})
+            loaded = rc.load_cache()
+            check("fresh entry survives", "fresh" in loaded, f"got {loaded!r}")
+            check("stale entry pruned by TTL", "stale" not in loaded, f"got {loaded!r}")
+            check(
+                "verdict preserved",
+                loaded.get("fresh", {}).get("verdict") == "fail",
+                f"got {loaded!r}",
+            )
+        finally:
+            rc.CACHE_FILE = original
+
+
 def test_walk_strings_nested() -> None:
     section("walk_strings: yields leaf strings with JSONPath labels")
     items = list(
@@ -435,6 +582,11 @@ TESTS = [
     test_gated_mcp_matches,
     test_extract_payloads_dispatch,
     test_load_rules_smoke,
+    test_interpreter_heredoc_skipped,
+    test_compound_command_per_flag_surfaces,
+    test_gh_api_at_file_read,
+    test_width_arithmetic_filter,
+    test_verdict_cache_roundtrip,
     test_walk_strings_nested,
 ]
 

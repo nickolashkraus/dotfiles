@@ -7,7 +7,7 @@ on:
 
 jobs:
   unit:
-    name: rule-check unit tests
+    name: hook unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,3 +16,5 @@ jobs:
           python-version: "3.12"
       - name: Run rule-check unit tests
         run: python3 .claude/evals/rule-check/test_unit.py
+      - name: Run lint-outbound unit tests
+        run: python3 .claude/evals/lint-outbound/test_unit.py
