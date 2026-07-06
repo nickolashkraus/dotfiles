@@ -11,7 +11,14 @@ Run: python3 .claude/evals/rule-check/eval.py [--parallel N] [--filter sub]
 
 Tests are isolated to the deep layer (rule-check.py) only; the cheap
 regex layer (lint-outbound.py) is bypassed by invoking rule-check.py
-directly via stdin, so we measure the deep layer in isolation.
+directly via stdin, so we measure the deep layer in isolation. The
+hook's verdict cache is also bypassed (CLAUDE_RULE_CHECK_NO_CACHE=1) so
+every case exercises a live model call, not a cached verdict.
+
+The `regr_` cases are regressions for the 2026-07-06 false-positive
+batch: character-arithmetic findings (table padding, subject length,
+PR-title length) now belong exclusively to lint-outbound.py, so the
+deep layer must PASS payloads whose only "violation" is countable.
 """
 
 from __future__ import annotations
@@ -38,6 +45,26 @@ def bash(cmd: str) -> dict:
 
 def mcp(tool: str, **inp) -> dict:
     return {"tool_name": tool, "tool_input": inp}
+
+
+def padded_table(header: list[str], rows: list[list[str]]) -> str:
+    """Build a Markdown table padded to equal SOURCE width per column
+    (the rules/typography.md format). Guarantees the fixture is
+    correctly padded even when cells hold code spans or links, whose
+    rendered width differs from their source width."""
+    all_rows = [header] + rows
+    widths = [
+        max(len(r[i]) for r in all_rows) for i in range(len(header))
+    ]
+    lines = [
+        "| " + " | ".join(c.ljust(w) for c, w in zip(header, widths)) + " |",
+        "| " + " | ".join("-" * w for w in widths) + " |",
+    ]
+    for r in rows:
+        lines.append(
+            "| " + " | ".join(c.ljust(w) for c, w in zip(r, widths)) + " |"
+        )
+    return "\n".join(lines)
 
 
 TESTS: list[dict] = [
@@ -449,6 +476,105 @@ TESTS: list[dict] = [
         "expected": "any",
         "smoke_only": True,
     },
+    # ---- Regressions: 2026-07-06 false-positive batch ----
+    # Character arithmetic (table padding, subject length, PR-title
+    # length) is lint-outbound.py's job; the deep layer must pass these.
+    {
+        "id": "regr_padded_table_with_code_spans_and_links",
+        "category": "TN",
+        "payload": bash(
+            "gh pr create --title 'BYB-1749: Fix CI Findings' --body "
+            + heredoc(
+                "Addresses the CI findings from the last run.\n\n"
+                + padded_table(
+                    ["File", "Reason", "Fix"],
+                    [
+                        [
+                            "`app/ppp/stripe_service.py`",
+                            "[BYB-1216](https://linear.app/x/issue/BYB-1216)",
+                            "Adds the missing `await`",
+                        ],
+                        [
+                            "`app/utils/dependencies.py`",
+                            "Unused import left after refactor",
+                            "Removes it",
+                        ],
+                    ],
+                )
+                + "\n\n## References\n\n"
+                "- [BYB-1749](https://linear.app/x/BYB-1749): Fix CI Findings\n"
+            )
+        ),
+        "expected": "pass",
+    },
+    {
+        "id": "regr_unpadded_table_not_deep_layer_concern",
+        "category": "TN",
+        "payload": bash(
+            "gh pr create --title 'BYB-1750: Add Status Column' --body "
+            + heredoc(
+                "Adds the status column to the findings summary.\n\n"
+                "| Check | Status |\n"
+                "| --- | --- |\n"
+                "| pytest | green |\n\n"
+                "## References\n\n"
+                "- [BYB-1750](https://linear.app/x/BYB-1750): Add Status Column\n"
+            )
+        ),
+        "expected": "pass",
+    },
+    {
+        "id": "regr_long_plain_commit_subject_not_deep_layer_concern",
+        "category": "TN",
+        "payload": bash(
+            "git commit -m 'Add a longer subject line that runs past fifty characters'"
+        ),
+        "expected": "pass",
+    },
+    {
+        "id": "regr_long_pr_title_in_compound_command",
+        "category": "TN",
+        "payload": bash(
+            "git commit -m 'Add upgrade gate' && "
+            "gh pr create --title 'BYB-1337: Membership Upgrade Creates "
+            "Duplicate Active Subscriptions in Stripe' "
+            "--body 'Adds the upgrade gate column to members.'"
+        ),
+        "expected": "pass",
+    },
+    {
+        "id": "regr_python_heredoc_not_prose",
+        "category": "TN",
+        "payload": bash(
+            "python3 - <<'PY'\n"
+            "text = \"An em dash — and a hard-wrapped\\nparagraph inside "
+            "python source.\"\n"
+            "print(text.upper())\n"
+            "PY"
+        ),
+        "expected": "pass",
+    },
+    {
+        "id": "regr_borderline_bullet_periods_pass",
+        "category": "TN",
+        "payload": mcp(
+            "mcp__linear__save_issue",
+            title="Track Upgrade Gate Followups",
+            description=(
+                "## Overview\n\n"
+                "Tracks the loose ends from the upgrade-gate rollout.\n\n"
+                "## Acceptance Criteria\n\n"
+                "- Feature flag removed after the full ramp completes.\n"
+                "- Metrics dashboard archived once the flag is gone.\n\n"
+                "## Implementation Details\n\n"
+                "Cleanup only; no schema changes.\n\n"
+                "## References\n\n"
+                "- [BYB-1234](https://linear.app/x/BYB-1234): Add Membership "
+                "Upgrade Gate\n"
+            ),
+        ),
+        "expected": "pass",
+    },
     # ---- Edge cases ----
     {
         "id": "edge_override_sentinel_bypasses",
@@ -486,6 +612,7 @@ def run_one(test: dict) -> dict:
             input=payload_bytes,
             capture_output=True,
             timeout=180,
+            env={**os.environ, "CLAUDE_RULE_CHECK_NO_CACHE": "1"},
         )
         elapsed = time.monotonic() - started
         actual_verdict = "fail" if proc.returncode == 2 else "pass"
