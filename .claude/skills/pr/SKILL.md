@@ -42,7 +42,10 @@ If already on a non-default branch, push it. Otherwise:
       `git reset --hard origin/<default-branch>`
    c. Change to the worktree: `cd ../<branch>`
    All subsequent steps happen in the worktree.
-3. Otherwise, create and check out the branch.
+3. Otherwise, create and check out the branch. If the commits were made on the
+   default branch (e.g., `ship` committed there before calling this skill),
+   move the default branch back so the commits live only on the new branch:
+   `git branch -f <default-branch> origin/<default-branch>`.
 4. Push.
 
 ## Step 4: Create the pull request
