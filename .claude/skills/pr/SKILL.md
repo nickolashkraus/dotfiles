@@ -6,13 +6,15 @@ description: >
   (use `commit`) or want the full pipeline (use `ship`).
 disable-model-invocation: false
 allowed-tools: Bash, Read
-argument-hint: "[--worktree] [linear-issue]"
+argument-hint: "[--no-pulse] [--worktree] [linear-issue]"
 ---
 
 You are creating a pull request. Follow every step in order.
 
 Parse `$ARGUMENTS` for flags and a Linear issue slug:
 
+- `--no-pulse`: Skip the local Pulse gate in Step 3 (the `fh-pulse` bot still
+  reviews the PR after push).
 - `--worktree`: Create a new worktree instead of switching branches.
 - Anything else is treated as a Linear issue slug.
 
@@ -27,7 +29,20 @@ git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 Run `git log` and `git diff` against the default branch to understand all
 commits that will be included in the pull request.
 
-## Step 3: Create the branch and push
+## Step 3: Pulse gate (Function-Health repos only)
+
+If `--no-pulse` was passed, skip this step entirely and proceed to Step 4.
+
+If the repo's `origin` is in the `Function-Health` org, run
+`Skill(skill: "pulse-review")` before pushing. Fix or dismiss every finding
+per that skill and iterate until Pulse is clean (zero critical, zero
+should-fix). The goal is a PR that arrives clean vis-a-vis the `fh-pulse`
+bot every time. Note any dismissals so Step 5 can carry the reasoning into
+the PR description.
+
+Skip this step for non-Function-Health repos and for the pulse repo itself.
+
+## Step 4: Create the branch and push
 
 If already on a non-default branch, push it. Otherwise:
 
@@ -48,7 +63,7 @@ If already on a non-default branch, push it. Otherwise:
    `git branch -f <default-branch> origin/<default-branch>`.
 4. Push.
 
-## Step 4: Create the pull request
+## Step 5: Create the pull request
 
 Create the pull request using `gh pr create` against the default branch:
 

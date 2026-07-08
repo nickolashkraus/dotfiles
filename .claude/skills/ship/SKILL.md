@@ -7,7 +7,7 @@ description: >
   only one step needed (use `review-diff`, `commit`, or `pr` individually).
 disable-model-invocation: false
 allowed-tools: Bash, Skill
-argument-hint: "[--no-pr] [--worktree] [linear-issue]"
+argument-hint: "[--no-pr] [--no-pulse] [--worktree] [linear-issue]"
 ---
 
 You are reviewing, committing, and shipping a set of changes. Follow every
@@ -19,6 +19,8 @@ Parse `$ARGUMENTS` for flags and a Linear issue slug:
   default to this path without the flag when the repo's convention is direct
   commits to the default branch (e.g., `agent-os`, where the entire history is
   direct-to-master and there is no PR workflow).
+- `--no-pulse`: Skip the local Pulse gate (passed through to `pr` in Step 4).
+  The `fh-pulse` bot still reviews the PR after push.
 - `--worktree`: Move the work to a new worktree before reviewing.
 - Anything else is treated as a Linear issue slug.
 
@@ -62,8 +64,9 @@ git push
 Stop here.
 
 Otherwise, invoke `Skill(skill: "pr", args: "<linear-issue>")` to create the
-branch (if needed), push, and open the pull request. Do NOT pass `--worktree`
-to `pr`; the worktree was already set up in Step 1 and the commits already
-live there.
+branch (if needed), push, and open the pull request. If `--no-pulse` was
+passed, include it in the `pr` args (e.g., `"--no-pulse <linear-issue>"`) so
+the local Pulse gate is skipped there too. Do NOT pass `--worktree` to `pr`;
+the worktree was already set up in Step 1 and the commits already live there.
 
 Print the pull request URL when `pr` returns.
