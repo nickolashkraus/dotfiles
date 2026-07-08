@@ -1,6 +1,12 @@
 ---
 name: fh-datadog
-description: Function Health Datadog runbooks. Covers API authentication (org API key from GCP Secret Manager, user Application key from the Keychain, `us5` site) and local monitor-query validation via the `/monitor/validate` endpoint. TRIGGER when the user wants to validate a Datadog monitor query locally, hit the Datadog API for FH, or troubleshoot Datadog auth or a "does not match" monitor error.
+description: >
+  Function Health Datadog runbooks. Covers API authentication (org API key
+  from GCP Secret Manager, user Application key from the Keychain, `us5`
+  site) and local monitor-query validation via the `/monitor/validate`
+  endpoint. TRIGGER when: user wants to validate a Datadog monitor query
+  locally, hit the Datadog API for FH, or troubleshoot Datadog auth or a
+  "does not match" monitor error.
 disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
