@@ -150,6 +150,12 @@ commits to make a failed check go away.
 Do not merge master into a branch to integrate upstream changes. Use `git
 rebase` instead.
 
+This applies only to branches I own. For a branch owned by another contributor
+(e.g., resolving conflicts on someone else's PR), do NOT rebase: it rewrites
+the original contributor's commit history and the force-push replaces their
+commits. Instead, merge the base branch into their branch and resolve the
+conflicts in a single merge commit, preserving the original commits and SHAs.
+
 ### Release Branches
 
 Release branches (`release/*`) accept only pure cherry-picked merge or squash
