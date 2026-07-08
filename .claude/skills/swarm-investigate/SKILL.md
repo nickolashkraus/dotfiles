@@ -189,14 +189,20 @@ recommended actions?" Do not proceed until the user approves.
 ## Step 4: Ship
 
 In the **agent-os worktree**: commit all artifacts on the
-`{slug}` branch with message
-`"swarm-investigate: {slug}"` and push.
+`{slug}` branch and push. Subject per rules/git.md (capitalized,
+imperative, <=50 chars), e.g.
+`"Investigate BYB-3147 patient_id data quality"`; the
+label-style `"swarm-investigate: {slug}"` form violates the
+commit-subject rules and the lint hooks will reject it.
 
-If a Linear issue exists (or `--linear` was provided), update
-its description with a link to `{artifact_dir}/orchestrator/final.md`
-or paste the report inline using `/update-linear-issue`. If no
-Linear issue exists and the user wants one, create it from the
-final report using `/create-linear-issue`.
+If a Linear issue exists (or `--linear` was provided), post the
+findings as a **comment** on the issue (never overwrite the
+description) containing an inline summary of the report: root
+cause, scope, and recommended actions. Never link or reference
+`agent-os` paths or the private repo in the comment; Linear
+readers cannot resolve them. If no Linear issue exists and the
+user wants one, create it from the final report using
+`/create-linear-issue`.
 
 If the recommended actions include code changes, suggest
 running `/swarm-bug` (for a single bug fix) or `/swarm-feature`
