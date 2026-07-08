@@ -86,6 +86,15 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
   when adding Live write capability for any other Stripe resource. Mint
   a separate narrowly-scoped key instead.
 
+### Datadog
+
+Datadog's API needs two credentials: an org-level API key (`DD-API-KEY`) and
+a user-scoped Application key (`DD-APPLICATION-KEY`). Only the Application key
+(`datadog-app`, scoped to monitors) lives in the Keychain; the org API key is
+a Function Health secret and stays in GCP Secret Manager (`DATADOG_API_KEY` in
+`function-health-dev-env`). The org is on the `us5` site. For usage (e.g.,
+local monitor-query validation), invoke the `fh-datadog` skill.
+
 ## Adding a New Secret
 
 ```
