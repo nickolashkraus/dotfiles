@@ -83,16 +83,22 @@ alt - m : yabai -m config menubar_opacity \
           && echo "0.0" || echo "0.5")
 
 # Send window to display 2.
-shift + alt - 1 : yabai -m window --display 2 --focus && \
-                  yabai -m query --windows --window \
+#
+# Capture the window ID first and target every command at it explicitly. After
+# the window moves to the other display, focus can briefly land on a different
+# window, so untargeted commands would query and resize the wrong window.
+shift + alt - 1 : wid=$(yabai -m query --windows --window | jq -r '.id') && \
+                  yabai -m window "$wid" --display 2 --focus && \
+                  yabai -m query --windows --window "$wid" \
                     | jq -e '."is-floating"' >/dev/null && \
-                  yabai -m window --grid 24:12:2:6:8:12
+                  yabai -m window "$wid" --grid 24:12:2:6:8:12
 
 # Send window to display 1.
-shift + alt - 2 : yabai -m window --display 1 --focus && \
-                  yabai -m query --windows --window \
+shift + alt - 2 : wid=$(yabai -m query --windows --window | jq -r '.id') && \
+                  yabai -m window "$wid" --display 1 --focus && \
+                  yabai -m query --windows --window "$wid" \
                     | jq -e '."is-floating"' >/dev/null && \
-                  yabai -m window --grid 12:24:6:2:12:8
+                  yabai -m window "$wid" --grid 12:24:6:2:12:8
 
 # Fast focus between iTerm2 windows.
 ctrl - return : yabai -m query --windows \
