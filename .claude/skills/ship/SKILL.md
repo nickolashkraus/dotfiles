@@ -15,7 +15,10 @@ step in order.
 
 Parse `$ARGUMENTS` for flags and a Linear issue slug:
 
-- `--no-pr`: Push straight to the default branch (no new branch, no PR).
+- `--no-pr`: Push straight to the default branch (no new branch, no PR).  Also
+  default to this path without the flag when the repo's convention is direct
+  commits to the default branch (e.g., `agent-os`, where the entire history is
+  direct-to-master and there is no PR workflow).
 - `--worktree`: Move the work to a new worktree before reviewing.
 - Anything else is treated as a Linear issue slug.
 
