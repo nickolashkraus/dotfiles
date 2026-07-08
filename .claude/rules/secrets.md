@@ -37,6 +37,8 @@ All entries below use the account `function-health`.
 | `stripe-test`                | Stripe restricted key (Test)                 |
 | `stripe-prod`                | Stripe restricted key (Live, read-only)      |
 | `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write) |
+| `dx-api`                     | DX (getdx.com) metrics API key               |
+| `datadog-app`                | Datadog app key (us5), monitor validation    |
 
 ## Per-Application Usage
 
