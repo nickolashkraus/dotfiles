@@ -61,9 +61,9 @@ provided, extract the channel ID from the path.
 
 ## Outbox
 
-The outbox lives at `~/nickolashkraus/agent-os/master/tasks/outbox/`. Each day's
-queued messages are appended to a single daily file (`YYYY-MM-DD.md`). Use
-`/outbox` to review, edit, approve, or discard queued messages.
+The outbox lives at `~/nickolashkraus/agent-os/master/tasks/outbox/`. Each
+day's queued messages are appended to a single daily file (`YYYY-MM-DD.md`).
+Use `/outbox` to review, edit, approve, or discard queued messages.
 
 ## Step 1: Parse arguments
 
@@ -82,13 +82,14 @@ If arguments are missing or malformed, print usage instructions and stop.
 
 ## Step 2: Load state
 
-Read the state file at `~/nickolashkraus/agent-os/master/tasks/outbox/.state.json`.
-The file is a JSON object keyed by monitor target so that multiple concurrent
-monitors do not overwrite each other's timestamps. Derive the key from the
-parsed arguments:
+Read the state file at
+`~/nickolashkraus/agent-os/master/tasks/outbox/.state.json`. The file is a JSON
+object keyed by monitor target so that multiple concurrent monitors do not
+overwrite each other's timestamps. Derive the key from the parsed arguments:
 
 - `--channel` / `--dm`: the channel ID (e.g., `C0ASJ80NWBG`).
-- `--thread`: `<channel_id>:<message_ts>` (e.g., `C0ANWC51NH5:1775783009.575449`).
+- `--thread`: `<channel_id>:<message_ts>` (e.g.,
+  `C0ANWC51NH5:1775783009.575449`).
 - `--workspace`: `workspace:<topic>` (e.g., `workspace:PPP`).
 
 If the file exists, look up the key and extract its `last_seen_ts` and

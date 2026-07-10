@@ -640,13 +640,17 @@ MARKDOWN_EXTENSIONS = (".md", ".markdown")
 # typography rule and can reference local-only paths. Markdown outside
 # these prefixes (typically `/tmp/*.md` PR/Linear/Notion body drafts) is
 # treated as external content and gets the full lint.
-IN_REPO_PREFIXES = (
-    "/Users/nickolas/.claude/",
-    "/Users/nickolas/nickolashkraus/",
-    "/Users/nickolas/Function-Health/",
-    "/Users/nickolas/Function-Health-Terraform-Modules/",
-    "/Users/nickolas/infrable-io/",
-    "/Users/nickolas/grind-rip/",
+_HOME = Path.home()
+IN_REPO_PREFIXES = tuple(
+    f"{_HOME / name}/"
+    for name in (
+        ".claude",
+        "nickolashkraus",
+        "Function-Health",
+        "Function-Health-Terraform-Modules",
+        "infrable-io",
+        "grind-rip",
+    )
 )
 
 

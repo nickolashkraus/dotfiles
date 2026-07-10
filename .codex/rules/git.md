@@ -2,8 +2,8 @@
 
 ## General
 
-- Follow ~/.codex/rules/typography.md for all Git content (PR descriptions, commit
-  messages).
+- Follow ~/.codex/rules/typography.md for all Git content (PR descriptions,
+  commit messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: AI Assistant <noreply@example.com>`).
 - Branch names should be the Linear issue slug (e.g., `BYB-1337`) if

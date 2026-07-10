@@ -109,7 +109,8 @@ security add-generic-password \
 The `-U` flag updates the entry if it already exists. Naming conventions:
 
 - **Service**: Lowercase, hyphenated. Use `<vendor>-<purpose>` or
-  `<vendor>-<env>-<purpose>`. Examples: `conductorone-client-id`, `stripe-test`.
+  `<vendor>-<env>-<purpose>`. Examples: `conductorone-client-id`,
+  `stripe-test`.
 - **Account**: The owning context. Use `function-health` for Function Health
   credentials and `personal` for personal accounts.
 - **Comment** (`-j`): A short human-readable description.
@@ -119,7 +120,8 @@ After adding a secret, update the Inventory table in this file.
 ## When Not to Use the Keychain
 
 - **Function Health service secrets**: Service-to-service credentials live in
-  GCP Secret Manager. Fetch via `gcloud secrets versions access latest --secret=<name>`.
-  See @rules/function-health.md.
-- **Ephemeral tokens**: Short-lived tokens (e.g., `gcloud auth print-access-token`)
-  should be generated inline, not cached.
+  GCP Secret Manager. Fetch via
+  `gcloud secrets versions access latest --secret=<name>`. See
+  @rules/function-health.md.
+- **Ephemeral tokens**: Short-lived tokens (e.g.,
+  `gcloud auth print-access-token`) should be generated inline, not cached.

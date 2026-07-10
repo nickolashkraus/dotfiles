@@ -9,8 +9,8 @@ You are reviewing a set of changes. Follow every step in order.
 
 ## Step 1: Parse arguments
 
-Check if the user-provided skill input contains `--staged`. If present, only review files that
-are already staged.
+Check if the user-provided skill input contains `--staged`. If present, only
+review files that are already staged.
 
 ## Step 2: Determine the default branch
 

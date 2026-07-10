@@ -6,8 +6,8 @@ description: >
 
 You are updating a Notion page with the contents of a local Markdown file.
 
-the user-provided skill input contains two space-separated values: the path to the local file
-and the Notion page link.
+the user-provided skill input contains two space-separated values: the path to
+the local file and the Notion page link.
 
 ## Step 1: Parse arguments
 

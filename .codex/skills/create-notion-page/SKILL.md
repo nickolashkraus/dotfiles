@@ -7,12 +7,13 @@ description: >
 You are creating a Notion page from the contents of a local Markdown file.
 Follow ~/.codex/rules/notion.md for all formatting and content conventions.
 
-the user-provided skill input contains two space-separated values: the path to the local file
-and the Notion parent page link.
+the user-provided skill input contains two space-separated values: the path to
+the local file and the Notion parent page link.
 
 ## Step 1: Parse arguments
 
-Extract the file path and Notion parent page link from the user-provided skill input.
+Extract the file path and Notion parent page link from the user-provided skill
+input.
 
 ## Step 2: Clean the Markdown file
 

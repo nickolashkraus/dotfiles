@@ -6,7 +6,8 @@ description: Create a Linear issue from context.
 You are creating a Linear issue from the current conversation context.
 Follow ~/.codex/rules/linear.md for all formatting and content conventions.
 
-the user-provided skill input contains two space-separated values: `<team> <project>`.
+the user-provided skill input contains two space-separated values:
+`<team> <project>`.
 
 ## Step 1: Parse arguments
 

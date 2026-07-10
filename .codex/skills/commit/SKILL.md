@@ -7,10 +7,10 @@ You are committing a set of changes. Follow every step in order.
 
 ## Step 1: Parse arguments
 
-Check if the user-provided skill input contains `--staged`. If present, only commit files that
-are already staged. Do not stage additional files. Remove `--staged` from the
-arguments before continuing (the remaining argument, if any, is the Linear
-issue).
+Check if the user-provided skill input contains `--staged`. If present, only
+commit files that are already staged. Do not stage additional files. Remove
+`--staged` from the arguments before continuing (the remaining argument, if
+any, is the Linear issue).
 
 ## Step 2: Get the changes
 

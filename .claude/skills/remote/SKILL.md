@@ -16,9 +16,9 @@ argument-hint: >
 
 # Remote
 
-Polls `~/nickolashkraus/agent-os/master/tasks/remote/` for task files
-submitted from Obsidian on iOS. Each task is a Markdown file with
-a prompt and metadata. Pair with `/loop` for continuous polling.
+Polls `~/nickolashkraus/agent-os/master/tasks/remote/` for task files submitted
+from Obsidian on iOS. Each task is a Markdown file with a prompt and metadata.
+Pair with `/loop` for continuous polling.
 
 ## Usage
 
@@ -37,8 +37,8 @@ Continuous polling (self-paced):
 
 ## Task format
 
-Each task is a Markdown file in `tasks/remote/`. The filename is
-the task slug (e.g., `deploy-staging.md`, `fix-typo-in-readme.md`).
+Each task is a Markdown file in `tasks/remote/`. The filename is the task slug
+(e.g., `deploy-staging.md`, `fix-typo-in-readme.md`).
 
 ```markdown
 ---
@@ -60,8 +60,8 @@ type it into Claude Code.
 
 ### Blocked tasks
 
-When an agent needs clarification, it sets `status: blocked` and
-appends a `## Blocked` section with the question:
+When an agent needs clarification, it sets `status: blocked` and appends a
+`## Blocked` section with the question:
 
 ```markdown
 ---
@@ -77,8 +77,7 @@ The original prompt.
 Which database should I run the migration against, Dev or Prod?
 ```
 
-To unblock, add an `## Answer` section and change the status back
-to `pending`:
+To unblock, add an `## Answer` section and change the status back to `pending`:
 
 ```markdown
 ---
@@ -98,13 +97,13 @@ Which database should I run the migration against, Dev or Prod?
 Dev.
 ```
 
-The next poll picks it up and continues with the original prompt
-plus the Q&A context.
+The next poll picks it up and continues with the original prompt plus the Q&A
+context.
 
 ### Result
 
-When a task completes, the skill updates the frontmatter and appends
-a result block:
+When a task completes, the skill updates the frontmatter and appends a result
+block:
 
 ```markdown
 ---
@@ -121,13 +120,12 @@ The original prompt.
 A concise summary of what was done.
 ```
 
-Failed tasks get `status: failed` and a `## Result` block explaining
-the error.
+Failed tasks get `status: failed` and a `## Result` block explaining the error.
 
 ## Step 1: Parse arguments
 
-Parse `$ARGUMENTS` to determine the subcommand. Default to `poll`
-if no arguments are provided.
+Parse `$ARGUMENTS` to determine the subcommand. Default to `poll` if no
+arguments are provided.
 
 ## Step 2: Execute subcommand
 
@@ -136,21 +134,17 @@ if no arguments are provided.
 1. List all `.md` files in `tasks/remote/`.
 2. Filter for files with `status: pending` in the frontmatter.
 3. Sort by `created` timestamp (oldest first).
-4. For each pending task:
-   a. Update `status` to `in-progress`.
-   b. Read the `project` field to determine the working directory.
+4. For each pending task: a. Update `status` to `in-progress`. b. Read the
+   `project` field to determine the working directory.
       - If `project` starts with `FH:` or `fh:`, use
         `~/Function-Health/<rest>`.
-      - Otherwise, use `~/nickolashkraus/<project>/master` (assumes
-        worktree layout). If that path does not exist, try
-        `~/nickolashkraus/<project>`.
-   c. Extract the full file content after the frontmatter closing
-      `---`. This includes the original prompt and, for unblocked
-      tasks, any `## Blocked` and `## Answer` sections that provide
-      additional context.
-   d. Execute the task by spawning an Agent in the target project
-      directory. Pass the full content to the agent.
-   e. If the agent needs clarification and cannot proceed:
+      - Otherwise, use `~/nickolashkraus/<project>/master` (assumes worktree
+        layout). If that path does not exist, try `~/nickolashkraus/<project>`.
+   c. Extract the full file content after the frontmatter closing `---`. This
+   includes the original prompt and, for unblocked tasks, any `## Blocked` and
+   `## Answer` sections that provide additional context. d. Execute the task by
+   spawning an Agent in the target project directory. Pass the full content to
+   the agent. e. If the agent needs clarification and cannot proceed:
       - Set `status` to `blocked`.
       - Append a `## Blocked` section with the question.
       - Do not append a `## Result` section.
@@ -182,18 +176,17 @@ Remote tasks:
 
 ### clean
 
-Delete all task files with `status: done` or `status: failed`.
-Print the number of files removed.
+Delete all task files with `status: done` or `status: failed`. Print the number
+of files removed.
 
 ## Step 3: Schedule next poll
 
-This skill is designed for `/loop` without a fixed interval
-(self-paced). After each poll, use `ScheduleWakeup` with adaptive
-timing:
+This skill is designed for `/loop` without a fixed interval (self-paced). After
+each poll, use `ScheduleWakeup` with adaptive timing:
 
-- **Active**: If any task was executed, blocked, or unblocked this
-  poll, schedule the next poll in **60 seconds**. There may be
-  follow-up work or an answer arriving soon.
-- **Idle**: If no tasks were processed (nothing pending, nothing
-  newly unblocked), schedule the next poll in **270 seconds**. This
-  keeps the cache warm without wasting cycles.
+- **Active**: If any task was executed, blocked, or unblocked this poll,
+  schedule the next poll in **60 seconds**. There may be follow-up work or an
+  answer arriving soon.
+- **Idle**: If no tasks were processed (nothing pending, nothing newly
+  unblocked), schedule the next poll in **270 seconds**. This keeps the cache
+  warm without wasting cycles.

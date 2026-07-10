@@ -16,8 +16,8 @@
 
 ### 1.1 Problem Statement
 
-[3-5 sentences: what technical problem are we solving, what are we
-building, what is the high-level approach.]
+[3-5 sentences: what technical problem are we solving, what are we building,
+what is the high-level approach.]
 
 ### 1.2 Motivation and Context
 
@@ -139,8 +139,8 @@ sequenceDiagram
 
 **Flow 2: [Error Scenario]**
 
-[What happens when a specific error occurs, including system
-behavior, user experience, and recovery.]
+[What happens when a specific error occurs, including system behavior, user
+experience, and recovery.]
 
 ### 4.3 Key Design Decisions
 
