@@ -11,12 +11,12 @@ every step in order.
 
 ## Step 1: Determine the pull request
 
-Parse the user-provided skill input for the `--re-review` flag (with optional value `all` or
-`unresolved`) and an optional PR number. `--re-review all` (default when no
-value is given) re-reviews every comment regardless of resolution or reply
-status. `--re-review unresolved` re-reviews only comments that have not been
-resolved via the GitHub UI, ignoring reply status. Remove the flag and its
-value before continuing.
+Parse the user-provided skill input for the `--re-review` flag (with optional
+value `all` or `unresolved`) and an optional PR number. `--re-review all`
+(default when no value is given) re-reviews every comment regardless of
+resolution or reply status. `--re-review unresolved` re-reviews only comments
+that have not been resolved via the GitHub UI, ignoring reply status. Remove
+the flag and its value before continuing.
 
 If a PR number was provided, use it. Otherwise, detect the current branch and
 find its open PR:

@@ -6,7 +6,8 @@ description: Update a Linear issue from context.
 You are updating a Linear issue from the current conversation context.
 Follow ~/.codex/rules/linear.md for all formatting and content conventions.
 
-the user-provided skill input contains one value: a Linear issue identifier (e.g., EPD-123).
+the user-provided skill input contains one value: a Linear issue identifier
+(e.g., EPD-123).
 
 ## Step 1: Parse arguments
 

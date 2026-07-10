@@ -1,10 +1,15 @@
 # Codex Harness
 
-These instructions mirror the Claude harness in `.claude/`. Follow them for Codex sessions so the working style, rules, and operational expectations match Claude. The model is the only intended difference.
+These instructions mirror the Claude harness in `.claude/`. Follow them for
+Codex sessions so the working style, rules, and operational expectations match
+Claude. The model is the only intended difference.
 
 ## Rule Sources
 
-The source rule files live in `.codex/rules/` in this dotfiles worktree and `~/.codex/rules/` when installed globally. The full rule text is included below so Codex receives it at session start. Path mentions such as `~/.codex/rules/meta-learning.md` are references, not import directives.
+The source rule files live in `.codex/rules/` in this dotfiles worktree and
+`~/.codex/rules/` when installed globally. The full rule text is included below
+so Codex receives it at session start. Path mentions such as
+`~/.codex/rules/meta-learning.md` are references, not import directives.
 
 ## coding
 
@@ -327,8 +332,8 @@ Always review member-app-middleware PRs against the guidelines in
 
 ### General
 
-- Follow ~/.codex/rules/typography.md for all Git content (PR descriptions, commit
-  messages).
+- Follow ~/.codex/rules/typography.md for all Git content (PR descriptions,
+  commit messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: AI Assistant <noreply@example.com>`).
 - Branch names should be the Linear issue slug (e.g., `BYB-1337`) if
@@ -636,7 +641,8 @@ security add-generic-password \
 The `-U` flag updates the entry if it already exists. Naming conventions:
 
 - **Service**: Lowercase, hyphenated. Use `<vendor>-<purpose>` or
-  `<vendor>-<env>-<purpose>`. Examples: `conductorone-client-id`, `stripe-test`.
+  `<vendor>-<env>-<purpose>`. Examples: `conductorone-client-id`,
+  `stripe-test`.
 - **Account**: The owning context. Use `function-health` for Function Health
   credentials and `personal` for personal accounts.
 - **Comment** (`-j`): A short human-readable description.
@@ -646,10 +652,11 @@ After adding a secret, update the Inventory table in this file.
 ### When Not to Use the Keychain
 
 - **Function Health service secrets**: Service-to-service credentials live in
-  GCP Secret Manager. Fetch via `gcloud secrets versions access latest --secret=<name>`.
-  See ~/.codex/rules/function-health.md.
-- **Ephemeral tokens**: Short-lived tokens (e.g., `gcloud auth print-access-token`)
-  should be generated inline, not cached.
+  GCP Secret Manager. Fetch via
+  `gcloud secrets versions access latest --secret=<name>`. See
+  ~/.codex/rules/function-health.md.
+- **Ephemeral tokens**: Short-lived tokens (e.g.,
+  `gcloud auth print-access-token`) should be generated inline, not cached.
 
 ## slack
 

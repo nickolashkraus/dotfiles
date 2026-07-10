@@ -10,9 +10,9 @@
   or a short description (e.g., `some-feature`). Lowercase the slug for the
   branch name (`byb-1337`, not `BYB-1337`). The same applies to worktree
   directory names, which mirror the branch. This lowercasing is scoped to the
-  branch and worktree only: PR titles, commit subjects, `## References` entries,
-  and any prose reference still use the uppercase Linear slug verbatim (e.g.,
-  `BYB-1337`), since that is how Linear renders the issue.
+  branch and worktree only: PR titles, commit subjects, `## References`
+  entries, and any prose reference still use the uppercase Linear slug verbatim
+  (e.g., `BYB-1337`), since that is how Linear renders the issue.
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - Always render Linear issue references as Markdown links (e.g.,
@@ -54,10 +54,11 @@
   is the only durable record".
 - If a change has interesting or nuanced information, add it to the Git commit
   and PR description.
-- Single-quoted heredocs (`<<'EOF'`) preserve backticks, `$`, and `\` literally.
-  Never escape these characters defensively inside the body. Escaped backticks
-  render as literal `` \` `` in the output and escaped `$` as `\$`. Only escape
-  inside an unquoted heredoc (`<<EOF`), where shell expansion is active.
+- Single-quoted heredocs (`<<'EOF'`) preserve backticks, `$`, and `\`
+  literally. Never escape these characters defensively inside the body. Escaped
+  backticks render as literal `` \` `` in the output and escaped `$` as `\$`.
+  Only escape inside an unquoted heredoc (`<<EOF`), where shell expansion is
+  active.
 - Always use the GitHub username (e.g., `nickolashkraus`) for `TODO` owner tags
   in source code, in every repo. Do not use an email address, a short first
   name, or any other handle. The format is:

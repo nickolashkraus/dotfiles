@@ -20,10 +20,8 @@
 - Determine the profile from the working directory:
   - `~/Function-Health/*`: Use `function` profile.
   - Everything else: Use `personal` profile.
-- For `gws`, always inline the profile since env vars do not
-  persist across Bash calls:
-  `GWS_PROFILE=function gws ...`
-  `GWS_PROFILE=personal gws ...`
+- For `gws`, always inline the profile since env vars do not persist across
+  Bash calls: `GWS_PROFILE=function gws ...` `GWS_PROFILE=personal gws ...`
 - For `gcloud`, activate the matching configuration:
   `gcloud config configurations activate function-dev`
   `gcloud config configurations activate personal`

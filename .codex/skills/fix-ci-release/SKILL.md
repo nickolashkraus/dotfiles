@@ -13,7 +13,8 @@ in order.
 
 ## Step 1: Determine the pull request
 
-Parse the user-provided skill input for an optional `--re-review` flag and PR number.
+Parse the user-provided skill input for an optional `--re-review` flag and PR
+number.
 
 - `--re-review [all | unresolved]`: Re-review bot comments. `all` (default)
   re-reviews every comment. `unresolved` skips resolved comments but ignores

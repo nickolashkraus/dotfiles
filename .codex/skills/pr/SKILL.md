@@ -29,13 +29,10 @@ If already on a non-default branch, push it. Otherwise:
    - If a Linear issue was passed, use it as the branch name (e.g.,
      `EPD-1337`).
    - Otherwise, derive a short descriptive name from the changes.
-2. If `--worktree` was set:
-   a. Create a worktree at HEAD with the new branch:
-      `git worktree add -b <branch> ../<branch> HEAD`
-   b. Reset the default branch to match the remote:
-      `git reset --hard origin/<default-branch>`
-   c. Change to the worktree: `cd ../<branch>`
-   All subsequent steps happen in the worktree.
+2. If `--worktree` was set: a. Create a worktree at HEAD with the new branch:
+   `git worktree add -b <branch> ../<branch> HEAD` b. Reset the default branch
+   to match the remote: `git reset --hard origin/<default-branch>` c. Change to
+   the worktree: `cd ../<branch>` All subsequent steps happen in the worktree.
 3. Otherwise, create and check out the branch.
 4. Push.
 
@@ -51,8 +48,8 @@ Create the pull request using `gh pr create` against the default branch:
   ~/.codex/rules/git.md:
   - Scale the description with the complexity of the change.
   - Trivial: Single sentence or empty body.
-  - Small to medium: Declarative summary, code snippets if helpful,
-    `**NOTE**` blocks for secondary context.
+  - Small to medium: Declarative summary, code snippets if helpful, `**NOTE**`
+    blocks for secondary context.
   - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
     `## References` as needed.
 - Do not add boilerplate sections the change does not warrant.

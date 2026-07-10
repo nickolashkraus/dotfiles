@@ -42,11 +42,11 @@ Classify every check as **pass**, **fail**, or **pending**.
   **all** checks to complete before moving on, even external checks (e.g.,
   Cloud Build, Sentry, third-party scanners).
 - **Don't fake the handoff.** If you start a background wait (`Monitor`,
-  `ScheduleWakeup`, a recurring Codex run, or any `run_in_background` task), you must
-  register a concrete resumption (cron, scheduled wakeup, or loop tick) in the
-  same turn. Don't end the turn relying on the user to re-prompt. "I'll let the
-  monitor continue running" or "waiting for monitor to notify me" are not valid
-  handoffs unless paired with a registered resumption.
+  `ScheduleWakeup`, a recurring Codex run, or any `run_in_background` task),
+  you must register a concrete resumption (cron, scheduled wakeup, or loop
+  tick) in the same turn. Don't end the turn relying on the user to re-prompt.
+  "I'll let the monitor continue running" or "waiting for monitor to notify me"
+  are not valid handoffs unless paired with a registered resumption.
 - Once all checks have completed, continue to Step 3.
 
 ## Step 3: Assess results
@@ -209,8 +209,9 @@ iterations.
 Once **all** local verification passes (CI fixes and bot comment fixes), commit
 and push in a single push. Always create a new commit rather than amending and
 force-pushing, so that review history and prior CI runs are preserved. Then go
-back to Step 2 and wait for all checks to complete before taking further action.
-Keep iterating until every check passes and all bot comments are addressed.
+back to Step 2 and wait for all checks to complete before taking further
+action. Keep iterating until every check passes and all bot comments are
+addressed.
 
 Follow the commit rules from ~/.codex/rules/git.md:
 

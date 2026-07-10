@@ -19,15 +19,14 @@ Ask the user once:
 > threads, design docs, prior art.) Paste them or share file paths.
 > Type "none" to skip.
 
-If materials are provided, read them in full. Extract goals,
-constraints, decisions already made, named integrations, timeline
-hints, and open questions. Carry this forward and do not re-ask
-anything the materials already answer.
+If materials are provided, read them in full. Extract goals, constraints,
+decisions already made, named integrations, timeline hints, and open questions.
+Carry this forward and do not re-ask anything the materials already answer.
 
 ## Step 2: Interview
 
-Ask all unanswered questions in a single message. Skip any that
-the supporting materials already answer.
+Ask all unanswered questions in a single message. Skip any that the supporting
+materials already answer.
 
 ```
 1.  Project/feature name?
@@ -47,24 +46,23 @@ the supporting materials already answer.
 
 ## Step 3: Explore the codebase
 
-After the interview, explore the codebase. Do not ask the user for
-information you can infer from code. Extract:
+After the interview, explore the codebase. Do not ask the user for information
+you can infer from code. Extract:
 
-- Services and entry points (REST endpoints, PubSub
-  topics/subscriptions).
+- Services and entry points (REST endpoints, PubSub topics/subscriptions).
 - Data models and database schema relevant to the feature.
 - Existing state machines or workflow definitions.
 - External integrations (Stripe, Shopify, Fullscript, etc.).
 - Feature flag patterns (Statsig gates/configs).
 - Error handling and retry patterns.
 
-Use this to pre-populate the architecture, data model, API design,
-and observability sections.
+Use this to pre-populate the architecture, data model, API design, and
+observability sections.
 
 ## Step 4: Fill gaps
 
-After exploring the code, ask remaining questions in a single
-message. Skip any you can answer from code or prior context.
+After exploring the code, ask remaining questions in a single message. Skip any
+you can answer from code or prior context.
 
 ```
 13. Proposed high-level approach? ("infer from code" if obvious)
@@ -81,37 +79,30 @@ message. Skip any you can answer from code or prior context.
 
 ## Step 5: Write the TRD
 
-Populate the template in TEMPLATE.md top to bottom. Follow these
-rules:
+Populate the template in TEMPLATE.md top to bottom. Follow these rules:
 
-- Follow @rules/typography.md and @rules/writing.md for all
-  prose.
-- Infer from code wherever possible rather than leaving
-  placeholders.
+- Follow @rules/typography.md and @rules/writing.md for all prose.
+- Infer from code wherever possible rather than leaving placeholders.
 - For unavoidable gaps, use `[TBD: what is needed]`.
-- If mobile changes were confirmed, add a mobile consultation
-  checklist item and document OTA/version strategy.
-- If security/compliance was confirmed, fully populate the
-  Security and Compliance section.
-- Generate Mermaid diagrams for: (1) high-level architecture
-  (flowchart), (2) primary happy-path sequence, (3) key
-  error/retry flow if non-trivial.
-- The risk table must have at least 3 rows based on integration
-  points found in the code.
-- The Review and Approval and Post-Implementation Review sections
-  are stubs. Do not fill them.
-- Save the document as
-  `TRD-<kebab-feature-name>-<YYYY-MM-DD>.md` in the project root
-  unless the user specifies a different location.
+- If mobile changes were confirmed, add a mobile consultation checklist item
+  and document OTA/version strategy.
+- If security/compliance was confirmed, fully populate the Security and
+  Compliance section.
+- Generate Mermaid diagrams for: (1) high-level architecture (flowchart), (2)
+  primary happy-path sequence, (3) key error/retry flow if non-trivial.
+- The risk table must have at least 3 rows based on integration points found in
+  the code.
+- The Review and Approval and Post-Implementation Review sections are stubs. Do
+  not fill them.
+- Save the document as `TRD-<kebab-feature-name>-<YYYY-MM-DD>.md` in the
+  project root unless the user specifies a different location.
 
 ## Step 6: Verify
 
 Before delivering, confirm:
 
-- All sections present (stubs are fine for Review and
-  Post-Implementation).
-- No empty placeholder brackets. Every gap uses
-  `[TBD: reason]`.
+- All sections present (stubs are fine for Review and Post-Implementation).
+- No empty placeholder brackets. Every gap uses `[TBD: reason]`.
 - At least one architecture diagram and one sequence diagram.
 - Risk table has 3+ rows with mitigation strategies.
 - In scope and out of scope explicitly stated.
