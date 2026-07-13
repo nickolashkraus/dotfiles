@@ -18,6 +18,13 @@ Follow @rules/linear.md for all formatting and content conventions.
 
 Extract the Linear issue identifier from `$ARGUMENTS`.
 
+**Metadata-only updates**: When the update touches no description text (state,
+labels, team or project moves, assignee, PR link attachments via `links`), skip
+Steps 2 to 4 and go straight to Steps 5 and 6. Notes for those updates: the
+rule-check hook enforces Title Case on `links[].title`; moving an issue to
+another team renumbers it (the old identifier still resolves); `labels`
+replaces the full set, so pass the remaining labels (or `[]` to clear).
+
 ## Step 2: Draft the issue body
 
 Draft the updated issue body from the current conversation context and write it
