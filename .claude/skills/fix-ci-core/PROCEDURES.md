@@ -291,6 +291,11 @@ that the typography pre-flight hook rejects when defensive escapes leak
 through. The summary is always multi-line by nature (findings table,
 dismissals, links), so the file path is the only correct path.
 
+Write the file and post it in two separate Bash calls. The `rule-check.py` hook
+lints the `--body-file` target as it exists when the command is submitted, so
+a single call that regenerates the file and then posts it gets the stale
+on-disk contents linted, and fixes appear to have no effect.
+
 ```
 cat > /tmp/pr-<pr-number>-summary.md <<'EOF'
 ## Bot Review Findings
