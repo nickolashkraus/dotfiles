@@ -29,6 +29,11 @@ Draft the issue body from the current conversation context and write it to
 `/tmp/linear-drafts/<short-slug>.md`. If the conversation has no obvious topic
 to draft from, ask the user before writing a draft.
 
+Write the draft with unwrapped paragraphs (one line per paragraph and per
+bullet). The `lint-outbound.py` hook lints the `/tmp/linear-drafts` Write
+itself and rejects hard-wrapped paragraphs, so a <80-column draft never reaches
+disk; Step 3's `clean_markdown.py` run then acts as a no-op verification pass.
+
 The `/tmp` draft is required even if a draft already exists elsewhere in the
 conversation (e.g., in a working doc). It serves as the canonical pre-creation
 artifact and lets the user diff the as-saved description against the as-sent
@@ -95,6 +100,16 @@ Use the `save_issue` tool to create the issue with:
 - **description**: The output from Step 4.
 - **team**: The team name from the arguments.
 - **project**: The resolved project from Step 5.
-- **state**: Todo.
+- **state**: Todo. Exception: Retroactive issues documenting already-shipped
+  work use Done (and typically set `assignee` to the PR author and attach the
+  PR via `links`).
+- **priority**: Always evaluate and set one; never leave No priority. Pick from
+  context and surface the rationale in one sentence in the chat reply:
+  - **Urgent (1)**: Active member/revenue impact or a blocked release.
+  - **High (2)**: Prod defect or noise that degrades monitoring or masks
+    regressions, security gaps, or anything time-boxed by an ongoing rollout.
+  - **Medium (3)**: Real defect with a workaround or no user-facing impact, and
+    standard feature work.
+  - **Low (4)**: Cleanup, nice-to-have, documentation.
 
 Print the issue identifier (e.g., EPD-123) when done.
