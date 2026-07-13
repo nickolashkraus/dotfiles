@@ -109,12 +109,20 @@ WRAP_MIN_PREV_LEN = 64
 # standalone metadata line, not prose; consecutive reference defs should
 # not be mistaken for a wrapped paragraph.
 REF_DEF_RE = re.compile(r"^\s*\[[^\]\n]+\]:\s+\S")
+# Notion-flavored-Markdown XML block lines (<table>, <tr>, <td>...</td>,
+# <callout ...>, </callout>, <table_of_contents/>, ...). These are block
+# structure, not prose; consecutive XML lines are not a wrapped paragraph.
+XML_TAG_LINE_RE = re.compile(r"^\s*<[^\n]*>\s*$")
 
 
 def is_structural_line(line: str) -> bool:
-    """A list item or a reference-link definition (treated as block-structural,
-    not prose, for hard-wrap detection)."""
-    return bool(LIST_MARKER_RE.match(line) or REF_DEF_RE.match(line))
+    """A list item, a reference-link definition, or a Notion XML block line
+    (treated as block-structural, not prose, for hard-wrap detection)."""
+    return bool(
+        LIST_MARKER_RE.match(line)
+        or REF_DEF_RE.match(line)
+        or XML_TAG_LINE_RE.match(line)
+    )
 
 
 def detect_hard_wraps(text: str) -> list[int]:
