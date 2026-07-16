@@ -14,12 +14,18 @@
       `exec` replaces the shell, so ProcessType and LowPriorityIO still apply
       to system-update itself. `install` creates the log directory; the
       redirect fails if it does not exist.
+
+      Nothing else prunes the log, so it is rotated here, before the redirect
+      opens it. Rotating afterwards would not work: the redirect holds the
+      inode open, so a renamed file would keep receiving the run's output.
+      One generation is kept, which is enough to compare a failed run against
+      the last good one.
       -->
     <key>ProgramArguments</key>
     <array>
       <string>/bin/sh</string>
       <string>-c</string>
-      <string>exec "$HOME/bin/system-update" &gt;&gt; "$HOME/.local/state/system-update.log" 2&gt;&amp;1</string>
+      <string>log="$HOME/.local/state/system-update.log"; install -d "${log%/*}"; [ "$(stat -f%z "$log" 2&gt;/dev/null || echo 0)" -gt 1048576 ] &amp;&amp; mv -f "$log" "$log.1"; exec "$HOME/bin/system-update" &gt;&gt; "$log" 2&gt;&amp;1</string>
     </array>
     <!--
       `system-update` runs `dotfiles install`, and that script reloads this
