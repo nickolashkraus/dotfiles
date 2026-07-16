@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-  <!--
-    Prevent idle/system sleep so background agents run continuously.
+  <!-- Prevents sleep so background agents run continuously. -->
+  <dict>
+    <key>Label</key>
+    <string>io.nickolaskraus.caffeinate</string>
+    <!-- 
       -i: Prevent idle sleep.
-      -m: Prevent disk sleep.
-      -s: Prevent system sleep (AC power).
-  -->
-  <key>Label</key>
-  <string>io.nickolaskraus.caffeinate</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/bin/caffeinate</string>
-    <string>-ims</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-</dict>
+      -m: Prevent disk idle sleep.
+      -s: Prevent system sleep (AC power only).
+      -->
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/caffeinate</string>
+      <string>-ims</string>
+    </array>
+    <!--
+      caffeinate holds its assertions only while it runs, so the job has to
+      start at load and come back if it ever exits.
+      -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+  </dict>
 </plist>
