@@ -39,6 +39,7 @@ All entries below use the account `function-health`.
 | `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write) |
 | `dx-api`                     | DX (getdx.com) metrics API key               |
 | `datadog-app`                | Datadog app key (us5), monitor validation    |
+| `fh-github-token`            | GitHub PAT for fh-sync and system-update     |
 
 ## Per-Application Usage
 
