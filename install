@@ -3,8 +3,11 @@
 # DESCRIPTION
 #   Bootstraps this machine using the configuration files in this repository.
 #     - Creates symbolic links for configuration files.
-#     - Installs Homebrew packages via Brewfile.
-#     - Installs Python packages, Go binaries, and npm packages.
+#     - Installs and upgrades Homebrew packages via Brewfile.
+#     - Installs and upgrades Python packages, Go binaries, and npm packages.
+#
+#   The script is idempotent: re-running it upgrades every package it manages
+#   to the latest version.
 #
 # USAGE
 #   install [OPTIONS]
@@ -53,14 +56,19 @@ done
 
 dotfiles="${HOME}/nickolashkraus/dotfiles/master"
 echo "dotfiles directory found at the following location: ${dotfiles}"
-read -rp "Do you wish to proceed? [Y/n]: " proceed
-proceed=${proceed:-Y}
-if [[ ! "${proceed}" =~ ^[Yy] ]]; then
-  echo -e "${yellow}Aborting...${reset}\n"
-  exit 0
-else
-  echo -e "${white}Installing...${reset}\n"
+# The confirmation is for a human at a terminal. With no TTY, `read` returns
+# immediately on EOF and the answer is an empty string, so a non-interactive
+# caller would silently depend on the default to proceed. Skip the prompt
+# outright instead.
+if [ -t 0 ]; then
+  read -rp "Do you wish to proceed? [Y/n]: " proceed
+  proceed=${proceed:-Y}
+  if [[ ! "${proceed}" =~ ^[Yy] ]]; then
+    echo -e "${yellow}Aborting...${reset}\n"
+    exit 0
+  fi
 fi
+echo -e "${white}Installing...${reset}\n"
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 mkdir -p "$XDG_CONFIG_HOME"
@@ -538,11 +546,15 @@ ln -s "${dotfiles}/nhk.zsh-theme" "${ZSH_CUSTOM}/themes/nhk.zsh-theme"
 ###############################################################################
 # Brewfile (Homebrew Packages)
 #
+# `brew bundle` only installs what is missing, so an explicit `brew upgrade`
+# is required to move already-installed formulae and casks to their latest
+# versions. `brew upgrade` covers both.
+#
 # Required Files:
 #   * Brewfile
 ###############################################################################
 echo -e "${white}####################################################################${reset}" >&2
-echo -e "${white}Installing Homebrew packages...${reset}" >&2
+echo -e "${white}Installing and upgrading Homebrew packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_file_exists "${dotfiles}/Brewfile" || exit 1
 check_command_exists "brew" || exit 1
@@ -553,7 +565,9 @@ grep '^tap "' "${dotfiles}/Brewfile" | sed -E 's/^tap "([^"]+)".*/\1/' |
   while read -r _tap; do
     brew trust --tap "${_tap}"
   done
+brew update
 brew bundle --file="${dotfiles}/Brewfile"
+brew upgrade
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
@@ -561,9 +575,12 @@ echo -e "${green}Done!\n${reset}" >&2
 #
 # NOTE: pipx has effectively become the de facto standard for managing global
 # Python CLI tools in 2025.
+#
+# `pipx install` is a no-op for an already-installed package, so
+# `pipx upgrade-all` follows to move everything to the latest version.
 ###############################################################################
 echo -e "${white}####################################################################${reset}" >&2
-echo -e "${white}Installing Python packages...${reset}" >&2
+echo -e "${white}Installing and upgrading Python packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "pipx" || exit 1
 pipx ensurepath
@@ -572,13 +589,17 @@ pipx install ruff
 pipx install ty
 pipx install mypy
 pipx install poetry
+pipx upgrade-all
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
 # Go Binaries
+#
+# The `@latest` suffix makes each install an upgrade when the binary is already
+# present.
 ###############################################################################
 echo -e "${white}####################################################################${reset}" >&2
-echo -e "${white}Installing Go binaries...${reset}" >&2
+echo -e "${white}Installing and upgrading Go binaries...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "go" || exit 1
 go install golang.org/x/tools/cmd/goimports@latest
@@ -588,9 +609,12 @@ echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
 # npm Packages
+#
+# `npm install -g` resolves to the latest published version, so each install is
+# an upgrade when the package is already present.
 ###############################################################################
 echo -e "${white}####################################################################${reset}" >&2
-echo -e "${white}Installing npm packages...${reset}" >&2
+echo -e "${white}Installing and upgrading npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "npm" || exit 1
 npm install -g @google/gemini-cli
