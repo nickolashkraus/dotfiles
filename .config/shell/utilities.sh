@@ -73,14 +73,16 @@ source "$HOME/.vim/plugged/gruvbox/gruvbox_256palette.sh"
 #
 # Key Bindings:
 #   Ctrl - r: Paste the selected command from history onto the command line.
-#   Alt - t: Paste the selected files and directories onto the command line.
+#   Ctrl - f: Paste the selected files and directories onto the command line.
 #   Alt - c: cd into the selected directory.
 source <(fzf --zsh)
 
-# Rebind the fzf file widget from Ctrl - t to Alt - t so that Ctrl - t can be
-# used by tmux to toggle the popup window.
+# Rebind the fzf file widget from Ctrl - t to Ctrl - f so that Ctrl - t can be
+# used by tmux to toggle the popup window. Ctrl - f is used (rather than an Alt
+# binding) because iTerm2 sends Option as a normal character ("Option Key
+# Sends" = Normal), so Alt bindings never reach the shell.
 bindkey -r '^T'
-bindkey '\et' fzf-file-widget
+bindkey '^F' fzf-file-widget
 
 # Default fzf command (uses ripgrep).
 #   --files: Print each file without actually performing the search.
@@ -89,7 +91,7 @@ bindkey '\et' fzf-file-widget
 #   --glob: Include or exclude files and directories that match the given glob.
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*" --glob "!node_modules/*"'
 
-# Use 'FZF_DEFAULT_COMMAND' for Alt - t.
+# Use 'FZF_DEFAULT_COMMAND' for Ctrl - f.
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
 # Default fzf options.
@@ -104,7 +106,7 @@ export FZF_CTRL_R_OPTS="
 --header 'Press Ctrl - y to copy the selected command to the system clipboard.'
 "
 
-# Additional options for Alt - t.
+# Additional options for Ctrl - f.
 #
 # Press Ctrl - / to toggle file preview.
 export FZF_CTRL_T_OPTS="

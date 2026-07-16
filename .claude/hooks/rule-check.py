@@ -191,9 +191,7 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
     is_commit = bool(re.search(r"\bgit\s+commit\b", command))
     is_pr = bool(re.search(r"\bgh\s+pr\b", command))
     is_issue = bool(re.search(r"\bgh\s+issue\b", command))
-    gh_surface = (
-        "GitHub PR" if is_pr else "GitHub issue" if is_issue else "GitHub API"
-    )
+    gh_surface = "GitHub PR" if is_pr else "GitHub issue" if is_issue else "GitHub API"
     surface = "git commit message" if is_commit else gh_surface
 
     out: list[tuple[str, str]] = []
@@ -271,11 +269,65 @@ def walk_strings(obj, path: str = ""):
             yield from walk_strings(v, sub)
 
 
+# Payload fields holding a scalar identifier or reference rather than prose.
+# The checker judges each field independently, so a long-enough identifier gets
+# evaluated as though it were a document and the structural rules get applied
+# to it: a `team` of "Membership Management" was blocked for not containing `##
+# Overview`. Such a field can never pass, because the skip marker has to live
+# in the payload being judged and a team name cannot carry an HTML comment.
+# Names absent from this set are still checked, so an unanticipated field fails
+# closed.
+NON_PROSE_FIELDS = frozenset(
+    {
+        "addreleases",
+        "assignee",
+        "blockedby",
+        "blocks",
+        "channel",
+        "channelid",
+        "cursor",
+        "cycle",
+        "delegate",
+        "duedate",
+        "duplicateof",
+        "estimate",
+        "id",
+        "labels",
+        "milestone",
+        "pageid",
+        "parent",
+        "parentid",
+        "priority",
+        "project",
+        "query",
+        "relatedto",
+        "removeblockedby",
+        "removeblocks",
+        "removereleases",
+        "removerelatedto",
+        "setreleases",
+        "state",
+        "team",
+        "url",
+    }
+)
+
+
+def field_name(path: str) -> str:
+    """Return the bare field name from a walk_strings path.
+
+    "links[0].title" -> "title"; "description" -> "description".
+    """
+    return path.split(".")[-1].split("[")[0].lower()
+
+
 def extract_mcp_payloads(tool_name: str, tool_input: dict) -> list[tuple[str, str]]:
     surface = tool_name.split("__")[-1]
     out: list[tuple[str, str]] = []
     for label, value in walk_strings(tool_input):
         if not value or len(value) < 20:
+            continue
+        if field_name(label) in NON_PROSE_FIELDS:
             continue
         out.append((f"{surface} {label}", value))
     return out
@@ -473,9 +525,7 @@ def save_cache(cache: dict) -> None:
 
 
 def cache_key(rules_digest: str, surface: str, payload: str) -> str:
-    return hashlib.sha256(
-        f"{rules_digest}\0{surface}\0{payload}".encode()
-    ).hexdigest()
+    return hashlib.sha256(f"{rules_digest}\0{surface}\0{payload}".encode()).hexdigest()
 
 
 def _is_phantom_char_violation(v: dict, payload: str) -> bool:

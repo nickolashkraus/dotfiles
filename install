@@ -277,6 +277,25 @@ ln -s "${dotfiles}/.config/k9s/config.yaml" "${XDG_CONFIG_HOME}/k9s/config.yaml"
 ln -s "${dotfiles}/.config/k9s/skins/gruvbox.yaml" "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
 
 ###############################################################################
+# LaunchAgents
+#
+# Required Files:
+#   * Library/LaunchAgents/io.nickolaskraus.caffeinate.plist
+#
+# Keeps the machine awake so background agents survive reboots. launchd loads
+# the agent at every login; bootstrap it here so it starts without waiting for
+# the next login.
+###############################################################################
+check_file_exists "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" || exit 1
+mkdir -p "${HOME}/Library/LaunchAgents"
+launchctl bootout "gui/$(id -u)/io.nickolaskraus.caffeinate" 2>/dev/null || true
+rm -f "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" || true
+ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" \
+  "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist"
+launchctl bootstrap "gui/$(id -u)" \
+  "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist"
+
+###############################################################################
 # mpv Configuration
 #
 # Required Files:

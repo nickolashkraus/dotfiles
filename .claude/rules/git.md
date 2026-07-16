@@ -129,6 +129,16 @@ surfaced, and the CI lint baseline may still flag them. If the local
 environment is broken (missing DB password, services down), fix it before
 pushing rather than skipping verification.
 
+Never invoke a linter or type checker as a bare binary off `PATH`. Always go
+through the project's runner (`uv run ruff`, `uvx ruff`, `poetry run ruff`),
+matching whatever the repo's CI workflow invokes. A global shim can be years
+stale (a pyenv `ruff` at 0.4.4 against a project on 0.15.x) and will invent
+findings that CI does not have, or miss ones it does. Read the workflow file
+and reproduce its exact command. When local and CI disagree, suspect the tool
+version before concluding the baseline is broken, and never report a local-only
+failure as a CI or default-branch failure without confirming the version
+matches.
+
 After pushing, run `/fix-ci` until all checks pass. Do not consider the job
 done while any check is non-passing (including neutral or pending).
 

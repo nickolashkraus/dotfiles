@@ -300,6 +300,59 @@ def test_extract_mcp_payloads_short_values_filtered() -> None:
     check("short values filtered out", out == [], f"got {out!r}")
 
 
+def test_extract_mcp_payloads_non_prose_fields_filtered() -> None:
+    section("extract_mcp_payloads: filters non-prose identifier fields")
+    out = rc.extract_mcp_payloads(
+        "mcp__linear__save_issue",
+        {
+            "team": "Membership Management",
+            "project": "Subscription Lifecycle Overhaul",
+            "labels": ["Needs Triage and Estimation"],
+            "links": [{"url": "https://linear.app/functionhealth/issue/BYB-1337"}],
+            "description": (
+                "## Overview\n\nAdds idempotency-key support to the Stripe "
+                "webhook handler so retried deliveries do not double-record."
+            ),
+        },
+    )
+    labels = [lbl for lbl, _ in out]
+    check(
+        "scalar identifier field filtered",
+        not any("team" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "identifier inside array filtered",
+        not any("labels" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "identifier nested under array element filtered",
+        not any("url" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "prose field still extracted",
+        any("description" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+
+
+def test_field_name_paths() -> None:
+    section("field_name: bare field name from a walk_strings path")
+    cases = [
+        ("description", "description"),
+        ("links[0].title", "title"),
+        ("labels[0]", "labels"),
+        ("pages[0].properties.title", "title"),
+        ("Team", "team"),
+        ("<root>", "<root>"),
+    ]
+    for path, expected in cases:
+        got = rc.field_name(path)
+        check(f"{path!r} -> {expected!r}", got == expected, f"got {got!r}")
+
+
 def test_skip_sentinel_html_comment() -> None:
     section("SKIP_RE: HTML comment with reason")
     m = rc.SKIP_RE.search(
@@ -575,6 +628,8 @@ TESTS = [
     test_extract_mcp_payloads_linear,
     test_extract_mcp_payloads_nested_notion,
     test_extract_mcp_payloads_short_values_filtered,
+    test_extract_mcp_payloads_non_prose_fields_filtered,
+    test_field_name_paths,
     test_skip_sentinel_html_comment,
     test_skip_sentinel_hash_comment,
     test_skip_sentinel_slash_comment,
