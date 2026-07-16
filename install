@@ -406,6 +406,38 @@ mkdir -p "${XDG_CONFIG_HOME}/yamllint"
 ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 
 ###############################################################################
+# LaunchAgents
+#
+# Runs `system-update` daily at 08:00. The job redirects its own output rather
+# than using StandardOutPath, so the log directory must exist before it fires.
+#
+# Re-bootstrap after linking: launchd caches the job definition, so an edit to
+# the plist stays inert until the job is booted out and back in.
+#
+# `system-update` lives in the bash-scripts repo and reaches this machine via
+# a ~/bin symlink, so it is not guaranteed to be present. A missing script is
+# a warning rather than a hard failure: the agent is still installed and
+# starts working once bash-scripts is set up.
+#
+# Required Files:
+#   * Library/LaunchAgents/com.nickolashkraus.system-update.plist
+###############################################################################
+launch_agents_dir="${HOME}/Library/LaunchAgents"
+system_update_label="com.nickolashkraus.system-update"
+system_update_plist="${system_update_label}.plist"
+check_file_exists "${dotfiles}/Library/LaunchAgents/${system_update_plist}" || exit 1
+if [[ ! -x "${HOME}/bin/system-update" ]]; then
+  echo -e "${yellow}WARNING: ${HOME}/bin/system-update not found.${reset}" >&2
+  echo -e "${yellow}${system_update_label} will fail until bash-scripts is installed.${reset}" >&2
+fi
+mkdir -p "${launch_agents_dir}"
+mkdir -p "${HOME}/.local/state"
+rm -f "${launch_agents_dir}/${system_update_plist}" || true
+ln -s "${dotfiles}/Library/LaunchAgents/${system_update_plist}" "${launch_agents_dir}/${system_update_plist}"
+launchctl bootout "gui/$(id -u)/${system_update_label}" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "${launch_agents_dir}/${system_update_plist}"
+
+###############################################################################
 # Claude Code Configuration
 #
 # Required Files:
