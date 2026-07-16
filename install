@@ -320,9 +320,16 @@ mkdir -p "${HOME}/.local/state"
 rm -f "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" || true
 ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" \
   "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist"
-launchctl bootout "gui/$(id -u)/io.nickolaskraus.system-update" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" \
-  "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist"
+# `system-update` runs this script from inside the agent below, and booting out
+# a job kills its process tree. Reloading here would terminate this run before
+# any of the sections below it, so the daily job skips the reload and picks up
+# a changed plist at the next login. The agent sets SYSTEM_UPDATE_AGENT; an
+# interactive run does not have it and reloads normally.
+if [[ -z "${SYSTEM_UPDATE_AGENT:-}" ]]; then
+  launchctl bootout "gui/$(id -u)/io.nickolaskraus.system-update" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" \
+    "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist"
+fi
 
 rm -f "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" || true
 ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" \

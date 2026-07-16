@@ -21,6 +21,19 @@
       <string>-c</string>
       <string>exec "$HOME/bin/system-update" &gt;&gt; "$HOME/.local/state/system-update.log" 2&gt;&amp;1</string>
     </array>
+    <!--
+      `system-update` runs `dotfiles install`, and that script reloads this
+      agent. Booting out a job kills its process tree, so an unguarded reload
+      would terminate the very run that triggered it, and every step below the
+      reload would be skipped. This marker is inherited by the whole tree and
+      lets `install` recognize that it is running under this agent and leave
+      the reload alone.
+      -->
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>SYSTEM_UPDATE_AGENT</key>
+      <string>1</string>
+    </dict>
     <key>StartCalendarInterval</key>
     <dict>
       <key>Hour</key>
