@@ -18,17 +18,7 @@
 #     ln -s .config/shell/functions.sh $XDG_CONFIG_HOME/shell/functions.sh
 ###############################################################################
 
-# Hide hidden files and file extensions in Finder. The Function Health device
-# profile enables these features, so run this after startup to restore the
-# default behavior.
-init() {
-  defaults write com.apple.finder AppleShowAllFiles -bool false
-  defaults write NSGlobalDomain AppleShowAllExtensions -bool false
-  killall Finder
-  # Auth gcloud (Personal) + read-only `gws`.
-  gcp_auth personal --gws
-  # Auth gws (Personal) with read/write.
-  gws auth login
+fh_init() {
   # Auth gcloud (Function Dev) + read-only `gws`.
   gcp_auth function-dev --gws
   # Auth gcloud (Function Prod).
