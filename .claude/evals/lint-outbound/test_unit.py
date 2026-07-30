@@ -353,6 +353,95 @@ def test_plain_label_colon_detector() -> None:
     )
 
 
+def test_autofix_resolves_detected() -> None:
+    section("autofix_label_colons: fixes exactly what the detectors flag")
+
+    def lint(text: str) -> list[str]:
+        return lo.lint_text(text, "f", check_local_paths=False)
+
+    flagged = [
+        "- **Element**: description here\n",
+        "- **Element** (note): description\n",
+        "- `GET /foo`: does something\n",
+        "[EPD-1](https://x): lowercase title\n",
+        "- Conventional Commits: the carve-out\n",
+        "1. Rollback Plan: revert the migration\n",
+    ]
+    for line in flagged:
+        fixed = lo.autofix_label_colons(line)
+        check(f"changed: {line.strip()[:32]}", fixed != line, f"unchanged: {fixed!r}")
+        check(f"resolves: {line.strip()[:32]}", lint(fixed) == [], f"still: {lint(fixed)!r}")
+
+    # Leaves correct lines and non-label cases untouched.
+    for line in [
+        "- **Element**: Description here\n",
+        "- PR titles: when a PR resolves\n",
+        "2. Trace the data lifecycle: creation and updates\n",
+        "- Note the entry was stale: it declared a field\n",
+    ]:
+        check(f"untouched: {line.strip()[:32]}", lo.autofix_label_colons(line) == line)
+
+    # Never touches a colon inside a fenced code block.
+    fenced = "```\n- foo: bar baz\n```\n"
+    check("fenced code untouched", lo.autofix_label_colons(fenced) == fenced)
+
+
+def test_try_autofix_input_scope() -> None:
+    section("try_autofix_input: Edit/Write Markdown only, pure label-colon")
+
+    md = "/Users/x/repo/doc.md"
+    # Pure label-colon Edit is fixed and re-lints clean.
+    ti = {"file_path": md, "new_string": "- **Element**: description\n"}
+    fixed = lo.try_autofix_input("Edit", ti)
+    check("edit returns modified input", fixed is not None and fixed["new_string"].startswith("- **Element**: D"))
+    check("fixed edit re-lints clean", lo.collect_violations("Edit", fixed) == [])
+
+    # Mixed violation: label-colon fix applied but an em dash remains, so main
+    # must still block (collect_violations on the fix is non-empty).
+    ti2 = {"file_path": md, "new_string": "- **Element**: description — x\n"}
+    fixed2 = lo.try_autofix_input("Edit", ti2)
+    check("mixed still has violations", fixed2 is not None and lo.collect_violations("Edit", fixed2) != [])
+
+    # Non-label content: nothing to fix.
+    ti3 = {"file_path": md, "new_string": "- **Element**: Description\n"}
+    check("clean content -> None", lo.try_autofix_input("Edit", ti3) is None)
+
+    # Bash is never auto-fixed.
+    check("bash -> None", lo.try_autofix_input("Bash", {"command": "git commit -m 'x'"}) is None)
+
+
+def test_main_autofix_end_to_end() -> None:
+    section("main: emits updatedInput for pure label-colon, blocks on mixed")
+    import json as _json
+    import subprocess as _sub
+
+    def run(payload: dict) -> tuple[int, str, str]:
+        p = _sub.run(
+            [sys.executable, str(HOOK_PATH)],
+            input=_json.dumps(payload),
+            capture_output=True,
+            text=True,
+        )
+        return p.returncode, p.stdout, p.stderr
+
+    md = "/Users/x/repo/doc.md"
+    rc, out, _ = run({"tool_name": "Edit", "tool_input": {"file_path": md, "new_string": "- **Element**: description\n"}})
+    ok = rc == 0 and out.strip() != ""
+    parsed = _json.loads(out) if ok else {}
+    hso = parsed.get("hookSpecificOutput", {})
+    check("exit 0 with JSON", ok, f"rc={rc} out={out!r}")
+    check("permissionDecision allow", hso.get("permissionDecision") == "allow", f"{hso!r}")
+    check(
+        "updatedInput capitalized",
+        hso.get("updatedInput", {}).get("new_string", "").startswith("- **Element**: D"),
+        f"{hso.get('updatedInput')!r}",
+    )
+
+    rc2, _, err2 = run({"tool_name": "Edit", "tool_input": {"file_path": md, "new_string": "- **Element**: description — x\n"}})
+    check("mixed blocks (exit 2)", rc2 == 2, f"rc={rc2}")
+    check("mixed reports em dash", "em dash" in err2, err2)
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -363,6 +452,9 @@ TESTS = [
     test_hard_wrap_detector,
     test_label_colon_rules,
     test_plain_label_colon_detector,
+    test_autofix_resolves_detected,
+    test_try_autofix_input_scope,
+    test_main_autofix_end_to_end,
 ]
 
 

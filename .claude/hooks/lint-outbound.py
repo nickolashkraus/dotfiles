@@ -120,6 +120,62 @@ def plain_label_colon_violation(raw: str) -> bool:
         if not LABEL_WORD_RE.fullmatch(word):
             return False
     return True
+
+
+# Fix counterparts of the label-colon detectors above. Each consumes the whole
+# marker + label + colon so the captured `[a-z]` is the value's first letter,
+# never a colon inside the label or an inline-code span. Kept in lockstep with
+# the detectors by `test_autofix_resolves_detected` (a fixed line must no
+# longer be flagged).
+LOWERCASE_AFTER_BOLD_COLON_FIX_RE = re.compile(
+    r"^(\s*(?:[-*+]|\d+[.)])\s+"
+    r"(?:\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\n]+\)|`[^`\n]+`)"
+    r"(?:\s*\([^)\n]*\))?\s*:\s+)([a-z])"
+)
+LOWERCASE_AFTER_LINK_COLON_FIX_RE = re.compile(
+    r"^(\s*\[[^\]\n]+\]\([^)\n]+\):\s+)([a-z])"
+)
+
+
+def _capitalize_after_colon(m: "re.Match[str]") -> str:
+    return m.group(1) + m.group(2).upper()
+
+
+def autofix_label_colon_line(raw: str) -> str | None:
+    """If `raw` is a deterministic label-colon violation (bold/link/code-span
+    label, line-initial link label, or Title-Case plain label followed by a
+    lowercase word), return the line with that word's first letter
+    capitalized. Otherwise None. Only the cases the detectors flag with zero
+    false positives are touched; the ambiguous lowercase-tail plain label is
+    left for the semantic check."""
+    if LOWERCASE_AFTER_BOLD_COLON_FIX_RE.match(raw):
+        return LOWERCASE_AFTER_BOLD_COLON_FIX_RE.sub(_capitalize_after_colon, raw, count=1)
+    if LOWERCASE_AFTER_LINK_COLON_FIX_RE.match(raw):
+        return LOWERCASE_AFTER_LINK_COLON_FIX_RE.sub(_capitalize_after_colon, raw, count=1)
+    if plain_label_colon_violation(raw):
+        # The plain label carries no internal colon, so the first `: ` is the
+        # label colon.
+        return re.sub(r"(:\s+)([a-z])", _capitalize_after_colon, raw, count=1)
+    return None
+
+
+def autofix_label_colons(text: str) -> str:
+    """Return `text` with every deterministic label-colon violation fixed.
+    Skips fenced code blocks, matching `lint_text`'s per-line handling so the
+    fix never touches a colon inside a code block."""
+    lines = text.splitlines(keepends=True)
+    in_code = False
+    for idx, raw in enumerate(lines):
+        body = raw.rstrip("\n")
+        if body.lstrip().startswith(("```", "~~~")):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        fixed = autofix_label_colon_line(body)
+        if fixed is not None:
+            lines[idx] = fixed + raw[len(body):]
+    return "".join(lines)
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -766,6 +822,53 @@ def extract_fields(
     return out
 
 
+def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
+    """Run every lint over the tool's outbound fields and return the flat
+    list of violation strings."""
+    violations: list[str] = []
+    for label, text, allow_coauthor, is_pr_body, check_local_paths, is_full in (
+        extract_fields(tool_name, tool_input)
+    ):
+        if not isinstance(text, str):
+            continue
+        bypass_reason = is_bypass_value(text)
+        if bypass_reason is not None:
+            violations.append(f"{label}: {bypass_reason}")
+            continue
+        violations.extend(
+            lint_text(
+                text,
+                label,
+                allow_coauthor=allow_coauthor,
+                is_pr_body=is_pr_body,
+                check_local_paths=check_local_paths,
+            )
+        )
+        if is_full:
+            violations.extend(lint_commit_message(text, label))
+    return violations
+
+
+def try_autofix_input(tool_name: str, tool_input: dict) -> dict | None:
+    """Return a modified tool_input with label-colon violations auto-fixed, or
+    None when nothing safe to fix applies. Scoped to Edit/Write Markdown
+    content, where capitalizing the word after a label colon is an unambiguous
+    fix; Bash commit/PR bodies are left to block so their quoting is never
+    rewritten."""
+    if tool_name not in ("Edit", "Write"):
+        return None
+    key = "new_string" if tool_name == "Edit" else "content"
+    original = tool_input.get(key)
+    if not isinstance(original, str) or not original:
+        return None
+    fixed = autofix_label_colons(original)
+    if fixed == original:
+        return None
+    new_input = dict(tool_input)
+    new_input[key] = fixed
+    return new_input
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -778,38 +881,40 @@ def main() -> int:
     if not isinstance(tool_input, dict):
         return 0
 
-    fields = extract_fields(tool_name, tool_input)
-    if not fields:
+    if not extract_fields(tool_name, tool_input):
         return 0
 
-    all_violations: list[str] = []
-    for label, text, allow_coauthor, is_pr_body, check_local_paths, is_full in fields:
-        if not isinstance(text, str):
-            continue
-        bypass_reason = is_bypass_value(text)
-        if bypass_reason is not None:
-            all_violations.append(f"{label}: {bypass_reason}")
-            continue
-        all_violations.extend(
-            lint_text(
-                text,
-                label,
-                allow_coauthor=allow_coauthor,
-                is_pr_body=is_pr_body,
-                check_local_paths=check_local_paths,
-            )
-        )
-        if is_full:
-            all_violations.extend(lint_commit_message(text, label))
+    all_violations = collect_violations(tool_name, tool_input)
 
-    log(
-        f"CHECK tool={tool_name} fields={len(fields)} "
-        f"violations={len(all_violations)}"
-    )
+    log(f"CHECK tool={tool_name} violations={len(all_violations)}")
     for v in all_violations:
         log(f"  VIOLATION {v}")
 
     if not all_violations:
+        return 0
+
+    # Auto-fix the capitalize-after-label-colon case rather than block-and-retry,
+    # but only when the fix fully resolves every flagged issue. If any
+    # non-auto-fixable violation remains (em dash, smart quote, hard wrap), fall
+    # through to the block so the agent sees all of them.
+    fixed_input = try_autofix_input(tool_name, tool_input)
+    if fixed_input is not None and not collect_violations(tool_name, fixed_input):
+        log("AUTOFIX label-colon capitalization applied")
+        print(
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PreToolUse",
+                        "permissionDecision": "allow",
+                        "updatedInput": fixed_input,
+                        "permissionDecisionReason": (
+                            "Auto-capitalized the word after a label colon "
+                            "(rules/typography.md)."
+                        ),
+                    }
+                }
+            )
+        )
         return 0
 
     sys.stderr.write(
