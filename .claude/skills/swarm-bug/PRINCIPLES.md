@@ -78,6 +78,19 @@ The following lessons from the first swarm run inform the automation design:
     and webhook handlers. Each function is correct in isolation. The bug is in
     the interaction, which only shows up in the data.
 
+12. **A signature discriminator proves membership, not origin.** In the
+    BYB-3588 run, the swarm attributed all seven duplicate subscriptions
+    to one create path because their Stripe metadata matched that path's
+    signature. The signature was shared by a third, untraced path (a
+    Checkout Session producer), and the attribution was wrong. Before
+    attributing runtime origin via a signature, enumerate every code path
+    that can produce that signature (repo-wide grep for the producing
+    call parameters), and trace member-facing flows from the client
+    boundary inward (app, then middleware, then services), not from the
+    first plausible internal service. Prefer discriminators that are
+    structural (a Checkout Session object referencing the subscription)
+    over ones that are merely consistent.
+
 ---
 
 # Tracker Perspective
