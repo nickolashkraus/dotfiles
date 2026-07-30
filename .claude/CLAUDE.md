@@ -11,6 +11,7 @@ applies to all projects on this machine.
 - @rules/general.md
 - @rules/git.md
 - @rules/gws.md
+- @rules/incident-io.md
 - @rules/linear.md
 - @rules/meta-learning.md
 - @rules/migrations.md
