@@ -44,7 +44,9 @@ report is either a file path or inline text. If it is a URL (Slack, Linear,
 GitHub), fetch its contents. If it is a file path, read it. If it is inline
 text, use it directly.
 
-Derive `{slug}` (kebab-case): the Linear issue slug if provided, otherwise a
+Derive `{slug}` (kebab-case): if a Linear issue is provided, use the lowercase
+issue slug plus a short hyphenated description of the bug (e.g.,
+`byb-1337-duplicate-subscription`), not the bare slug. Otherwise, use a
 kebab-case summary of the bug.
 
 Derive `{domain}` and `{project_or_team}` from the codebase repo path using the
@@ -178,13 +180,15 @@ user approves.
 
 **Linear issue**: If no `--linear` flag was provided, create a Linear issue
 from `{artifact_dir}/orchestrator/final.md` using `/create-linear-issue`. Use
-the returned issue slug for the branch name in Step 4.
+the returned issue slug plus a short hyphenated description (the `{slug}`
+convention above) for the branch name in Step 4.
 
 ## Step 4: Implement
 
-Create a Git worktree in the **codebase repo** (not agent-os) for the Linear
-issue (or derived branch name). Spawn a single implementation agent in the code
-worktree with:
+Create a Git worktree in the **codebase repo** (not agent-os), named with the
+lowercase issue slug plus a short description (e.g.,
+`byb-1337-duplicate-subscription`), not the bare slug. Spawn a single
+implementation agent in the code worktree with:
 
 - The final analysis document (full text, inline).
 - The code worktree path.

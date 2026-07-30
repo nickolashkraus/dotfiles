@@ -47,8 +47,9 @@ Skip this step for non-Function-Health repos and for the pulse repo itself.
 If already on a non-default branch, push it. Otherwise:
 
 1. Determine the branch name:
-   - If a Linear issue was passed, use it as the branch name (e.g.,
-     `EPD-1337`).
+   - If a Linear issue was passed, use the lowercase slug plus a short
+     hyphenated description of the work (e.g., `epd-1337-require-ssl`), not the
+     bare slug. The description makes the branch identifiable at a glance.
    - Otherwise, derive a short descriptive name from the changes.
 2. If `--worktree` was set:
    a. Create a worktree at HEAD with the new branch:

@@ -33,8 +33,9 @@ PR phases all happen there:
 
 1. Stash all changes including untracked:
    `git stash push --include-untracked`
-2. Determine the worktree name (Linear slug if passed, else short descriptive
-   name).
+2. Determine the worktree name. If a Linear issue was passed, use the lowercase
+   slug plus a short hyphenated description (e.g., `epd-1337-require-ssl`), not
+   the bare slug. Otherwise, use a short descriptive name.
 3. Create the worktree as a peer directory:
    `git worktree add -b <name> ../<name> HEAD`
 4. `cd ../<name>`

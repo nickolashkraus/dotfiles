@@ -49,8 +49,10 @@ is either a file path or inline text. If it is a URL (Slack, Linear, dashboard,
 log query), fetch its contents. If it is a file path, read it. If it is inline
 text, use it directly.
 
-Derive `{slug}` (kebab-case): the Linear issue slug if provided, otherwise a
-kebab-case summary of the issue.
+Derive `{slug}` (kebab-case): if a Linear issue is provided, use the lowercase
+issue slug plus a short hyphenated description of the issue (e.g.,
+`byb-1337-tier-drift`), not the bare slug. Otherwise, use a kebab-case summary
+of the issue.
 
 Derive `{domain}` and `{project_or_team}` from context. If the issue spans
 multiple services, pick the team or project most responsible for triage. If
