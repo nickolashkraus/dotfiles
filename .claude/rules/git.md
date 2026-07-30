@@ -15,6 +15,17 @@
   (e.g., `BYB-1337`), since that is how Linear renders the issue.
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
+- When a PR directly resolves a Linear issue, the PR title is the slug plus
+  the verbatim issue title (`BYB-3575: Retune Checkout Endpoint Failure-Ratio
+  Monitor to Page on 5xx Only`), matching the commit-subject rule below. Do
+  not paraphrase. When the PR only contributes to or relates to an issue
+  (partial work, follow-up, one half of a larger cleanup), keep a descriptive
+  title that includes the slug; do not claim the issue title. In repos that
+  ENFORCE Conventional Commits PR titles via a CI title check (e.g.,
+  frontend-mono), the repo convention wins for the shape (`fix(BYB-3575):
+  ...`) and the description should still track the issue title as closely as
+  the lowercase rule allows; do not use the Conventional Commits shape
+  anywhere else.
 - Always render Linear issue references as Markdown links (e.g.,
   `[EPD-1337](https://linear.app/functionhealth/issue/EPD-1337)`) in PR
   descriptions, not bare slugs like `EPD-1337` or bare URLs. This applies to
@@ -85,10 +96,13 @@
   - 50 characters or less
   - Capitalized, imperative mood (e.g., "Fix bug in user login flow")
   - No period at the end
-- **Conventional Commits carve-out**: When the repository's convention is
-  Conventional Commits (a `CONTRIBUTING.md`, commitlint config, or the existing
-  log mandates `type(scope): description`), the repo convention wins over the
-  subject rules above. The type and description are lowercase (`fix(rules):
+- **Conventional Commits carve-out**: Use Conventional Commits ONLY when the
+  repository enforces it (a `CONTRIBUTING.md` mandate, commitlint config, or
+  a CI check on the commit subject or PR title). A mixed log where some
+  authors happen to use `type(scope): description` is not enforcement and
+  does not opt the repo in; use the subject rules above. When enforcement
+  exists, the repo convention wins over the subject rules above. The type and
+  description are lowercase (`fix(rules):
   flag x`, never `Fix(rules): Flag x`), the subject may run to 72 characters to
   absorb the prefix, and the capitalize-after-colon typography rule does not
   apply to the subject line. Body conventions (blank line, 72-character wrap,
