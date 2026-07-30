@@ -202,6 +202,7 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
         out.append((f"{surface} heredoc<{m.group(1)}>", m.group(2)))
 
     redacted = HEREDOC_RE.sub("", command)
+    commit_msg_seen = 0
     for m in FLAG_VALUE_RE.finditer(redacted):
         flag = f"{m.group(1)}{m.group(2)}"
         value = m.group(4) if m.group(4) is not None else m.group(5)
@@ -211,7 +212,19 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
             # are commit flags; --body/--title belong to gh. A PR title
             # must never be evaluated under the commit-subject lens.
             if m.group(2) in ("m", "message"):
-                flag_surface = "git commit message" if is_commit else surface
+                if is_commit:
+                    # `git commit -m subject -m body`: the first message is the
+                    # subject, each subsequent -m is a body paragraph. Body
+                    # prose is not governed by the subject's imperative-mood or
+                    # no-terminal-period rules, so label it distinctly.
+                    flag_surface = (
+                        "git commit message"
+                        if commit_msg_seen == 0
+                        else "git commit message body"
+                    )
+                    commit_msg_seen += 1
+                else:
+                    flag_surface = surface
             elif is_pr or is_issue:
                 flag_surface = gh_surface
             else:
@@ -378,7 +391,8 @@ Pay particular attention to these common drift modes:
 
 Surface-specific lens:
 
-- `git commit message`: imperative subject, no terminal period, no Co-Authored-By; bare Linear slug in subject is correct. Subject length and body wrap width are enforced deterministically elsewhere; do NOT count characters. When the subject matches `SLUG: Exact Issue Title` (e.g., `BYB-1345: Membership Upgrade Creates Duplicate Active Subscriptions in Stripe`), that rule supersedes the generic subject rules; it has NO length cap and keeps the issue title's capitalization. Conventional Commits carve-out (rules/git.md): when the subject matches `type(scope): description` with a lowercase type (feat, fix, docs, test, chore, refactor, etc.), the repo convention wins. The lowercase type, lowercase description, and lowercase-after-colon form are all CORRECT; do not flag any of them and do not demand `Fix(...)` capitalization.
+- `git commit message`: The imperative-mood and no-terminal-period rules apply ONLY to the subject, which is the FIRST line of the payload. Everything after the first blank line is the commit body: it is ordinary prose, so declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT there and must NOT be flagged. Subject rules: imperative subject, no terminal period, no Co-Authored-By; bare Linear slug in subject is correct. Subject length and body wrap width are enforced deterministically elsewhere; do NOT count characters. When the subject matches `SLUG: Exact Issue Title` (e.g., `BYB-1345: Membership Upgrade Creates Duplicate Active Subscriptions in Stripe`), that rule supersedes the generic subject rules; it has NO length cap and keeps the issue title's capitalization. Conventional Commits carve-out (rules/git.md): when the subject matches `type(scope): description` with a lowercase type (feat, fix, docs, test, chore, refactor, etc.), the repo convention wins. The lowercase type, lowercase description, and lowercase-after-colon form are all CORRECT; do not flag any of them and do not demand `Fix(...)` capitalization.
+- `git commit message body`: This payload is a commit-message BODY paragraph (a later `-m` value), never the subject. The subject-only rules do NOT apply: declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT here; do NOT flag imperative mood or a trailing period. Only typography and content rules apply to the body: no em dashes, no smart quotes, backtick code identifiers, capitalize the first word after a label-ending colon, and no Co-Authored-By / internal paths.
 - `GitHub PR` body or comment: single line per paragraph (no hard wraps), Markdown links for Linear refs, verbatim Linear titles in References, no Closes/Fixes/Resolves, no internal paths. A PR title (`--title`) is NOT a commit subject: it has no length limit and no imperative-mood requirement beyond rules/git.md's own PR-title rules. Never flag Markdown table padding or column alignment (deterministic linter territory).
 - Trivial PR bodies are allowed to be a single declarative sentence (rules/git.md explicitly permits "Service should not be publicly available." or "Routine version bump to pick up upstream type fixes." as valid trivial bodies). Do NOT demand a leading verb on these. Only flag the "lead with a declarative verb" rule for longer PR bodies and for openers like `This PR adds...` or `In this PR, I...`.
 - `Linear issue` (`save_issue`): standard sections (Overview, Acceptance Criteria, Implementation Details, References), Title Case for issue titles, no extra newlines for human readability.

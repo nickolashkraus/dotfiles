@@ -83,6 +83,23 @@ def test_extract_bash_payloads_inline_m_flag() -> None:
         )
 
 
+def test_extract_bash_payloads_subject_vs_body_m_flags() -> None:
+    section("extract_bash_payloads: first -m is subject, rest are body")
+    cmd = "git commit -m 'Add the thing' -m 'Adds a body paragraph here.'"
+    out = rc.extract_bash_payloads(cmd)
+    labels = [lbl for lbl, _ in out]
+    check(
+        "subject labeled 'git commit message arg -m'",
+        any(lbl == "git commit message arg -m" for lbl in labels),
+        f"labels={labels!r}",
+    )
+    check(
+        "body labeled 'git commit message body arg -m'",
+        any(lbl == "git commit message body arg -m" for lbl in labels),
+        f"labels={labels!r}",
+    )
+
+
 def test_extract_bash_payloads_gh_pr_create() -> None:
     section("extract_bash_payloads: gh pr create with --body and --title")
     cmd = (
@@ -616,6 +633,7 @@ def test_walk_strings_nested() -> None:
 TESTS = [
     test_extract_bash_payloads_heredoc_commit,
     test_extract_bash_payloads_inline_m_flag,
+    test_extract_bash_payloads_subject_vs_body_m_flags,
     test_extract_bash_payloads_gh_pr_create,
     test_extract_bash_payloads_gh_pr_comment,
     test_extract_bash_payloads_gh_issue_create,
