@@ -13,7 +13,9 @@ You are creating a Linear issue from the current conversation context.
 Follow @rules/linear.md for all formatting and content conventions.
 
 `$ARGUMENTS` contains one or two space-separated values: `<team>` or
-`<team> <project>`.
+`<team> <project>`. It may instead be a free-form task description naming the
+team and one or more issues to create; in that case, run Steps 2-6 once per
+issue (drafts can be written and issues created in parallel batches).
 
 ## Step 1: Parse arguments
 
@@ -21,7 +23,10 @@ Extract the team name (and, if provided, the project name) from `$ARGUMENTS`.
 
 If only `<team>` is provided, list active projects for that team
 (`list_projects` with `team=<team>`) and ask the user which to use. Do not
-guess. Do not default to a project.
+guess. Do not default to a project. Exception: if the user's request already
+names the candidate projects (e.g., "in the PPP or Membership Service
+project"), map each issue to the best-fitting named project and surface the
+mapping in the reply instead of asking.
 
 ## Step 2: Draft the issue body
 
