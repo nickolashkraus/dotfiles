@@ -34,6 +34,27 @@ reviews the PR after push.
    `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
 3. Resolve `owner/repo` from `git config --get remote.origin.url`.
 4. Fetch the base: `git fetch origin <base>`.
+5. Sync the pulse checkout to the deployed bot's version. A stale or
+   feature-branch checkout runs different rule packs and models than the
+   `fh-pulse` bot and the local result diverges wildly from the PR review
+   (observed: a checkout parked on a rules feature branch was missing two
+   entire rule packs that produced 5 of the PR's 7 criticals). Run:
+
+   ```bash
+   git -C ~/Function-Health/pulse fetch origin
+   git -C ~/Function-Health/pulse status -sb
+   ```
+
+   If the checkout is not on the default branch tip (detached, feature
+   branch, or behind), check out the default branch and fast-forward it
+   before running the review. If the checkout is dirty or holds
+   work-in-progress you cannot switch away from, say so and warn that the
+   local result may diverge from the bot.
+
+   After any branch switch or fast-forward, run
+   `npm --prefix ~/Function-Health/pulse install` before the review.
+   A stale `node_modules` from the previous checkout fails at startup
+   with `ERR_MODULE_NOT_FOUND`.
 
 ## Step 2: Run Pulse
 
