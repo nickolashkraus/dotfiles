@@ -439,11 +439,16 @@ ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
 #
 # Required Files:
 #   * .config/vim/spell/en.utf-8.add
+#   * .vim/after
 ###############################################################################
 check_file_exists "${dotfiles}/.config/vim/spell/en.utf-8.add" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/vim" || true
 mkdir -p "${XDG_CONFIG_HOME}/vim/spell"
 ln -s "${dotfiles}/.config/vim/spell/en.utf-8.add" "${XDG_CONFIG_HOME}/vim/spell/en.utf-8.add"
+check_dir_exists "${dotfiles}/.vim/after" || exit 1
+mkdir -p "${HOME}/.vim"
+rm -rf "${HOME}/.vim/after" || true
+ln -s "${dotfiles}/.vim/after" "${HOME}/.vim/after"
 
 ###############################################################################
 # yabai Configuration

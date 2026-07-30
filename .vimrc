@@ -1027,6 +1027,7 @@ endfunction
 "   <Leader>hp  Preview hunk
 "   <Leader>hs  Stage hunk
 "   <Leader>hu  Undo  hunk
+"   <Leader>hb  Toggle diff base (HEAD/default branch)
 "
 " See: https://github.com/airblade/vim-gitgutter
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -1040,6 +1041,59 @@ highlight GitGutterDelete       ctermfg=167 ctermbg=235 guifg=#fb4934 guibg=#282
 " Center hunk after jumping.
 nmap ]c <Plug>(GitGutterNextHunk)zz
 nmap [c <Plug>(GitGutterPrevHunk)zz
+
+" Resolve the remote default branch (e.g., 'origin/master'), falling back to
+" common branch names when 'refs/remotes/origin/HEAD' is unset.
+function! s:GitDefaultBranch()
+  let l:ref = trim(system('git symbolic-ref --quiet --short refs/remotes/origin/HEAD'))
+  if !v:shell_error && !empty(l:ref)
+    return l:ref
+  endif
+  for l:branch in ['origin/main', 'origin/master', 'main', 'master']
+    call system('git rev-parse --verify --quiet ' . l:branch)
+    if !v:shell_error
+      return l:branch
+    endif
+  endfor
+  return ''
+endfunction
+
+" Toggle the diff base between HEAD (default) and the merge base with the
+" default branch, mimicking a pull request diff. The base is shared with
+" nerdtree-git-plugin (see the nerdtree-git-plugin section), so the tree's
+" status flags follow the same toggle.
+function! ToggleGitGutterDiffBase()
+  if empty(get(g:, 'gitgutter_diff_base', ''))
+    let l:branch = s:GitDefaultBranch()
+    if empty(l:branch)
+      echohl WarningMsg
+      echo 'GitGutter: unable to determine the default branch'
+      echohl None
+      return
+    endif
+    let l:base = trim(system('git merge-base ' . l:branch . ' HEAD'))
+    if v:shell_error || empty(l:base)
+      echohl WarningMsg
+      echo 'GitGutter: unable to determine the merge base with ' . l:branch
+      echohl None
+      return
+    endif
+    let g:gitgutter_diff_base = l:base
+    let l:msg = 'GitGutter: diff base set to ' . l:branch
+          \ . ' (' . strpart(l:base, 0, 7) . ')'
+  else
+    let g:gitgutter_diff_base = ''
+    let l:msg = 'GitGutter: diff base set to HEAD'
+  endif
+  GitGutterAll
+  if exists(':NERDTreeRefreshRoot') == 2
+    NERDTreeRefreshRoot
+  endif
+  echo l:msg
+endfunction
+
+command! GitGutterToggleDiffBase call ToggleGitGutterDiffBase()
+nnoremap <silent> <Leader>hb :GitGutterToggleDiffBase<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " fzf
@@ -1251,6 +1305,10 @@ let g:NERDTreeIgnore=[
       \ '\~$[[file]]'
       \ ]
 
+" Change Vim's current working directory whenever the tree root changes
+" (e.g., via 'C', 'cd', or ':NERDTree <dir>').
+let g:NERDTreeChDirMode = 2
+
 " Do not show 'Bookmarks' and 'Press ? for help' text.
 let g:NERDTreeMinimalUI = 1
 
@@ -1301,7 +1359,16 @@ nnoremap <Leader>nr :NERDTreeResize<CR>
 " See: https://github.com/Xuyuanp/nerdtree-git-plugin
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-" No further configuration.
+" Use the v1 porcelain format so the diff-base override can emit compatible
+" output.
+let g:NERDTreeGitStatusPorcelainVersion = 1
+
+" Source the plugin's command builder, then the override in
+" .vim/after/autoload/gitstatus/util.vim, which honors the gitgutter diff
+" base (see ToggleGitGutterDiffBase). The explicit 'runtime!' matters:
+" autoload sources only the first match on 'runtimepath', which would skip
+" the after/ copy.
+runtime! autoload/gitstatus/util.vim
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-airline
