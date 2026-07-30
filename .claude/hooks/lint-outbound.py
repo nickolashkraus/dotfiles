@@ -76,6 +76,50 @@ LOWERCASE_AFTER_PLAIN_COLON_RE = LOWERCASE_AFTER_BOLD_COLON_RE
 # clauses inside a flowing sentence keeps lowercase per rules/typography.md, so
 # plain mid-prose colons and mid-prose links are intentionally not flagged.
 LOWERCASE_AFTER_LINK_COLON_RE = re.compile(r"^\s*\[[^\]\n]+\]\([^)\n]+\):\s+[a-z]\S*")
+# A line-initial PLAIN-TEXT bullet label followed by `: lowercase`, e.g.
+# `- Conventional Commits: the carve-out ...`. The bold/link/code-span label
+# forms are caught by the regexes above; this catches the unadorned label the
+# semantic check misses. Classification happens in `plain_label_colon_violation`
+# so the judgment is legible; the regex only captures the marker and the
+# pre-colon segment.
+PLAIN_LABEL_BULLET_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+([^:\n]+?):\s+[a-z]")
+# Short function words allowed inside an otherwise Title-Case label without
+# breaking the all-capitalized test (`Terms of Service:`, `Ship to Prod:`).
+LABEL_CONNECTOR_WORDS = frozenset(
+    {"of", "and", "to", "for", "the", "a", "an", "in", "on", "with", "or"}
+)
+# A single label word: Capitalized (`Conventional`), or an acronym with an
+# optional plural `s` (`PR`, `PRs`, `IDs`).
+LABEL_WORD_RE = re.compile(r"[A-Z][A-Za-z]*|[A-Z]{2,}s?")
+
+
+def plain_label_colon_violation(raw: str) -> bool:
+    """True when a bullet uses an unadorned Title-Case label
+    (`- Conventional Commits: the ...`) whose first word after the colon should
+    be capitalized. Deliberately narrow: every label word must be capitalized,
+    an acronym, or a short connector, and the label is 1-4 words. That excludes
+    imperative instruction bullets (`- Trace the data lifecycle: creation ...`,
+    where `the`/`data`/`lifecycle` are lowercase) and clause colons, which are
+    left to the semantic check. A label with a lowercase content word
+    (`- PR titles: when ...`) is indistinguishable from a clause here and is
+    also left to the semantic check."""
+    m = PLAIN_LABEL_BULLET_RE.match(raw)
+    if not m:
+        return False
+    label = m.group(1).strip()
+    # Bold/link/code-span labels are handled by dedicated regexes; skip them
+    # here so the finding stays specific and is not double-reported.
+    if label[:1] in ("*", "[", "`"):
+        return False
+    words = label.split()
+    if not (1 <= len(words) <= 4):
+        return False
+    for i, word in enumerate(words):
+        if word.lower() in LABEL_CONNECTOR_WORDS and i != 0:
+            continue
+        if not LABEL_WORD_RE.fullmatch(word):
+            return False
+    return True
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -407,6 +451,12 @@ def lint_text(
         if LOWERCASE_AFTER_LINK_COLON_RE.search(line):
             violations.append(
                 f"{field} line {lineno}: link lead-in followed by "
+                "a colon and a lowercase word (capitalize the first "
+                "word after a label colon per rules/typography.md)"
+            )
+        if plain_label_colon_violation(raw):
+            violations.append(
+                f"{field} line {lineno}: bullet label followed by "
                 "a colon and a lowercase word (capitalize the first "
                 "word after a label colon per rules/typography.md)"
             )

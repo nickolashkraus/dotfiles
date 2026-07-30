@@ -320,6 +320,39 @@ def test_label_colon_rules() -> None:
     )
 
 
+def test_plain_label_colon_detector() -> None:
+    section("plain_label_colon_violation: Title-Case plain labels only")
+
+    def flagged(line: str) -> bool:
+        return lo.plain_label_colon_violation(line)
+
+    # Title-Case / acronym plain-text labels with a lowercase word after the
+    # colon are flagged.
+    check("multiword Title-Case label", flagged("- Conventional Commits: the carve-out\n"))
+    check("single-word label", flagged("- Overview: the summary here\n"))
+    check("acronym + connector label", flagged("- Terms of Service: some text\n"))
+    check("numbered Title-Case label", flagged("1. Rollback Plan: revert the migration\n"))
+
+    # Not flagged: lowercase word after a capitalized label IS correct.
+    check("capitalized value passes", not flagged("- Overview: The summary here\n"))
+    # Not flagged: imperative instruction bullets (lowercase content words).
+    check(
+        "imperative instruction not flagged",
+        not flagged("2. Trace the data lifecycle: creation and updates\n"),
+    )
+    check("imperative check not flagged", not flagged("- Check edge cases: empty inputs\n"))
+    # Not flagged: lowercase-tail label is indistinguishable from a clause here
+    # and is deferred to the semantic check.
+    check("lowercase-tail label deferred", not flagged("- PR titles: when a PR resolves\n"))
+    # Not flagged: bold/link/code labels are handled by the dedicated regexes.
+    check("bold label deferred to bold regex", not flagged("- **Element**: description\n"))
+    # Not flagged: clause colon in flowing prose.
+    check(
+        "clause colon not flagged",
+        not flagged("- Note the entry was stale: it declared a field\n"),
+    )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -329,6 +362,7 @@ TESTS = [
     test_gh_api_at_file_read_not_blocked,
     test_hard_wrap_detector,
     test_label_colon_rules,
+    test_plain_label_colon_detector,
 ]
 
 
