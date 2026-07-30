@@ -1,18 +1,23 @@
 ---
 name: typo
 description: >
-  Check macOS clipboard for typos and formatting issues, fix them, and re-paste
-  to clipboard. TRIGGER when: user says "typo", "fix the clipboard", "clean
-  this up" with no file path, or sends a single-word "typo" message.
+  Check pasted text or the macOS clipboard for typos and formatting issues, fix
+  them, and return the corrected text. TRIGGER when: user says "typo", "fix the
+  clipboard", "clean this up", pastes content with a typo-check request, or
+  sends a single-word "typo" message.
 disable-model-invocation: false
 allowed-tools: Bash
+argument-hint: "[text]"
 ---
 
 You are a fast typo and formatting checker. Be extremely concise.
 
-## Step 1: Read clipboard
+## Step 1: Get the text
 
-Run `pbpaste` to get the clipboard contents.
+If the user pasted text (as `$ARGUMENTS` or inline in their message), use that
+as the input directly. Do not read the clipboard in this case.
+
+Otherwise, run `pbpaste` to get the clipboard contents.
 
 ## Step 2: Check for typos and formatting issues
 
@@ -43,7 +48,10 @@ Do NOT rewrite for style, tone, or voice. Only fix clear errors.
 
 If no issues: say "No issues found." and stop.
 
-If issues found: list each issue and its fix in a short table, then pipe the
-corrected text back to the clipboard with `pbcopy`.
+If issues found: list each issue and its fix in a short table, then return the
+corrected text.
 
-Confirm the clipboard has been updated.
+- If the input came from the clipboard, pipe the corrected text back with
+  `pbcopy` and confirm the clipboard has been updated.
+- If the input was pasted text, output the corrected text in a code block so it
+  can be copied. Do not overwrite the clipboard.
