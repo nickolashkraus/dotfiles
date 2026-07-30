@@ -182,6 +182,14 @@ to fixing. Only dismiss a comment if it is clearly wrong:
   If the docstring documents an intentional divergence (e.g., "preserved on
   relink" vs siblings that reset), trust the docstring; the bot's analogy
   is likely missing context.
+- The suggested test cannot guard the real artifact. Before adding a test
+  to satisfy a coverage finding, verify (1) the test asserts the actual
+  changed artifact, not an inline re-declaration of it (a tfvars/config
+  test that duplicates the input only tests the copy and never fails when
+  the real value drifts), and (2) CI actually runs the suite the test
+  joins. If either fails, the test is theater; dismiss with that
+  rationale instead of writing it. An in-tree test precedent with the
+  same flaw does not justify repeating it.
 
 When the finding identifies a fix in one of a parallel pair/set of helpers
 (e.g., `_try_customer_fallback` vs `_try_member_id_fallback`, or sibling
