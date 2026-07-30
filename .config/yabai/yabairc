@@ -108,9 +108,13 @@ if [ "$display_count" -gt 1 ]; then
   yabai -m rule --add app="^iTerm2$"          manage=on  display=^1 grid=1:1:0:0:1:1
   yabai -m rule --add app="^System Settings$" manage=off display=^2 sub-layer=below grid=12:24:0:0:0:6
 else
-  yabai -m rule --add app=".*"                manage=off grid=12:24:6:2:12:8
-  yabai -m rule --add app="^iTerm2$"          manage=off grid=1:1:0:0:1:1
-  yabai -m rule --add app="^System Settings$" manage=off grid=12:24:0:0:0:6
+  yabai -m rule --add app=".*"                manage=off sub-layer=normal grid=20:20:1:1:18:18
+  yabai -m rule --add app="^iTerm2$"          manage=off sub-layer=normal grid=1:1:0:0:1:1
+  yabai -m rule --add app="^System Settings$" manage=off sub-layer=normal grid=12:24:0:0:0:6
+  # Re-apply rules to existing windows. Windows created while docked carry
+  # multi-display state (sub-layer=below from the catch-all rule), which leaves
+  # them unraisable above windows created after undocking.
+  yabai -m rule --apply
 fi
 
 ###############################################################################
