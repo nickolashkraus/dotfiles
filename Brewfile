@@ -88,8 +88,10 @@ brew "yt-dlp"
 brew "zlib"
 brew "zoxide"
 
+# Docker Desktop is intentionally absent. Its cask upgrade requires sudo to
+# remove privileged helpers, which fails in the unattended system-update run.
+# Docker Desktop self-updates instead.
 cask "alfred"
-cask "docker-desktop"
 cask "firefox"
 cask "gcloud-cli"
 cask "gimp"
