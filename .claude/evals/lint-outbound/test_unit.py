@@ -187,6 +187,31 @@ def test_interpreter_heredoc_skipped() -> None:
     )
 
 
+def test_cat_heredoc_subst_wrapper_redacted() -> None:
+    section(
+        "extract_bash_content: $(cat <<'EOF') wrapper leaves no -m residue"
+    )
+    cmd = (
+        'git commit -m "$(cat <<\'EOF\'\n'
+        "Subject line\n"
+        "\n"
+        "Body wrapped well under seventy-two characters.\n"
+        "EOF\n"
+        ')" && git push'
+    )
+    fields = lo.extract_bash_content(cmd)
+    check(
+        "heredoc extracted as full commit message",
+        any("heredoc" in f[0] and f[4] for f in fields),
+        f"got {fields!r}",
+    )
+    check(
+        "no arg -m residue payload",
+        not any(f[0] == "arg -m" for f in fields),
+        f"got {fields!r}",
+    )
+
+
 def test_compound_command_flag_ownership() -> None:
     section(
         "extract_bash_content: compound `git commit && gh pr create` "
@@ -450,6 +475,7 @@ TESTS = [
     test_compound_command_flag_ownership,
     test_gh_api_at_file_read_not_blocked,
     test_hard_wrap_detector,
+    test_cat_heredoc_subst_wrapper_redacted,
     test_label_colon_rules,
     test_plain_label_colon_detector,
     test_autofix_resolves_detected,

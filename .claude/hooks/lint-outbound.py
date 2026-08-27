@@ -556,6 +556,15 @@ HEREDOC_RE = re.compile(
     r"<<[-]?\s*['\"]?(\w+)['\"]?\s*\n(.*?)\n\s*\1\b",
     re.DOTALL,
 )
+# `-m "$(cat <<'EOF' ... EOF)"` wraps a heredoc in a command
+# substitution. The heredoc branch lints the content; redacting only the
+# heredoc would leave the multi-line residue `$(cat \n)` as the -m
+# value, which then fails the commit-message shape checks. Redact the
+# whole wrapper down to an empty string so the flag loop skips it.
+CAT_HEREDOC_SUBST_RE = re.compile(
+    r"\$\(\s*cat\s*<<[-]?\s*['\"]?(\w+)['\"]?\s*\n.*?\n\s*\1\b\s*\)",
+    re.DOTALL,
+)
 FLAG_VALUE_RE = re.compile(
     r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
@@ -654,7 +663,7 @@ def extract_bash_content(
             )
         )
 
-    redacted = HEREDOC_RE.sub("", command)
+    redacted = HEREDOC_RE.sub("", CAT_HEREDOC_SUBST_RE.sub("", command))
     message_flags = [
         m for m in FLAG_VALUE_RE.finditer(redacted) if m.group(2) in ("m", "message")
     ]
