@@ -116,6 +116,13 @@ For each agent (fact-checker, tester, investigator, skeptic):
 **Constraint enforcement**: Do not include other agents' findings in any
 agent's prompt.
 
+**Stale-worktree guard**: Local worktrees can lag the remote by weeks (a
+`dev` worktree may be a stale ancestor of a repo whose default branch
+moved to `main`). Instruct each agent to ground code-behavior claims in
+`origin/<default-branch>` (after a fetch) or the deployed revision, and
+to state which ref each code citation was read at. A finding read only
+from a local worktree is unverified until confirmed at the remote ref.
+
 **Convergence round**: Use
 `~/.claude/skills/swarm-core/prompts/convergence.md`. Spawn all four agents
 again with file references to each other's findings. Each agent appends under
