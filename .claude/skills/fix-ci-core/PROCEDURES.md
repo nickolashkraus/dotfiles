@@ -64,6 +64,13 @@ For transient or infrastructure failures, re-run the specific check rather
 than committing a no-op or closing/reopening the PR.
 
 - **GitHub Actions**: `gh run rerun <run-id> --failed`.
+- **Stuck-pending GitHub Actions job**: A job can finish (log ends with
+  "Complete job", run conclusion is `success`) while its job record stays
+  `in_progress` with a null conclusion, leaving the PR rollup pending
+  indefinitely. `--failed` reruns nothing because nothing failed; use
+  a plain `gh run rerun <run-id>` to produce a fresh attempt that reports
+  correctly. Confirm the shape first via
+  `gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs`.
 - **Default-setup CodeQL** (`gh run view <run-id> --json event` shows
   `"event": "dynamic"`; no workflow file in the repo): There is no API retry
   path. `gh run rerun` returns "cannot be retried" and the
