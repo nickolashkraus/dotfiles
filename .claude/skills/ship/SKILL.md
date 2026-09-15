@@ -54,6 +54,10 @@ Invoke `Skill(skill: "review-diff")` to review and fix issues in the diff. If
 Invoke `Skill(skill: "commit", args: "<linear-issue>")`, passing the Linear
 slug if one was provided. Pass `--staged` if `--no-pr` was passed.
 
+Skip this step if the working tree is already clean because the changes were
+committed before `ship` was invoked; the review in Step 2 still runs against
+the committed diff.
+
 ## Step 4: Ship
 
 If `--no-pr` was passed: push to the current branch.
