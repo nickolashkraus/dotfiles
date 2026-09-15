@@ -30,6 +30,10 @@ mapping in the reply instead of asking.
 
 ## Step 2: Draft the issue body
 
+If the user explicitly asked for an empty issue (title only, no
+description), skip Steps 2-4.5 and create the issue without a
+`description`.
+
 Draft the issue body from the current conversation context and write it to
 `/tmp/linear-drafts/<short-slug>.md`. If the conversation has no obvious topic
 to draft from, ask the user before writing a draft.
