@@ -104,18 +104,26 @@ yabai -m config debug_output                  off
 # Grid Format: <rows>:<cols>:<start-x>:<start-y>:<width>:<height>
 ###############################################################################
 if [ "$display_count" -gt 1 ]; then
-  yabai -m rule --add app=".*"                manage=off display=^2 sub-layer=below grid=24:12:2:6:8:12
-  yabai -m rule --add app="^iTerm2$"          manage=on  display=^1 grid=1:1:0:0:1:1
+  # Do not force a display on iTerm2. Restored windows must stay on whichever
+  # display they were placed on; a display property here re-yanks them on every
+  # yabai restart (login, dock handshake, display wake). The catch-all rule
+  # excludes iTerm2 so its display=^2 does not capture it instead.
+  yabai -m rule --add app!="^iTerm2$"         manage=off display=^2 sub-layer=below grid=24:12:2:6:8:12
+  yabai -m rule --add app="^iTerm2$"          manage=on
   yabai -m rule --add app="^System Settings$" manage=off display=^2 sub-layer=below grid=12:24:0:0:0:6
 else
   yabai -m rule --add app=".*"                manage=off sub-layer=normal grid=20:20:1:1:18:18
   yabai -m rule --add app="^iTerm2$"          manage=off sub-layer=normal grid=1:1:0:0:1:1
   yabai -m rule --add app="^System Settings$" manage=off sub-layer=normal grid=12:24:0:0:0:6
-  # Re-apply rules to existing windows. Windows created while docked carry
-  # multi-display state (sub-layer=below from the catch-all rule), which leaves
-  # them unraisable above windows created after undocking.
-  yabai -m rule --apply
 fi
+
+# Re-apply rules to existing windows. A rule only auto-matches windows created
+# after it is added, so on (re)start already-open floating windows (Firefox,
+# Slack) keep stale placement and sub-layer until the rules are re-applied.
+# This ran only in the undocked branch before, so a docked restart left Firefox
+# uncaptured (sub-layer=normal instead of below) and the raise/cycle shortcuts
+# misbehaved. Run it in both layouts.
+yabai -m rule --apply
 
 ###############################################################################
 # JankyBorders
