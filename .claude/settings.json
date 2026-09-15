@@ -6,7 +6,7 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "PostCompact": [
       {
@@ -109,11 +109,11 @@
   },
   "feedbackSurveyRate": 0,
   "spinnerTipsEnabled": false,
-  "timeFormat": "24-hour",
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
   "awaySummaryEnabled": false,
   "tui": "fullscreen",
+  "timeFormat": "24-hour",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
   "editorMode": "vim",
