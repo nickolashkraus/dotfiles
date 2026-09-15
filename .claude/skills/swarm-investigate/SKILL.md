@@ -158,9 +158,14 @@ Write the final report to `{artifact_dir}/orchestrator/final.md`.
 `~/.claude/skills/swarm-core/PRINCIPLES.md` ("Typography Discipline") against
 every artifact file authored in this run.
 
-**Verification gate (standard, not optional)**: Spawn a dedicated verification
-agent that reads `final.md` end-to-end and produces a table (one row per
-concrete claim) with status Verified / Wrong / Unverifiable, evidence
+**Verification gate (standard, not optional)**: Spawn this only after every
+synthesis-review correction is applied. Spawning it while a review is still
+outstanding wastes the pass: it verifies a document that changes underneath it,
+and its findings arrive keyed to text that no longer exists. If a review agent
+is slow, wait for it or drop it explicitly, but do not overlap the two phases.
+Spawn a dedicated verification agent that reads `final.md` end-to-end and
+produces a table (one row per concrete claim) with status Verified / Wrong /
+Unverifiable, evidence
 (file:line / SHA / URL / DB query result), and a "Material corrections needed"
 section listing every Wrong claim with replacement text. Every concrete factual
 claim must be checked: code references, PR numbers, ticket IDs, Slack
