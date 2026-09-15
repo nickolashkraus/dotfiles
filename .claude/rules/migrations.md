@@ -57,10 +57,19 @@
   The same applies to `DROP INDEX CONCURRENTLY`. To add a `UNIQUE` constraint
   on an existing table, build the index `CONCURRENTLY` first, then attach the
   constraint with `ALTER TABLE ... ADD CONSTRAINT ... USING INDEX`.
-- For `NOT NULL` and `CHECK` constraints on existing tables, use the two-step
+- For a `CHECK` constraint on an existing table, use the two-step
   `ADD CONSTRAINT ... NOT VALID` followed by a separate `VALIDATE CONSTRAINT`.
   The validation scan takes only `ShareUpdateExclusiveLock`, which permits
   reads and concurrent writes.
+- To make a populated column `NOT NULL`, take the three-step path. `NOT VALID`
+  is a property of `ADD CONSTRAINT`, and Postgres rejects it on an
+  `ALTER COLUMN` that sets `NOT NULL`, so there is no two-step form here. Add
+  a `CHECK (col IS NOT NULL) NOT VALID` constraint, `VALIDATE CONSTRAINT` it,
+  then run `SET NOT NULL`, then drop the now-redundant `CHECK`. Postgres 12
+  and later proves the column attribute from the validated `CHECK` and skips
+  the scan, so the expensive pass happens under `ShareUpdateExclusiveLock`
+  instead of the `AccessExclusiveLock` a bare `SET NOT NULL` would hold for
+  a full scan.
 - Never combine slow DML with DDL in the same `alembic upgrade head`
   invocation. If the DML is killed by a job timeout, the retry runs from the
   top, and any DDL it hits takes `AccessExclusiveLock` while row locks from the
