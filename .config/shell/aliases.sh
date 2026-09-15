@@ -24,6 +24,7 @@ alias docker-rm='docker rm $(docker ps -aq) >/dev/null 2>&1 || echo "No containe
 alias docker-rmi='docker rmi --force $(docker images -q) >/dev/null 2>&1 || echo "No images to remove."'
 alias docker-rmv='docker volume rm --force $(docker volume ls -q) >/dev/null 2>&1 || echo "No volumes to remove."'
 alias docker-stop='docker stop $(docker ps -aq) >/dev/null 2>&1 || echo "No running containers."'
+alias fh-init='fh_init'
 alias gcb='git branch | fzf | cut -c 3- | xargs git checkout'
 alias gcp='git log -1 --pretty=%B | pbcopy'
 alias gp='git push origin $(git branch --show-current)'
