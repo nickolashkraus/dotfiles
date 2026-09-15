@@ -11,6 +11,9 @@ procedure:
   Admin App GraphQL token exchange (Okta -> FH JWT).
 - **`fh-database`**: Cloud SQL Auth Proxy for Dev/Staging (static
   `POSTGRES_PASSWORD`) and Prod (IAM group auth via ConductorOne).
+- **`fh-databricks`**: Workspace URLs, CLI OAuth profiles, the
+  birthright vs ConductorOne access trap, the persona/data-reader
+  two-gate model, and headless SQL via the statement execution API.
 - **`fh-datadog`**: Datadog API authentication (`us5` site) and local
   monitor-query validation via `/monitor/validate`.
 - **`fh-kubernetes`**: GKE kubeconfig generation for the `dev`, `prod`,

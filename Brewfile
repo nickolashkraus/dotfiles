@@ -21,7 +21,11 @@
 #     brew bundle check || brew bundle install
 ###############################################################################
 
+# The databricks tap is third-party, so a one-time `brew trust --formula
+# databricks/tap/databricks` is required before `brew bundle install` can
+# resolve it. Homebrew refuses to load the formula otherwise.
 tap "conductorone/cone"
+tap "databricks/tap"
 tap "derailed/k9s"
 tap "felixkratz/formulae"
 tap "hashicorp/tap"
@@ -36,6 +40,7 @@ brew "bzip2"
 brew "cmake"
 brew "conductorone/cone/cone"
 brew "curl"
+brew "databricks/tap/databricks"
 brew "felixkratz/formulae/borders"
 brew "ffmpeg@4"
 brew "fzf"
