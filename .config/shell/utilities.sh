@@ -29,14 +29,22 @@
 
 # `brew shellenv` spawns the brew entrypoint on every shell startup. Cache its
 # output and regenerate only when the brew binary is newer than the cache.
+#
+# Replace the cache only when `brew shellenv` succeeds and returns output.
+# A failed or interrupted run would otherwise leave a 0-byte cache with an mtime
+# newer than the brew binary, which satisfies the staleness check forever and
+# silently drops $HOMEBREW_PREFIX and /opt/homebrew/bin from the environment.
 _brew_bin="/opt/homebrew/bin/brew"
 _brew_cache="$HOME/.cache/brew-shellenv.zsh"
 if [[ -x $_brew_bin ]]; then
-  if [[ ! -f $_brew_cache || $_brew_bin -nt $_brew_cache ]]; then
+  if [[ ! -s $_brew_cache || $_brew_bin -nt $_brew_cache ]]; then
     mkdir -p "$HOME/.cache"
-    "$_brew_bin" shellenv >"$_brew_cache"
+    if _brew_env=$("$_brew_bin" shellenv) && [[ -n $_brew_env ]]; then
+      print -r -- "$_brew_env" >"$_brew_cache"
+    fi
+    unset _brew_env
   fi
-  source "$_brew_cache"
+  [[ -s $_brew_cache ]] && source "$_brew_cache"
 fi
 unset _brew_bin _brew_cache
 
