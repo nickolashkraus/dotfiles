@@ -6,13 +6,17 @@
   messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
-- Branch names should be the Linear issue slug (e.g., `byb-1337`) if available,
-  or a short description (e.g., `some-feature`). Lowercase the slug for the
-  branch name (`byb-1337`, not `BYB-1337`). The same applies to worktree
-  directory names, which mirror the branch. This lowercasing is scoped to the
-  branch and worktree only: PR titles, commit subjects, `## References`
+- Branch names use the lowercase Linear issue slug plus a short hyphenated
+  description of the work (e.g., `epd-1337-require-ssl`), never the bare slug
+  (`epd-1337`) and never the uppercase slug (`EPD-1337-...`). The description
+  makes the branch identifiable at a glance. When no Linear issue applies,
+  derive a short descriptive name from the changes (e.g., `some-feature`).
+  The same applies to worktree directory names, which mirror the branch. This
+  applies in every repo, regardless of existing bare-slug branches in the
+  repo's history; precedent does not opt a repo out. The lowercasing is scoped
+  to the branch and worktree only: PR titles, commit subjects, `## References`
   entries, and any prose reference still use the uppercase Linear slug verbatim
-  (e.g., `BYB-1337`), since that is how Linear renders the issue.
+  (e.g., `EPD-1337`), since that is how Linear renders the issue.
 - Pull request titles should include the Linear issue (if provided) (e.g.,
   `EPD-1337: ...`).
 - When a PR directly resolves a Linear issue, the PR title is the slug plus
@@ -82,7 +86,8 @@
 ## Worktrees
 
 - Always create worktrees in the root of the bare repo as peer directories
-  (e.g., `transaction-service/byb-934` alongside `transaction-service/dev`).
+  (e.g., `transaction-service/byb-934-payment-retries` alongside
+  `transaction-service/dev`).
   Never place them under subdirectories like `.claude/worktrees/`.
 - In a bare repo with worktrees, default to the `master` (or default) branch
   worktree for operations like `git log`, `git diff`, and rebasing. Do not
