@@ -911,6 +911,19 @@ endfunction
 " See: https://github.com/ycm-core/YouCompleteMe
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" Pin the interpreter that runs the ycmd server.
+"
+" 'ycm_core' is a compiled extension linked against the Homebrew
+" 'python@3.14' framework. Loading it under a pyenv interpreter of the same
+" ABI tag pulls a second CPython runtime into the process and segfaults
+" immediately, which Vim reports as "The ycmd server SHUT DOWN" with an
+" empty stderr log. Without this setting YCM resolves 'python3' off PATH and
+" finds the pyenv shim first.
+"
+" Rebuilding YCM against a different interpreter requires updating this path
+" to match.
+let g:ycm_server_python_interpreter = '/opt/homebrew/bin/python3.14'
+
 " Disable diagnostic display (errors and warnings) (use ALE instead).
 let g:ycm_show_diagnostics_ui = 0
 
