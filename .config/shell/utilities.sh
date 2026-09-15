@@ -89,8 +89,15 @@ source <(fzf --zsh)
 # used by tmux to toggle the popup window. Ctrl - f is used (rather than an Alt
 # binding) because iTerm2 sends Option as a normal character ("Option Key
 # Sends" = Normal), so Alt bindings never reach the shell.
+#
+# Each keymap is bound explicitly. The vi-mode plugin makes `main` an alias of
+# `viins`, so an unqualified `bindkey` leaves the `vicmd` keymap untouched and
+# fzf's own bindings survive there: Ctrl - f stays dead and Ctrl - t stays
+# bound to the file widget the moment you leave insert mode.
 bindkey -r '^T'
+bindkey -M vicmd -r '^T'
 bindkey '^F' fzf-file-widget
+bindkey -M vicmd '^F' fzf-file-widget
 
 # Default fzf command (uses ripgrep).
 #   --files: Print each file without actually performing the search.
