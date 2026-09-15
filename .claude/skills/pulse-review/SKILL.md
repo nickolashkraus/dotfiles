@@ -119,6 +119,18 @@ prompt-clarity findings with a one-line reason, note the dismissals for the PR
 description, and proceed. Chasing a doc-file review to literal zero is the
 over-investment this stop is meant to prevent.
 
+**Size gate counts ADDED lines.** The deployed bot short-circuits PRs whose
+counted ADDED lines exceed 2,000 (strict `>`; excludes come from configured
+globs). Two traps observed on a 2,012-line PR: (1) "reducing the diff" by
+deduplicating pre-existing code makes it WORSE, since rewriting existing
+lines converts them into added lines; (2) each fix round adds tests, so a
+PR hovering at the limit will re-trip the gate mid-review. Check the count
+with `git diff <base>...HEAD --numstat | awk '{a+=$1} END {print a}'`
+before pushing. If near or over the limit, either trim added prose in the
+new files or split into stacked PRs by phase (sync leg vs. endpoint leg);
+while the gate is tripped the bot skips re-review entirely and its standing
+CHANGES_REQUESTED review blocks the PR.
+
 Then re-run the repo's standard local verification (ruff, pyright, pytest for
 the touched files) since the fixes changed code after the last verification
 pass.
