@@ -47,7 +47,8 @@ All subsequent steps run in the worktree.
 
 Invoke `Skill(skill: "review-diff")` to review and fix issues in the diff. If
 `--no-pr` was passed, pass `--staged` so only the staged subset is reviewed
-(the unstaged tail will not ship in this push).
+(the unstaged tail will not ship in this push). If nothing is staged, the
+whole working tree is the ship set: review and commit all of it.
 
 ## Step 3: Commit
 
@@ -66,6 +67,9 @@ If `--no-pr` was passed: push to the current branch.
 git push
 ```
 
+If the push is rejected because the remote moved, fetch and rebase onto the
+remote branch (never merge), resolve any conflicts, then push again.
+
 Stop here.
 
 Otherwise, invoke `Skill(skill: "pr", args: "<linear-issue>")` to create the
@@ -75,3 +79,8 @@ the local Pulse gate is skipped there too. Do NOT pass `--worktree` to `pr`;
 the worktree was already set up in Step 1 and the commits already live there.
 
 Print the pull request URL when `pr` returns.
+
+## Final report
+
+One to three lines: the pushed SHA or PR URL, plus anything that deviated
+(rebase, review fix). No step-by-step recap.
