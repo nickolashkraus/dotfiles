@@ -4,7 +4,9 @@ description: >
   Cut a release for a Function Health service. Gathers PRs, creates the release
   branch, Notion doc, and deployment announcement. TRIGGER when: user says "cut
   release", "release X", "do the release", or wants to bundle merged dev PRs
-  into a release branch with a Notion doc and Slack announcement.
+  into a release branch with a Notion doc and Slack announcement. SKIP: repos
+  whose Prod Cloud Build trigger fires on a `release/YYYY-MM-DD.NN` tag push
+  (use `release-trunk`).
 disable-model-invocation: false
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, mcp__linear__list_issues, mcp__linear__list_issue_statuses, mcp__linear__get_issue, mcp__notion__notion-create-pages, mcp__notion__notion-update-page, mcp__notion__notion-fetch, mcp__claude_ai_Slack__slack_send_message_draft
 argument-hint: "[--date YYYY-MM-DD] [--team TEAM] [--notion URL] [--title TITLE] [--cc USER_IDS_OR_HANDLES]"
