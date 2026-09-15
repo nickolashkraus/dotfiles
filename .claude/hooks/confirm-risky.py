@@ -69,6 +69,15 @@ RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         "gh pr merge without --auto",
     ),
     (re.compile(r"\bgh\s+(?:repo|pr|issue)\s+delete\b"), "gh delete"),
+    (re.compile(r"\bgh\s+pr\s+close\b"), "gh pr close"),
+    (
+        re.compile(r"\bbranches/\S+/rename\b"),
+        "branch rename API (closes open PRs whose head is the branch)",
+    ),
+    (
+        re.compile(r"\bgit\s+push\b[^\n]*(?:\s(?:--delete|-d)\b|\s:\S)"),
+        "remote branch delete (closes open PRs whose head is the branch)",
+    ),
     (re.compile(r"\bkubectl\s+delete\b"), "kubectl delete"),
     (
         re.compile(r"\bterraform\s+(?:apply|destroy)\b[^\n]*--auto-approve"),
