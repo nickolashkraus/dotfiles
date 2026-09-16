@@ -38,6 +38,19 @@ continuing. Then follow "Resolve the pull request" in PROCEDURES.md.
 
 Follow "Wait for all checks to complete" in PROCEDURES.md.
 
+**Do not idle while checks run.** A review bot posts its findings as soon as
+its own check finishes, long before the slowest check (often the test suite or
+an external build) completes. Once a bot review is on the PR, start Step 5
+against it immediately rather than waiting for the rollup: triage the comments,
+fix the legitimate ones, and draft the replies. Fold any resulting code change
+into the same commit as the CI fixes from Step 4, so the push in Step 6 is
+still one push and one re-run.
+
+The waiting itself is still required before Step 6 and before declaring the job
+done; what is not required is doing nothing during it. Reporting "waiting on
+the remaining checks" while a bot review sits unread is wasted wall-clock, and
+on a slow suite that is most of the cycle.
+
 ## Step 3: Assess CI results
 
 - If any checks failed, continue to Step 4.

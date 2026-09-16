@@ -8,7 +8,65 @@
 - **Grind**: ~/grind-rip
 - **Personal**: ~/nickolashkraus
 
+## Scoping Before Planning
+
+A plan answers how to build something. Before writing one, establish that the
+something is the right size. Three lines, agreed before any design:
+
+1. **What exists today**: What the system already does toward this goal.
+2. **What is actually missing**: The gap, stated as behavior rather than as
+   tasks.
+3. **The smallest delta that closes it**: What has to change, and nothing more.
+
+The failure this prevents is a correct solution to a larger problem than the
+one in front of you. That failure survives code review, because every
+individual piece of it is defensible.
+
+### Treat the ticket as evidence, not the definition
+
+A ticket is one person's first-pass guess at the shape of the work, often
+written before anyone read the code. Its scope is a hypothesis to check
+against the goal, so read what the requester actually needs and what the code
+already does, then say plainly when the ticket asks for more than that.
+Implementing a ticket faithfully is not the same as solving the problem.
+
+### State the null option
+
+Answer "what happens if we change nothing?" before proposing anything, and put
+the answer in the plan. Often the honest answer is "most of this already
+works, except X", and X is then the entire scope. A plan that proposes doing
+almost nothing looks like insufficient work and is frequently correct, so
+never discard the null option because it seems too small to offer.
+
+### Own only the difference from the platform
+
+Enumerate what the platform, provider or framework already expresses, then
+build exactly what it cannot. For a third-party API this means reading the
+object's real fields, not recalling them, and asking which guarantees come
+free. Anything reimplemented on top of an existing guarantee is code that can
+drift from it.
+
+### Price the implications, not the decision
+
+A one-line design choice can carry a hundred lines of consequence. Any choice
+that means owning a computation (an amount, a schedule, a piece of state)
+commits you to every edge it touches: units, rounding, currency, overflow,
+staleness, concurrency. Count those before accepting the choice. A long list
+is the signal to look for a design where the list is empty.
+
+### Read review volume as a design signal
+
+Repeated rounds of legitimate review findings on the same code mean the shape
+is wrong, and each fix enlarges the surface that produces the next finding.
+A sound design converges in one or two rounds. When it does not, stop fixing
+and re-ask the three scoping questions. Tooling that catches findings raises
+the floor on execution and says nothing about whether the work should exist,
+so good review can keep a bad design alive well past the point of rejecting
+it.
+
 ## Clarifying Before Implementing
+
+Once the scope above is agreed, the plan covers how to build it.
 
 For non-trivial implementation directives (schema changes, contracts,
 migrations, multi-file refactors, anything that shapes a PR description or
