@@ -9,6 +9,11 @@
 #   The script is idempotent: re-running it upgrades every package it manages
 #   to the latest version.
 #
+#   Each step runs in isolation: a failure is reported and counted, but does
+#   not abort the rest of the run. The exit status is the number of failed
+#   steps, so an unattended caller (`system-update`) sees a broken step rather
+#   than a silent success.
+#
 # USAGE
 #   install [OPTIONS]
 #
@@ -17,6 +22,13 @@
 #
 # EXAMPLES
 #   ./install
+
+# A pipeline reports the exit status of its last stage by default, which would
+# hide a failing `curl` in `curl ... | bash`. `pipefail` makes `run` below see
+# the failure of any stage.
+set -o pipefail
+
+failures=0
 
 # Colors
 red='\033[0;31m'
@@ -148,6 +160,32 @@ function check_command_exists() {
 }
 
 ###############################################################################
+# Run a step of the install pipeline, recording a failure without aborting.
+#
+# A broken package manager should not stop the remaining ones from upgrading,
+# so a non-zero exit is reported and counted rather than fatal. The count is
+# the script's exit status.
+#
+# Globals:
+#   failures, red, reset
+# Arguments:
+#   $@: command to run
+# Outputs:
+#   Error message to standard error
+# Returns:
+#   Exit status of the command
+###############################################################################
+function run() {
+  "$@"
+  local status=$?
+  if [[ ${status} -ne 0 ]]; then
+    echo -e "${red}ERROR: $* failed (exit ${status})${reset}" >&2
+    failures=$((failures + 1))
+  fi
+  return "${status}"
+}
+
+###############################################################################
 # $HOME Configuration
 #
 # Required Files:
@@ -158,8 +196,8 @@ check_file_exists "${dotfiles}/.vimrc" || exit 1
 check_file_exists "${dotfiles}/.zshrc" || exit 1
 rm -f "${HOME}/.vimrc" || true
 rm -f "${HOME}/.zshrc" || true
-ln -s "${dotfiles}/.vimrc" "${HOME}/.vimrc"
-ln -s "${dotfiles}/.zshrc" "${HOME}/.zshrc"
+run ln -s "${dotfiles}/.vimrc" "${HOME}/.vimrc"
+run ln -s "${dotfiles}/.zshrc" "${HOME}/.zshrc"
 
 ###############################################################################
 # AWS CLI Configuration
@@ -170,7 +208,7 @@ ln -s "${dotfiles}/.zshrc" "${HOME}/.zshrc"
 check_file_exists "${dotfiles}/.aws/config" || exit 1
 mkdir -p "${HOME}/.aws"
 rm -f "${HOME}/.aws/config" || true
-ln -s "${dotfiles}/.aws/config" "${HOME}/.aws/config"
+run ln -s "${dotfiles}/.aws/config" "${HOME}/.aws/config"
 
 ###############################################################################
 # kubeconfig Files
@@ -184,8 +222,8 @@ check_file_exists "${dotfiles}/.kube/workiva.yaml" || exit 1
 mkdir -p "${HOME}/.kube"
 rm -f "${HOME}/.kube/function.yaml" || true
 rm -f "${HOME}/.kube/workiva.yaml" || true
-ln -s "${dotfiles}/.kube/function.yaml" "${HOME}/.kube/function.yaml"
-ln -s "${dotfiles}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
+run ln -s "${dotfiles}/.kube/function.yaml" "${HOME}/.kube/function.yaml"
+run ln -s "${dotfiles}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 
 ###############################################################################
 # SSH Configuration
@@ -196,7 +234,7 @@ ln -s "${dotfiles}/.kube/workiva.yaml" "${HOME}/.kube/workiva.yaml"
 check_file_exists "${dotfiles}/.ssh/config" || exit 1
 mkdir -p "${HOME}/.ssh"
 rm -f "${HOME}/.ssh/config" || true
-ln -s "${dotfiles}/.ssh/config" "${HOME}/.ssh/config"
+run ln -s "${dotfiles}/.ssh/config" "${HOME}/.ssh/config"
 
 ###############################################################################
 # bat Configuration
@@ -207,7 +245,7 @@ ln -s "${dotfiles}/.ssh/config" "${HOME}/.ssh/config"
 check_file_exists "${dotfiles}/.config/bat/config" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/bat" || true
 mkdir -p "${XDG_CONFIG_HOME}/bat"
-ln -s "${dotfiles}/.config/bat/config" "${XDG_CONFIG_HOME}/bat/config"
+run ln -s "${dotfiles}/.config/bat/config" "${XDG_CONFIG_HOME}/bat/config"
 
 ###############################################################################
 # JankyBorders Configuration
@@ -218,7 +256,7 @@ ln -s "${dotfiles}/.config/bat/config" "${XDG_CONFIG_HOME}/bat/config"
 check_file_exists "${dotfiles}/.config/borders/bordersrc" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/borders" || true
 mkdir -p "${XDG_CONFIG_HOME}/borders"
-ln -s "${dotfiles}/.config/borders/bordersrc" "${XDG_CONFIG_HOME}/borders/bordersrc"
+run ln -s "${dotfiles}/.config/borders/bordersrc" "${XDG_CONFIG_HOME}/borders/bordersrc"
 
 ###############################################################################
 # Google Cloud CLI (gcloud) Configuration
@@ -236,10 +274,10 @@ check_file_exists "${dotfiles}/.config/gcloud/configurations/config_function-pro
 check_file_exists "${dotfiles}/.config/gcloud/configurations/config_personal" || exit 1
 rm -rf "${gcloud_config_dir}" || true
 mkdir -p "${gcloud_config_dir}"
-ln -s "${dotfiles}/.config/gcloud/configurations/config_default" "${gcloud_config_dir}/config_default"
-ln -s "${dotfiles}/.config/gcloud/configurations/config_function-dev" "${gcloud_config_dir}/config_function-dev"
-ln -s "${dotfiles}/.config/gcloud/configurations/config_function-prod" "${gcloud_config_dir}/config_function-prod"
-ln -s "${dotfiles}/.config/gcloud/configurations/config_personal" "${gcloud_config_dir}/config_personal"
+run ln -s "${dotfiles}/.config/gcloud/configurations/config_default" "${gcloud_config_dir}/config_default"
+run ln -s "${dotfiles}/.config/gcloud/configurations/config_function-dev" "${gcloud_config_dir}/config_function-dev"
+run ln -s "${dotfiles}/.config/gcloud/configurations/config_function-prod" "${gcloud_config_dir}/config_function-prod"
+run ln -s "${dotfiles}/.config/gcloud/configurations/config_personal" "${gcloud_config_dir}/config_personal"
 
 ###############################################################################
 # GitHub CLI Configuration
@@ -252,8 +290,8 @@ check_file_exists "${dotfiles}/.config/gh/config.yml" || exit 1
 check_file_exists "${dotfiles}/.config/gh/hosts.yml" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/gh" || true
 mkdir -p "${XDG_CONFIG_HOME}/gh"
-ln -s "${dotfiles}/.config/gh/config.yml" "${XDG_CONFIG_HOME}/gh/config.yml"
-ln -s "${dotfiles}/.config/gh/hosts.yml" "${XDG_CONFIG_HOME}/gh/hosts.yml"
+run ln -s "${dotfiles}/.config/gh/config.yml" "${XDG_CONFIG_HOME}/gh/config.yml"
+run ln -s "${dotfiles}/.config/gh/hosts.yml" "${XDG_CONFIG_HOME}/gh/hosts.yml"
 
 ###############################################################################
 # Git Configuration & Ignore File
@@ -266,8 +304,8 @@ check_file_exists "${dotfiles}/.config/git/config" || exit 1
 check_file_exists "${dotfiles}/.config/git/ignore" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/git" || true
 mkdir -p "${XDG_CONFIG_HOME}/git"
-ln -s "${dotfiles}/.config/git/config" "${XDG_CONFIG_HOME}/git/config"
-ln -s "${dotfiles}/.config/git/ignore" "${XDG_CONFIG_HOME}/git/ignore"
+run ln -s "${dotfiles}/.config/git/config" "${XDG_CONFIG_HOME}/git/config"
+run ln -s "${dotfiles}/.config/git/ignore" "${XDG_CONFIG_HOME}/git/ignore"
 
 ###############################################################################
 # k9s Configuration
@@ -281,8 +319,8 @@ check_file_exists "${dotfiles}/.config/k9s/skins/gruvbox.yaml" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/k9s" || true
 mkdir -p "${XDG_CONFIG_HOME}/k9s"
 mkdir -p "${XDG_CONFIG_HOME}/k9s/skins"
-ln -s "${dotfiles}/.config/k9s/config.yaml" "${XDG_CONFIG_HOME}/k9s/config.yaml"
-ln -s "${dotfiles}/.config/k9s/skins/gruvbox.yaml" "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
+run ln -s "${dotfiles}/.config/k9s/config.yaml" "${XDG_CONFIG_HOME}/k9s/config.yaml"
+run ln -s "${dotfiles}/.config/k9s/skins/gruvbox.yaml" "${XDG_CONFIG_HOME}/k9s/skins/gruvbox.yaml"
 
 ###############################################################################
 # LaunchAgents
@@ -318,7 +356,7 @@ if [[ ! -x "${HOME}/bin/system-update" ]]; then
 fi
 mkdir -p "${HOME}/.local/state"
 rm -f "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" || true
-ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" \
+run ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" \
   "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist"
 # `system-update` runs this script from inside the agent below, and booting out
 # a job kills its process tree. Reloading here would terminate this run before
@@ -327,15 +365,15 @@ ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.system-update.plist" \
 # interactive run does not have it and reloads normally.
 if [[ -z "${SYSTEM_UPDATE_AGENT:-}" ]]; then
   launchctl bootout "gui/$(id -u)/io.nickolaskraus.system-update" 2>/dev/null || true
-  launchctl bootstrap "gui/$(id -u)" \
+  run launchctl bootstrap "gui/$(id -u)" \
     "${HOME}/Library/LaunchAgents/io.nickolaskraus.system-update.plist"
 fi
 
 rm -f "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" || true
-ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" \
+run ln -s "${dotfiles}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist" \
   "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist"
 launchctl bootout "gui/$(id -u)/io.nickolaskraus.caffeinate" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" \
+run launchctl bootstrap "gui/$(id -u)" \
   "${HOME}/Library/LaunchAgents/io.nickolaskraus.caffeinate.plist"
 
 ###############################################################################
@@ -347,7 +385,7 @@ launchctl bootstrap "gui/$(id -u)" \
 check_file_exists "${dotfiles}/.config/mpv/mpv.conf" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/mpv" || true
 mkdir -p "${XDG_CONFIG_HOME}/mpv"
-ln -s "${dotfiles}/.config/mpv/mpv.conf" "${XDG_CONFIG_HOME}/mpv/mpv.conf"
+run ln -s "${dotfiles}/.config/mpv/mpv.conf" "${XDG_CONFIG_HOME}/mpv/mpv.conf"
 
 ###############################################################################
 # ngrok Configuration
@@ -358,7 +396,7 @@ ln -s "${dotfiles}/.config/mpv/mpv.conf" "${XDG_CONFIG_HOME}/mpv/mpv.conf"
 check_file_exists "${dotfiles}/.config/ngrok/ngrok.yml" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/ngrok" || true
 mkdir -p "${XDG_CONFIG_HOME}/ngrok"
-ln -s "${dotfiles}/.config/ngrok/ngrok.yml" "${XDG_CONFIG_HOME}/ngrok/ngrok.yml"
+run ln -s "${dotfiles}/.config/ngrok/ngrok.yml" "${XDG_CONFIG_HOME}/ngrok/ngrok.yml"
 
 ###############################################################################
 # Powerline Configuration
@@ -382,12 +420,12 @@ mkdir -p "${XDG_CONFIG_HOME}/powerline"
 mkdir -p "${XDG_CONFIG_HOME}/powerline/bindings/tmux"
 mkdir -p "${XDG_CONFIG_HOME}/powerline/colorschemes/tmux"
 mkdir -p "${XDG_CONFIG_HOME}/powerline/themes/tmux"
-ln -s "${dotfiles}/.config/powerline/bindings/tmux/powerline.conf" "${XDG_CONFIG_HOME}/powerline/bindings/tmux/powerline.conf"
-ln -s "${dotfiles}/.config/powerline/colorschemes/tmux/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/tmux/gruvbox.json"
-ln -s "${dotfiles}/.config/powerline/colorschemes/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/gruvbox.json"
-ln -s "${dotfiles}/.config/powerline/themes/tmux/default.json" "${XDG_CONFIG_HOME}/powerline/themes/tmux/default.json"
-ln -s "${dotfiles}/.config/powerline/colors.json" "${XDG_CONFIG_HOME}/powerline/colors.json"
-ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/config.json"
+run ln -s "${dotfiles}/.config/powerline/bindings/tmux/powerline.conf" "${XDG_CONFIG_HOME}/powerline/bindings/tmux/powerline.conf"
+run ln -s "${dotfiles}/.config/powerline/colorschemes/tmux/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/tmux/gruvbox.json"
+run ln -s "${dotfiles}/.config/powerline/colorschemes/gruvbox.json" "${XDG_CONFIG_HOME}/powerline/colorschemes/gruvbox.json"
+run ln -s "${dotfiles}/.config/powerline/themes/tmux/default.json" "${XDG_CONFIG_HOME}/powerline/themes/tmux/default.json"
+run ln -s "${dotfiles}/.config/powerline/colors.json" "${XDG_CONFIG_HOME}/powerline/colors.json"
+run ln -s "${dotfiles}/.config/powerline/config.json" "${XDG_CONFIG_HOME}/powerline/config.json"
 
 ###############################################################################
 # Shell Configuration
@@ -406,11 +444,11 @@ check_file_exists "${dotfiles}/.config/shell/plugins.sh" || exit 1
 check_file_exists "${dotfiles}/.config/shell/utilities.sh" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/shell" || true
 mkdir -p "${XDG_CONFIG_HOME}/shell"
-ln -s "${dotfiles}/.config/shell/aliases.sh" "${XDG_CONFIG_HOME}/shell/aliases.sh"
-ln -s "${dotfiles}/.config/shell/exports.sh" "${XDG_CONFIG_HOME}/shell/exports.sh"
-ln -s "${dotfiles}/.config/shell/functions.sh" "${XDG_CONFIG_HOME}/shell/functions.sh"
-ln -s "${dotfiles}/.config/shell/plugins.sh" "${XDG_CONFIG_HOME}/shell/plugins.sh"
-ln -s "${dotfiles}/.config/shell/utilities.sh" "${XDG_CONFIG_HOME}/shell/utilities.sh"
+run ln -s "${dotfiles}/.config/shell/aliases.sh" "${XDG_CONFIG_HOME}/shell/aliases.sh"
+run ln -s "${dotfiles}/.config/shell/exports.sh" "${XDG_CONFIG_HOME}/shell/exports.sh"
+run ln -s "${dotfiles}/.config/shell/functions.sh" "${XDG_CONFIG_HOME}/shell/functions.sh"
+run ln -s "${dotfiles}/.config/shell/plugins.sh" "${XDG_CONFIG_HOME}/shell/plugins.sh"
+run ln -s "${dotfiles}/.config/shell/utilities.sh" "${XDG_CONFIG_HOME}/shell/utilities.sh"
 
 ###############################################################################
 # skhd Configuration
@@ -421,7 +459,7 @@ ln -s "${dotfiles}/.config/shell/utilities.sh" "${XDG_CONFIG_HOME}/shell/utiliti
 check_file_exists "${dotfiles}/.config/skhd/skhdrc" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/skhd" || true
 mkdir -p "${XDG_CONFIG_HOME}/skhd"
-ln -s "${dotfiles}/.config/skhd/skhdrc" "${XDG_CONFIG_HOME}/skhd/skhdrc"
+run ln -s "${dotfiles}/.config/skhd/skhdrc" "${XDG_CONFIG_HOME}/skhd/skhdrc"
 
 ###############################################################################
 # tmux Configuration
@@ -432,7 +470,7 @@ ln -s "${dotfiles}/.config/skhd/skhdrc" "${XDG_CONFIG_HOME}/skhd/skhdrc"
 check_file_exists "${dotfiles}/.config/tmux/tmux.conf" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/tmux" || true
 mkdir -p "${XDG_CONFIG_HOME}/tmux"
-ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
+run ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
 
 ###############################################################################
 # Vim Configuration
@@ -444,11 +482,11 @@ ln -s "${dotfiles}/.config/tmux/tmux.conf" "${XDG_CONFIG_HOME}/tmux/tmux.conf"
 check_file_exists "${dotfiles}/.config/vim/spell/en.utf-8.add" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/vim" || true
 mkdir -p "${XDG_CONFIG_HOME}/vim/spell"
-ln -s "${dotfiles}/.config/vim/spell/en.utf-8.add" "${XDG_CONFIG_HOME}/vim/spell/en.utf-8.add"
+run ln -s "${dotfiles}/.config/vim/spell/en.utf-8.add" "${XDG_CONFIG_HOME}/vim/spell/en.utf-8.add"
 check_dir_exists "${dotfiles}/.vim/after" || exit 1
 mkdir -p "${HOME}/.vim"
 rm -rf "${HOME}/.vim/after" || true
-ln -s "${dotfiles}/.vim/after" "${HOME}/.vim/after"
+run ln -s "${dotfiles}/.vim/after" "${HOME}/.vim/after"
 
 ###############################################################################
 # yabai Configuration
@@ -459,7 +497,7 @@ ln -s "${dotfiles}/.vim/after" "${HOME}/.vim/after"
 check_file_exists "${dotfiles}/.config/yabai/yabairc" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/yabai" || true
 mkdir -p "${XDG_CONFIG_HOME}/yabai"
-ln -s "${dotfiles}/.config/yabai/yabairc" "${XDG_CONFIG_HOME}/yabai/yabairc"
+run ln -s "${dotfiles}/.config/yabai/yabairc" "${XDG_CONFIG_HOME}/yabai/yabairc"
 
 ###############################################################################
 # yamllint Configuration
@@ -470,7 +508,7 @@ ln -s "${dotfiles}/.config/yabai/yabairc" "${XDG_CONFIG_HOME}/yabai/yabairc"
 check_file_exists "${dotfiles}/.config/yamllint/config" || exit 1
 rm -rf "${XDG_CONFIG_HOME}/yamllint" || true
 mkdir -p "${XDG_CONFIG_HOME}/yamllint"
-ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
+run ln -s "${dotfiles}/.config/yamllint/config" "${XDG_CONFIG_HOME}/yamllint/config"
 
 ###############################################################################
 # Claude Code Configuration
@@ -494,11 +532,11 @@ rm -rf "${HOME}/.claude/rules" || true
 rm -rf "${HOME}/.claude/skills" || true
 rm -f "${HOME}/.claude/CLAUDE.md" || true
 rm -f "${HOME}/.claude/settings.json" || true
-ln -s "${dotfiles}/.claude/hooks" "${HOME}/.claude/hooks"
-ln -s "${dotfiles}/.claude/rules" "${HOME}/.claude/rules"
-ln -s "${dotfiles}/.claude/skills" "${HOME}/.claude/skills"
-ln -s "${dotfiles}/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
-ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
+run ln -s "${dotfiles}/.claude/hooks" "${HOME}/.claude/hooks"
+run ln -s "${dotfiles}/.claude/rules" "${HOME}/.claude/rules"
+run ln -s "${dotfiles}/.claude/skills" "${HOME}/.claude/skills"
+run ln -s "${dotfiles}/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
+run ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 
 # Wire `.claude/git-hooks/pre-commit` as the dotfiles repo's pre-commit
 # hook. Validates staged `.claude/` changes (YAML parse, JSON parse,
@@ -506,7 +544,7 @@ ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
 # bugs that silently shipped before (e.g., the `argument-hint:` flow-
 # sequence trap that broke 7 skills). Writes to the bare repo's shared
 # config, which all current and future worktrees inherit automatically.
-git -C "${dotfiles}" config core.hooksPath .claude/git-hooks
+run git -C "${dotfiles}" config core.hooksPath .claude/git-hooks
 
 ###############################################################################
 # Codex Configuration
@@ -532,12 +570,12 @@ rm -rf "${HOME}/.codex/skills" || true
 rm -f "${HOME}/.codex/AGENTS.md" || true
 rm -f "${HOME}/.codex/config.toml" || true
 rm -f "${HOME}/.codex/hooks.json" || true
-ln -s "${dotfiles}/.codex/hooks" "${HOME}/.codex/hooks"
-ln -s "${dotfiles}/.codex/rules" "${HOME}/.codex/rules"
-ln -s "${dotfiles}/.codex/skills" "${HOME}/.codex/skills"
-ln -s "${dotfiles}/.codex/AGENTS.md" "${HOME}/.codex/AGENTS.md"
-ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
-ln -s "${dotfiles}/.codex/hooks.json" "${HOME}/.codex/hooks.json"
+run ln -s "${dotfiles}/.codex/hooks" "${HOME}/.codex/hooks"
+run ln -s "${dotfiles}/.codex/rules" "${HOME}/.codex/rules"
+run ln -s "${dotfiles}/.codex/skills" "${HOME}/.codex/skills"
+run ln -s "${dotfiles}/.codex/AGENTS.md" "${HOME}/.codex/AGENTS.md"
+run ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
+run ln -s "${dotfiles}/.codex/hooks.json" "${HOME}/.codex/hooks.json"
 
 ###############################################################################
 # Oh My Zsh Theme
@@ -549,14 +587,18 @@ check_file_exists "${dotfiles}/nhk.zsh-theme" || exit 1
 check_dir_exists "${HOME}/.oh-my-zsh" || exit 1
 mkdir -p "${ZSH_CUSTOM}/themes"
 rm -f "${ZSH_CUSTOM}/themes/nhk.zsh-theme" || true
-ln -s "${dotfiles}/nhk.zsh-theme" "${ZSH_CUSTOM}/themes/nhk.zsh-theme"
+run ln -s "${dotfiles}/nhk.zsh-theme" "${ZSH_CUSTOM}/themes/nhk.zsh-theme"
 
 ###############################################################################
 # Brewfile (Homebrew Packages)
 #
-# `brew bundle` only installs what is missing, so an explicit `brew upgrade`
-# is required to move already-installed formulae and casks to their latest
-# versions. `brew upgrade` covers both.
+# `brew bundle` upgrades outdated entries by default, which is what the
+# explicit `brew upgrade` below already does for formulae and casks. It also
+# reaches Mac App Store entries, where `mas upgrade` re-execs itself under
+# `sudo` and so cannot run without a TTY: the daily launchd job fails on every
+# outdated App Store app. `--no-upgrade` reduces `brew bundle` to installing
+# what is missing and leaves upgrades to `brew upgrade`. App Store apps update
+# themselves through the App Store's own automatic updates.
 #
 # Required Files:
 #   * Brewfile
@@ -569,13 +611,14 @@ check_command_exists "brew" || exit 1
 # Homebrew 6.0.0 requires non-official taps to be explicitly trusted before
 # their formulae and casks can be loaded. Trust every tap the Brewfile declares
 # so `brew bundle` does not skip them.
-grep '^tap "' "${dotfiles}/Brewfile" | sed -E 's/^tap "([^"]+)".*/\1/' |
-  while read -r _tap; do
-    brew trust --tap "${_tap}"
-  done
-brew update
-brew bundle --file="${dotfiles}/Brewfile"
-brew upgrade
+# The loop reads from a process substitution rather than a pipe so it runs in
+# this shell: a `run` inside a pipeline's subshell could not record a failure.
+while read -r _tap; do
+  run brew trust --tap "${_tap}"
+done < <(grep '^tap "' "${dotfiles}/Brewfile" | sed -E 's/^tap "([^"]+)".*/\1/')
+run brew update
+run brew bundle --file="${dotfiles}/Brewfile" --no-upgrade
+run brew upgrade
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
@@ -591,13 +634,13 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing and upgrading Python packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "pipx" || exit 1
-pipx ensurepath
-pipx install powerline-status
-pipx install ruff
-pipx install ty
-pipx install mypy
-pipx install poetry
-pipx upgrade-all
+run pipx ensurepath
+run pipx install powerline-status
+run pipx install ruff
+run pipx install ty
+run pipx install mypy
+run pipx install poetry
+run pipx upgrade-all
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
@@ -610,9 +653,9 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing and upgrading Go binaries...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "go" || exit 1
-go install golang.org/x/tools/cmd/goimports@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install go.uber.org/mock/mockgen@latest
+run go install golang.org/x/tools/cmd/goimports@latest
+run go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+run go install go.uber.org/mock/mockgen@latest
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
@@ -625,13 +668,13 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing and upgrading npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "npm" || exit 1
-npm install -g @google/gemini-cli
-npm install -g @openai/codex
-npm install -g cspell
-npm install -g eslint
-npm install -g prettier
-npm install -g sort-package-json
-npm install -g typescript
+run npm install -g @google/gemini-cli
+run npm install -g @openai/codex
+run npm install -g cspell
+run npm install -g eslint
+run npm install -g prettier
+run npm install -g sort-package-json
+run npm install -g typescript
 echo -e "${green}Done!\n${reset}" >&2
 
 ###############################################################################
@@ -648,5 +691,20 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing Claude Code...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "curl" || exit 1
-curl -fsSL https://claude.ai/install.sh | bash
+# `run` takes a command, not a pipeline, so the installer gets a name.
+# The indirect call through `run` is invisible to shellcheck, hence the
+# directive below.
+# shellcheck disable=SC2329
+function install_claude_code() {
+  curl -fsSL https://claude.ai/install.sh | bash
+}
+run install_claude_code
 echo -e "${green}Done!\n${reset}" >&2
+
+if [[ ${failures} -ne 0 ]]; then
+  echo -e "${red}install: complete, ${failures} failure(s)${reset}" >&2
+else
+  echo -e "${green}install: complete, 0 failures${reset}" >&2
+fi
+
+exit "${failures}"
