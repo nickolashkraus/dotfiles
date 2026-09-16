@@ -989,6 +989,16 @@ nnoremap <silent> K           :YcmCompleter GetDoc<CR>
 "
 " See: https://github.com/junegunn/vim-plug#post-update-hooks
 "
+" The build runs under 'g:ycm_server_python_interpreter' rather than
+" './install.py', whose '#!/usr/bin/env python3' shebang resolves to the pyenv
+" shim. The compiled 'ycm_core' carries the ABI tag of whichever interpreter
+" built it, so a build under a different Python than the one that runs the
+" server produces a 'ycm_core.cpython-3XX-darwin.so' the server cannot import.
+" That failure surfaces as "The ycmd server SHUT DOWN ... Unexpected exit code
+" 0", which reads like a crash rather than a version mismatch. Naming the
+" interpreter here keeps the build and the server on the same Python by
+" construction.
+"
 " Args:
 "   info (dict): Dictionary containing plugin information:
 "                  - name: name of the plugin
@@ -997,7 +1007,7 @@ nnoremap <silent> K           :YcmCompleter GetDoc<CR>
 " Returns: None
 function! BuildYCM(info)
   if a:info.status == 'installed' || a:info.force
-    !./install.py --all
+    execute '!' . g:ycm_server_python_interpreter . ' ./install.py --all'
   endif
 endfunction
 
