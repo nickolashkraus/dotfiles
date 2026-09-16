@@ -46,6 +46,21 @@ object's real fields, not recalling them, and asking which guarantees come
 free. Anything reimplemented on top of an existing guarantee is code that can
 drift from it.
 
+### Verify an external contract before asserting it
+
+Never name a third-party API field, method, or guarantee from recall. Read it
+from the installed SDK, the type stubs, or the vendor docs, and do it before
+the name reaches code, a PR body, a review reply, or operator instructions.
+The SDK is almost always already in the project's virtualenv, which makes the
+check cheap and the excuse thin.
+
+A plausible field name is the dangerous case, because nothing downstream
+questions it. Asserting a nonexistent `max_redemptions_per_customer` on
+a Stripe PromotionCode put a wrong minting checklist into two PR descriptions
+and made it the stated reason for dismissing several review findings, none of
+which anyone challenged. Operator guidance and a security argument both rested
+on a field that did not exist.
+
 ### Price the implications, not the decision
 
 A one-line design choice can carry a hundred lines of consequence. Any choice
@@ -149,6 +164,14 @@ measure it.
 
 ## Testing
 
+- Before claiming a test covers a guard, break the guard and watch that test
+  fail. A test can pass for a reason unrelated to what it names: a purchase
+  refused by an earlier validation looks identical to one refused by the check
+  under test, and a fixture row that was never committed is invisible to the
+  request it was seeded for. Both happened in the same change, and only
+  deliberately inverting the production logic exposed them. This matters most
+  for a guard that refuses something, since the refusal is easy to produce by
+  accident.
 - Write unit tests when appropriate. Tests should validate behavior and prevent
   regressions, particularly for business logic, edge cases, and functions with
   multiple code paths. Aim for 100% test coverage, but avoid tests for trivial
