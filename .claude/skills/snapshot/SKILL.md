@@ -65,6 +65,12 @@ git push -u origin SNAPSHOT-YYYY-MM-DD.XX
    git reset HEAD
    ```
 
+If the checkout is refused because a file changed on disk after the
+snapshot commit (another session writing the shared daily log did this on
+2026-09-18), do not stash. Commit the new change as a second commit on the
+snapshot branch, push again, then cherry-pick both commits with
+`--no-commit` in one call before the `git reset HEAD`.
+
 ## Step 6: Confirm
 
 Print the snapshot branch name and confirm that the default branch is back to

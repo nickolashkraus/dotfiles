@@ -299,6 +299,10 @@ longest cell) and keep the Comment cell short with a reference-style link
 (`[→](url)` plus an `[r1]: <url>` definition below the table) rather than an
 inline one.
 
+A Description cell that opens with a bot name and a colon (`Pulse: the runner
+was...`) is a line-initial label, so `rule-check.py` requires the next word to
+be capitalized. Write `Pulse: The runner was...`.
+
 Always write the summary body to `/tmp/pr-<pr-number>-summary.md` and post via
 `gh pr comment --body-file`. Never inline this body via `--body "$(cat <<'EOF'
 ... EOF)"`: the table contains backticks, links, and shell-special characters

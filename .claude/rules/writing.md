@@ -198,11 +198,19 @@ reader needs the *why* and the load-bearing context. Stripping the contract
 from an ADR or the failure-mode bullets from a PR body loses real value.
 "Less verbose" never means "strip everything."
 
-- **PR bodies**: 25-50 lines is the normal range. Always include the
-  Overview (2-4 sentences), Implementation Details (one paragraph per
-  substantive design point, not per file), rollback or operational notes
-  when relevant, and the Linear link. Drop only pure narration that
-  restates the diff.
+- **PR bodies**: Scale with the diff, and err far shorter than feels
+  natural. A one-line change gets one sentence: what it does, and why it
+  matters if that is not obvious. No headers, no expected-plan paragraph,
+  no restating edits the diff shows, and no `## References` block, since
+  the Linear bot posts a linkback comment whenever the branch carries the
+  slug. Reach for `## Overview` and `## Implementation Details` only when
+  several substantive design points cannot be read off the diff; 25-50
+  lines is the ceiling for a genuinely large change, never a target to
+  fill. The failure mode is a template imposed on a small change: on
+  sre-infra-terraform#1914, a one-line boolean flip, I wrote 40 lines, cut
+  it to 12 when told it was too long, and Nickolas then cut it to the
+  single sentence it should have been. Both of my attempts were wrong by
+  an order of magnitude.
 - **Code comments and docstrings**: Keep docstrings on non-trivial
   functions (2-4 lines: what it returns, non-obvious caveats). Keep ADR
   comments on files that genuinely embody an architectural decision
