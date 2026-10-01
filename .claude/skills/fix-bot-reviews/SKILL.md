@@ -4,7 +4,7 @@ description: >
   Fix bot review comments on a pull request by creating a worktree, applying
   fixes, and opening a stacked fix PR. TRIGGER when: PR has unresolved
   CodeRabbit / Cursor / Sentry / Copilot / Seer bot review comments to address.
-  SKIP: failing CI checks (use `fix-ci`) or release PR (use `fix-ci-release`).
+  SKIP: failing CI checks (use `fix-ci`).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
 argument-hint: "[--re-review [all | unresolved]] [pr-ref]"

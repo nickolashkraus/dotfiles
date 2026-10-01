@@ -1,15 +1,18 @@
 ---
 name: fix-ci-release
 description: >
-  Fix CI failures on a release PR by triaging findings into a Linear issue
-  (release branches only accept cherry-picked merge commits, so do not commit
-  fixes directly). TRIGGER when: failing CI or bot comments on a `release/*`
-  branch PR. SKIP: dev-branch PR (use `fix-ci` or `fix-bot-reviews`).
-disable-model-invocation: false
+  DEPRECATED as of 2026-09-23. Function Health no longer cuts release branches,
+  so there are no release PRs to triage. Do not invoke this skill. Use `fix-ci`
+  or `fix-bot-reviews` on the pull request itself.
+disable-model-invocation: true
 allowed-tools:
   Bash, Read, Glob, Grep, mcp__linear__save_issue, mcp__linear__list_projects
 argument-hint: "[--re-review [all | unresolved]] [pr-ref]"
 ---
+
+> **DEPRECATED (2026-09-23).** Function Health retired the release-branch flow
+> this skill exists for. Fix findings on the pull request with `fix-ci` or
+> `fix-bot-reviews`. Everything below describes the retired flow.
 
 You are fixing CI failures on a release PR (triage to Linear, do not commit).
 Release branches only accept cherry-picked merge commits, so never commit

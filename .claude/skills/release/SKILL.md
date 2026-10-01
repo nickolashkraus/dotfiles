@@ -1,16 +1,19 @@
 ---
 name: release
 description: >
-  Cut a release for a Function Health service. Gathers PRs, creates the release
-  branch, Notion doc, and deployment announcement. TRIGGER when: user says "cut
-  release", "release X", "do the release", or wants to bundle merged dev PRs
-  into a release branch with a Notion doc and Slack announcement. SKIP: repos
-  whose Prod Cloud Build trigger fires on a `release/YYYY-MM-DD.NN` tag push
-  (use `release-trunk`).
-disable-model-invocation: false
+  DEPRECATED as of 2026-09-23. Function Health no longer cuts cherry-picked
+  release branches; every service releases trunk-based. Do not invoke this
+  skill. Use `release-trunk` instead. Kept only as a record of the retired
+  dev-to-release-branch-to-main flow.
+disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, mcp__linear__list_issues, mcp__linear__list_issue_statuses, mcp__linear__get_issue, mcp__notion__notion-create-pages, mcp__notion__notion-update-page, mcp__notion__notion-fetch, mcp__claude_ai_Slack__slack_send_message_draft
 argument-hint: "[--date YYYY-MM-DD] [--team TEAM] [--notion URL] [--title TITLE] [--cc USER_IDS_OR_HANDLES]"
 ---
+
+> **DEPRECATED (2026-09-23).** Function Health retired the cherry-picked
+> release-branch flow this skill automates. Releases are trunk-based: a
+> `release/YYYY-MM-DD.NN` tag on the default branch triggers the Prod deploy.
+> Use `release-trunk`. Everything below describes the retired flow.
 
 You are cutting a release for a Function Health service.
 Follow every step in order.

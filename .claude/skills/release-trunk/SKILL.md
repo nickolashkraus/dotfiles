@@ -6,8 +6,8 @@ description: >
   Prod version, picks the release commit, pushes the tag, creates the GitHub
   Release, and monitors the deploy to completion. TRIGGER when: user says
   "trunk release", "tag release", "push a release tag", or the repo's Prod
-  Cloud Build trigger is tag-based. SKIP: repos still on the dev-branch
-  cherry-pick model (use `release`).
+  Cloud Build trigger is tag-based. This is how every Function Health
+  service releases; the retired release-branch flow has no replacement path.
 disable-model-invocation: false
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, Monitor, mcp__claude_ai_Slack__slack_send_message_draft
 argument-hint: "[--date YYYY-MM-DD] [--commit SHA] [--no-op] [--cc USER_IDS_OR_HANDLES]"

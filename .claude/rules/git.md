@@ -186,27 +186,6 @@ the original contributor's commit history and the force-push replaces their
 commits. Instead, merge the base branch into their branch and resolve the
 conflicts in a single merge commit, preserving the original commits and SHAs.
 
-### Release Branches
-
-Release branches (`release/*`) accept only pure cherry-picked merge or squash
-commits from the default branch. Never push a manually-edited, hand-crafted,
-or in-place fix commit to a release branch or release PR, even if a bot leaves
-a review on the release PR. The merge-commit-only invariant is what makes the
-release line auditable back to a merged dev PR.
-
-When a bot or human leaves a review on a release PR, two valid responses:
-
-1. The finding is stale (commit force-pushed away or no longer on the release
-   tip): reply inline explaining and move on.
-2. The finding is real on the release tip: do not fix it on the release
-   branch. Either reply inline noting that the finding is being carried into
-   the follow-up release/remediation PR, or fix it on the default branch via
-   a normal PR, get it merged, and cherry-pick that merge commit onto the
-   release branch.
-
-"Address this review inline" while you are on a release PR means "reply
-inline," not "fix in code and push." Confirm before any code edit.
-
 ## Stacked PRs
 
 For dependent changes, stack PRs by targeting each PR against its parent branch
