@@ -920,9 +920,10 @@ endfunction
 " empty stderr log. Without this setting YCM resolves 'python3' off PATH and
 " finds the pyenv shim first.
 "
-" Rebuilding YCM against a different interpreter requires updating this path
-" to match.
-let g:ycm_server_python_interpreter = '/opt/homebrew/bin/python3.14'
+" BuildYCM() below compiles against this same interpreter, so build and run
+" never drift. Changing this path is the only edit needed to move YCM to a
+" different interpreter; rerun ':PlugInstall!' afterwards.
+let g:ycm_server_python_interpreter = '/opt/homebrew/opt/python@3.14/bin/python3.14'
 
 " Disable diagnostic display (errors and warnings) (use ALE instead).
 let g:ycm_show_diagnostics_ui = 0

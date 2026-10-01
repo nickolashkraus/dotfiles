@@ -7,3 +7,6 @@
 # Python bytecode caches.
 *.py[cod]
 __pycache__/
+
+# Claude-managed synced skills, regenerated locally and not user-authored.
+.claude/skills/synced/
