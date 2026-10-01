@@ -78,8 +78,10 @@ Create the pull request using `gh pr create` against the default branch:
   - Trivial: Single sentence or empty body.
   - Small to medium: Declarative summary, code snippets if helpful,
     `**NOTE**` blocks for secondary context.
-  - Large: `## Overview`, then `## Implementation Details`, `## Testing`,
-    `## References` as needed.
+  - Large: `## Overview`, then `## Implementation Details`,
+    `## References` as needed. Never a `## Testing` section; tests are visible
+    in the diff and in CI, so restating them is noise (see
+    @~/.claude/rules/git.md).
 - Do not add boilerplate sections the change does not warrant.
 - If the description has a `## References` block with Linear issues (entries
   like `[BYB-NNNN](...)`), fetch each issue's verbatim title via
@@ -93,3 +95,12 @@ Create the pull request using `gh pr create` against the default branch:
   literal backticks and dollars.
 
 Print the pull request URL when done.
+
+## Step 6: Open a review window
+
+Invoke `Skill(skill: "pr-window")` from the worktree. Every pull request gets a
+tmux window on its own worktree, showing the diff, so edits can be made by hand
+instead of through another round of instructions.
+
+This is not optional and does not need to be offered first. Skip it only when
+`$TMUX_PANE` is unset, which means there is no session to open a window in.
