@@ -29,17 +29,19 @@ the Login Keychain is unlocked.
 
 All entries below use the account `function-health`.
 
-| Service                      | Purpose                                      |
-| ---------------------------- | -------------------------------------------- |
-| `conductorone-client-id`     | ConductorOne PCC client ID                   |
-| `conductorone-client-secret` | ConductorOne PCC client secret               |
-| `statsig-console`            | Statsig Console API key                      |
-| `stripe-test`                | Stripe restricted key (Test)                 |
-| `stripe-prod`                | Stripe restricted key (Live, read-only)      |
-| `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write) |
-| `dx-api`                     | DX (getdx.com) metrics API key               |
-| `datadog-app`                | Datadog app key (us5), monitor validation    |
-| `fh-github-token`            | GitHub PAT for fh-sync and system-update     |
+| Service                      | Purpose                                           |
+| ---------------------------- | ------------------------------------------------- |
+| `conductorone-client-id`     | ConductorOne PCC client ID                        |
+| `conductorone-client-secret` | ConductorOne PCC client secret                    |
+| `statsig-console`            | Statsig Console API key                           |
+| `stripe-test`                | Stripe restricted key (Test)                      |
+| `stripe-prod`                | Stripe restricted key (Live, read-only)           |
+| `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write)      |
+| `stripe-prod-limited-write`  | Stripe restricted key (Live, limited write)       |
+| `dx-api`                     | DX (getdx.com) metrics API key                    |
+| `datadog-app`                | Datadog app key (us5), monitor validation         |
+| `fh-github-token`            | GitHub PAT for fh-sync and system-update          |
+| `devhub`                     | DevHub (EasyDeploy) personal API key              |
 
 ## Per-Application Usage
 
@@ -86,6 +88,57 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
   transaction-service webhook endpoint subscriptions; do not reach for this
   when adding Live write capability for any other Stripe resource. Mint
   a separate narrowly-scoped key instead.
+- `stripe-prod-limited-write`: Restricted key scoped for agents. Live mode,
+  read plus `subscriptions:write`, `coupons:write`, `promotion_code:write`,
+  `products:write`, and `prices:write` (widened 2026-09-25 for the SuppCo
+  offer authoring; it previously carried only subscriptions and coupons).
+  Break-glass key for Prod subscription remediation, for minting campaign
+  coupons, and for partner-offer catalog authoring. The subscriptions scope
+  also covers `/v1/subscription_schedules`, which has no separate toggle in
+  the Dashboard. `products` and `prices` are separate toggles, and so are
+  `coupons` and `promotion_code`: a coupon can be created while the promotion
+  code on it is refused, and a product while its price is refused. Confirm the
+  target objects and the intended end state before every call, and revoke the
+  key in the Dashboard once the work is done rather than leaving Live write
+  capability resident.
+
+  Probe a restricted key's scopes without mutating anything by POSTing an
+  empty body to the resource: `403` means the scope is absent, `400` (a
+  missing-required-param complaint) means it is present.
+
+  ```bash
+  KEY=$(security find-generic-password \
+    -s stripe-prod-limited-write -a function-health -w)
+  curl -s -o /dev/null -w '%{http_code}\n' -u "${KEY}:" \
+    -X POST https://api.stripe.com/v1/prices -d ""
+  ```
+
+Stripe has no API for minting API keys; `/v1/api_keys` returns a 404. Every
+key above is created by hand in the Dashboard under Developers, API keys,
+Create restricted key.
+
+### DevHub (EasyDeploy)
+
+One key, two endpoints, two different headers. This is the trap: the REST API
+rejects `Authorization: Bearer` with `"Bearer authentication is not
+configured"`, which reads like a bad key rather than a wrong header.
+
+- **REST** (`/api/apps/easydeploy/v1/...`): `x-api-key`.
+- **MCP** (`/api/mcp`): `Authorization: Bearer`.
+
+```bash
+KEY=$(security find-generic-password -s devhub -a function-health -w)
+curl -s -H "x-api-key: ${KEY}" \
+  https://devhub.svc.functionhealth.com/api/apps/easydeploy/v1/services
+```
+
+The key carries `read` and `mutate` scopes, so it can start deploys through
+REST even though the MCP server's write tools are disabled behind its
+`EXPOSED_TOOLS` allowlist. Server-side RBAC still applies, so it never has more
+authority than the Okta groups behind it (`dev-hub-prod-writer` for Prod
+actions). Minted by hand in the DevHub UI under avatar menu, Settings, MCP API
+key; it cannot be created from the API. For the procedures it unlocks, invoke
+the `devhub` skill.
 
 ### Datadog
 
