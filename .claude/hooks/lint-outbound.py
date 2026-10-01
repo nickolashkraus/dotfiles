@@ -52,87 +52,14 @@ EM_DASH = "—"
 EN_DASH = "–"
 
 # AI-slop phraseology per rules/general.md ("do not speak like an LLM").
-# Deterministic subset: fixed words and phrases a regex can catch without
-# understanding structure. rule-check.py's LLM pass still owns the
-# structural patterns (rule-of-three reflex, fake-balance framing, novel
-# antithesis shapes). Each entry: (compiled regex, label, fix hint).
-# Checked against inline-code-scrubbed prose outside fenced blocks, so
-# identifiers like `landed_at` in code spans do not trip it.
-AI_SLOP_PATTERNS: list[tuple["re.Pattern[str]", str, str]] = [
-    # Figurative verb slop (data movement)
-    (
-        re.compile(r"\bland(s|ed|ing)?\b", re.I),
-        'figurative verb "land"',
-        "use a literal verb: write, send, store, arrive, complete, apply, merge",
-    ),
-    (
-        re.compile(r"\brides?\b|\briding\b", re.I),
-        'figurative verb "ride"',
-        "use a literal verb: carry, travel in, is included in",
-    ),
-    (
-        re.compile(r"\bstamp(s|ed|ing)?\b", re.I),
-        'figurative verb "stamp"',
-        "use a literal verb: write, set, record",
-    ),
-    # Validation openers
-    (
-        re.compile(r"\bgreat question\b|\byou'?re absolutely right\b|\bgood catch\b", re.I),
-        "validation opener",
-        "just answer; drop the opener",
-    ),
-    # Self-narration
-    (
-        re.compile(
-            r"\blet me help you\b|\bi'?d be happy to\b|\bas an ai\b|\bbased on my analysis\b",
-            re.I,
-        ),
-        "self-narration",
-        "do the work instead of announcing it",
-    ),
-    # Hedging padding
-    (
-        re.compile(r"\bit'?s worth noting\b|\bit seems like\b|\bin my opinion\b", re.I),
-        "hedging padding",
-        "state the claim directly or drop it",
-    ),
-    # Empty scaffolding
-    (
-        re.compile(
-            r"\bin summary\b|\bto wrap up\b|\blet me know if you have any questions\b|\bfeel free to\b",
-            re.I,
-        ),
-        "empty scaffolding",
-        "end when the content is complete",
-    ),
-    # Inflated register
-    (
-        re.compile(
-            r"\bdelv(e|es|ed|ing)\b|\bleverag(e|es|ed|ing)\b|\butiliz(e|es|ed|ing)\b"
-            r"|\brobust(ly|ness)?\b|\bseamless(ly)?\b|\bcomprehensive(ly)?\b|\bcrucial(ly)?\b",
-            re.I,
-        ),
-        "inflated register",
-        "use plain words (dig into, use, solid, smooth, complete, important)",
-    ),
-    # Fake balance
-    (
-        re.compile(r"\bpros and cons\b", re.I),
-        "fake balance",
-        "commit to a recommendation",
-    ),
-    # Antithesis slop (deterministic shapes only)
-    (
-        re.compile(r"\b(?:it'?s|this is|that'?s|is|are)\s+not\s+(?:just|only|merely)\b", re.I),
-        "antithesis slop",
-        'never "not just X, it\'s Y"; state the point directly',
-    ),
-    (
-        re.compile(r"\bnot only\b[^.\n]{0,80}\bbut(?:\s+also)?\b", re.I),
-        "antithesis slop",
-        'never "not only X but Y"; state the point directly',
-    ),
-]
+# The catalogue lives in ai_slop.py so the regexes here and the prose
+# bullets in rules/general.md cannot drift apart; see that module's
+# --sync-rules. rule-check.py's LLM pass still owns the structural
+# patterns (rule-of-three reflex, fake-balance framing, novel antithesis
+# shapes). Checked against inline-code-scrubbed prose outside fenced
+# blocks, so identifiers like `landed_at` in code spans do not trip it.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ai_slop import AI_SLOP_PATTERNS  # noqa: E402
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
 # Bullet lead-ins that require a capitalized first word after the colon
