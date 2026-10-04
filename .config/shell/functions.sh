@@ -327,3 +327,168 @@ pr_body() {
   cp "$file" "$remote"
   print "pr_body: updated #$number ($title)"
 }
+
+pr_threads() {
+  # List and resolve pull request review threads without opening a browser.
+  #
+  #   pr_threads [<pr>]                    List the unresolved threads.
+  #   pr_threads --all [<pr>]              List resolved ones too.
+  #   pr_threads --resolve 2,5 [<pr>]      Resolve by listing number.
+  #   pr_threads --resolve replied [<pr>]  Resolve every thread you answered.
+  #   pr_threads --resolve all [<pr>]      Resolve every unresolved thread.
+  #   pr_threads --unresolve 2 [<pr>]      Put one back.
+  #
+  # `gh` has no command for this, so it goes through the GraphQL mutations
+  # resolveReviewThread and unresolveReviewThread. Numbers come from the
+  # listing, which is cached per pull request in the worktree's gitdir, so
+  # `--resolve` acts on exactly what was printed.
+  #
+  # `replied` is the one to reach for after a round of bot review: it resolves
+  # only the threads that already carry an answer from you, and leaves
+  # anything still unanswered alone.
+  local mode=list selector=""
+  while [[ $1 == --* ]]; do
+    case $1 in
+      --all) mode=list_all ;;
+      --resolve) mode=resolve; selector=$2; shift ;;
+      --unresolve) mode=unresolve; selector=$2; shift ;;
+      *) print -u2 "pr_threads: unknown flag $1"; return 1 ;;
+    esac
+    shift
+  done
+  if [[ $mode == (resolve|unresolve) && -z $selector ]]; then
+    print -u2 "pr_threads: $mode needs numbers, or 'replied', or 'all'"
+    return 1
+  fi
+
+  local gitdir
+  gitdir=$(git rev-parse --git-dir 2>/dev/null) || {
+    print -u2 "pr_threads: not a git repository"
+    return 1
+  }
+
+  local -a target=()
+  [[ -n $1 ]] && target=("$1")
+  local number
+  number=$(gh pr view "${target[@]}" --json number --jq .number 2>/dev/null) || {
+    print -u2 "pr_threads: no pull request found; pass a number or URL"
+    return 1
+  }
+  local owner repo
+  IFS=/ read -r owner repo <<< "$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+
+  local cache="$gitdir/pr-threads.$number.tsv"
+  local me
+  me=$(gh api user --jq .login)
+
+  if [[ $mode == (list|list_all) ]]; then
+    gh api graphql -F owner="$owner" -F repo="$repo" -F pr="$number" -f query='
+      query($owner:String!, $repo:String!, $pr:Int!) {
+        repository(owner:$owner, name:$repo) { pullRequest(number:$pr) {
+          reviewThreads(first:100) { nodes {
+            id isResolved isOutdated path line
+            comments(first:50) { nodes { author { login } body } } } } } } }' \
+      --jq '.data.repository.pullRequest.reviewThreads.nodes[] | [
+              .id, (.isResolved|tostring), (.isOutdated|tostring),
+              (.path // "-"), ((.line // 0)|tostring),
+              (.comments.nodes[0].author.login // "-"),
+              ([.comments.nodes[].author.login] | join(",")),
+              ((.comments.nodes[0].body | split("\n")
+                 | map(select(length > 0 and (startswith("<!--") | not)))
+                 | (map(select(startswith("**"))) + .) | .[0]) // "")
+            ] | @tsv' > "$cache" || return 1
+
+    MODE=$mode ME=$me python3 - "$cache" <<'PY'
+import os, sys
+from pathlib import Path
+
+rows = [l.split("\t") for l in Path(sys.argv[1]).read_text().splitlines() if l.strip()]
+show_all = os.environ["MODE"] == "list_all"
+me = os.environ["ME"]
+shown = 0
+for i, r in enumerate(rows, 1):
+    _id, resolved, outdated, path, line, author, participants, title = (r + [""] * 8)[:8]
+    if resolved == "true" and not show_all:
+        continue
+    shown += 1
+    flags = "resolved" if resolved == "true" else "open"
+    if outdated == "true":
+        flags += ",outdated"
+    if me in participants.split(",")[1:]:
+        flags += ",replied"
+    title = title.lstrip("# ").strip()
+    if len(title) > 78:
+        title = title[:77] + "…"
+    where = f"{path}:{line}" if line != "0" else path
+    print(f"{i:>3}  {flags:<22}  {author:<12}  {where}")
+    print(f"     {title}")
+if not shown:
+    print("No unresolved threads." if not show_all else "No threads.")
+PY
+    return 0
+  fi
+
+  [[ -f $cache ]] || {
+    print -u2 "pr_threads: run the listing first so the numbers mean something"
+    return 1
+  }
+
+  local mutation=resolveReviewThread
+  [[ $mode == unresolve ]] && mutation=unresolveReviewThread
+
+  local -a ids=()
+  local -a labels=()
+  local line_data
+  local -i idx=0
+  while IFS=$'\t' read -r tid resolved outdated tpath tline tauthor tparts ttitle; do
+    (( idx++ ))
+    local want=0
+    case $selector in
+      all) [[ $resolved == false ]] && want=1 ;;
+      replied)
+        [[ $resolved == false ]] || continue
+        # The first comment is the bot's; a later one from you is the answer.
+        [[ ",${tparts}," == *",${me},"* && ${tparts%%,*} != "$me" ]] && want=1
+        ;;
+      *) [[ ",${selector}," == *",${idx},"* ]] && want=1 ;;
+    esac
+    if (( want )); then
+      ids+=("$tid")
+      labels+=("$idx ${tpath}:${tline}")
+    fi
+  done < "$cache"
+
+  if (( ${#ids} == 0 )); then
+    print "pr_threads: nothing matched '$selector'."
+    return 0
+  fi
+
+  print "About to $mode ${#ids} thread(s) on #$number:"
+  local l
+  for l in "${labels[@]}"; do print "  $l"; done
+  if [[ -z $PR_THREADS_ASSUME_YES ]]; then
+    if [[ ! -t 0 ]]; then
+      print -u2 "pr_threads: no terminal to confirm on; set PR_THREADS_ASSUME_YES=1"
+      return 1
+    fi
+    if ! read -q "?Continue? [y/N] "; then
+      print
+      return 1
+    fi
+    print
+  fi
+
+  local id ok=0 failed=0
+  for id in "${ids[@]}"; do
+    if gh api graphql -F id="$id" -f query="
+      mutation(\$id:ID!) { $mutation(input:{threadId:\$id}) { thread { isResolved } } }" \
+      --jq ".data.$mutation.thread.isResolved" > /dev/null 2>&1; then
+      (( ok++ ))
+    else
+      (( failed++ ))
+      print -u2 "pr_threads: $mutation failed for $id"
+    fi
+  done
+  print "pr_threads: ${mode}d $ok thread(s) on #$number${${failed:#0}:+, $failed failed}"
+  (( failed == 0 ))
+}
