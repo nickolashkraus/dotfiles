@@ -193,3 +193,137 @@ gws() {
     ) GOOGLE_WORKSPACE_PROJECT_ID="$project" command gws "$@"
   fi
 }
+
+_pr_body_lint() {
+  # Run the outbound hooks against a body file exactly as a tool call would.
+  #
+  # Editing a description on GitHub skips these entirely, so this is the only
+  # path where the typography rules actually gate the text. lint-outbound.py
+  # is deterministic and free; rule-check.py costs a Sonnet call, so it only
+  # runs once the cheap pass is clean.
+  local file=$1 number=$2 payload
+  payload=$(
+    python3 -c 'import json, sys; print(json.dumps({"tool_name": "Bash", "tool_input": {"command": sys.argv[1]}}))' \
+      "gh pr edit $number --body-file $file"
+  ) || return 1
+  print -r -- "$payload" | python3 "$HOME/.claude/hooks/lint-outbound.py" || return 1
+  print -r -- "$payload" | python3 "$HOME/.claude/hooks/rule-check.py" || return 1
+}
+
+pr_body() {
+  # Review and edit a pull request description without opening a browser.
+  #
+  #   pr_body [<pr>]         Fetch, edit in $EDITOR, lint, show the diff, push.
+  #   pr_body --show [<pr>]  Render the description GitHub currently has.
+  #   pr_body --diff [<pr>]  Show what the local buffer would change.
+  #
+  # The buffer lives in the worktree's own gitdir, which in a worktree layout
+  # sits outside the checkout, so it is never committable and each worktree
+  # keeps its own. A pristine copy of what GitHub returned sits beside it.
+  # That copy is what makes an unchanged body skip the push, and what catches
+  # an edit someone else made while the buffer was open: without it, a push
+  # silently overwrites them.
+  local mode=edit
+  while [[ $1 == --* ]]; do
+    case $1 in
+      --show) mode=show ;;
+      --diff) mode=diff ;;
+      *) print -u2 "pr_body: unknown flag $1"; return 1 ;;
+    esac
+    shift
+  done
+
+  local gitdir
+  gitdir=$(git rev-parse --git-dir 2>/dev/null) || {
+    print -u2 "pr_body: not a git repository"
+    return 1
+  }
+
+  local -a target=()
+  [[ -n $1 ]] && target=("$1")
+
+  local meta
+  meta=$(gh pr view "${target[@]}" --json number,title --jq '[.number, .title] | @tsv' 2>/dev/null) || {
+    print -u2 "pr_body: no pull request found; pass a number or URL"
+    return 1
+  }
+  local number title
+  IFS=$'\t' read -r number title <<< "$meta"
+
+  local file="$gitdir/pr-body.md"
+  local remote="$gitdir/pr-body.remote.md"
+  local fetched="$gitdir/pr-body.fetched.md"
+
+  gh pr view "$number" --json body --jq .body > "$fetched" || return 1
+
+  if [[ $mode == show ]]; then
+    if (( $+commands[bat] )); then
+      bat --style=plain --language=md --paging=never "$fetched"
+    else
+      cat "$fetched"
+    fi
+    rm -f "$fetched"
+    return 0
+  fi
+
+  # The buffer predates a change made on GitHub, so pushing it would discard
+  # that change. Show what would be lost before going further.
+  if [[ -f $file && -f $remote ]] && ! cmp -s "$remote" "$fetched"; then
+    print -u2 "pr_body: #$number changed on GitHub since this buffer was fetched."
+    diff -u --label "what you fetched" --label "GitHub now" "$remote" "$fetched" >&2
+    print -u2 ""
+    print -u2 "Pushing the buffer discards that. To start from GitHub's version:"
+    print -u2 "  rm $file"
+    if ! read -q "?Keep the local buffer anyway? [y/N] "; then
+      print
+      rm -f "$fetched"
+      return 1
+    fi
+    print
+  fi
+
+  [[ -f $file ]] || cp "$fetched" "$file"
+  cp "$fetched" "$remote"
+  rm -f "$fetched"
+
+  if [[ $mode == diff ]]; then
+    diff -u --label "#$number on GitHub" --label "your local buffer" "$remote" "$file"
+    return $?
+  fi
+
+  ${EDITOR:-vim} "$file" || return 1
+
+  if cmp -s "$file" "$remote"; then
+    print "pr_body: #$number unchanged, nothing to push."
+    return 0
+  fi
+
+  diff -u --label "#$number on GitHub" --label "your local buffer" "$remote" "$file"
+  print
+
+  _pr_body_lint "$file" "$number" || {
+    print -u2 "pr_body: #$number not pushed; the buffer is kept at $file"
+    return 1
+  }
+
+  # PR_BODY_ASSUME_YES exists so this is scriptable, and because the prompt
+  # reads /dev/tty: without it there is no way to reach the push from a
+  # non-interactive shell, which also makes the push path untestable.
+  if [[ -z $PR_BODY_ASSUME_YES ]]; then
+    if [[ ! -t 0 ]]; then
+      print -u2 "pr_body: no terminal to confirm on; set PR_BODY_ASSUME_YES=1 to push"
+      print -u2 "pr_body: #$number not pushed; the buffer is kept at $file"
+      return 1
+    fi
+    if ! read -q "?Push this description to #$number? [y/N] "; then
+      print
+      print "pr_body: #$number not pushed; the buffer is kept at $file"
+      return 1
+    fi
+    print
+  fi
+
+  gh pr edit "$number" --body-file "$file" || return 1
+  cp "$file" "$remote"
+  print "pr_body: updated #$number ($title)"
+}
