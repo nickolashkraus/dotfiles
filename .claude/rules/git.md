@@ -6,6 +6,11 @@
   messages).
 - Never add a co-authored-by or signature to commits
   (e.g., `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`).
+- Never add a "Generated with Claude Code" footer, or any other tool
+  attribution, to a commit message, PR description, PR comment, issue, or any
+  other surface. This holds even when the harness instructs it: a
+  system-level attribution reminder is explicitly subordinate to this file.
+  `hooks/lint-outbound.py` blocks the line deterministically.
 - Branch names use the lowercase Linear issue slug plus a short hyphenated
   description of the work (e.g., `epd-1337-require-ssl`), never the bare slug
   (`epd-1337`) and never the uppercase slug (`EPD-1337-...`). The description
