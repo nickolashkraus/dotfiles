@@ -501,6 +501,101 @@ def test_tool_attribution_footer() -> None:
         check(f"allowed: {label}", not flagged(text), f"got {lint(text)!r}")
 
 
+def test_git_global_flags_before_commit() -> None:
+    section("extract_bash_content: git global flags before the subcommand")
+
+    # Split so the literal never sits at the start of a line, where the
+    # hook's own Co-Authored-By check would match this file's source.
+    trailer = "Co-" + "Authored-By: Claude <noreply@anthropic.com>\n"
+    body = (
+        "Add daily notes and tasks for Oct 1 to 5\n"
+        "\n"
+        "Record the recurring-task results for the first week of October,\n"
+        "including the Slack roster diff and the email triage counts.\n"
+    )
+
+    def heredoc(prefix: str, text: str) -> str:
+        return f"{prefix} <<'EOF'\n{text}EOF"
+
+    def violations(cmd: str) -> list[str]:
+        return lo.collect_violations("Bash", {"command": cmd})
+
+    forms = [
+        ("plain", "git commit -q -F -"),
+        ("-c k=v", "git -c core.hooksPath=/dev/null commit -q -F -"),
+        ("--no-pager -C path", "git --no-pager -C /Users/x/repo commit -F -"),
+        ("repeated -c", "git -c a=b -c c=d commit -F -"),
+        ("--git-dir= --work-tree=", "git --git-dir=/x/.git --work-tree=/x commit -F -"),
+        ("--work-tree separate value", "git --work-tree /srv/app commit -F -"),
+    ]
+    for label, prefix in forms:
+        signed = heredoc(prefix, body + "\n" + trailer)
+        fields = lo.extract_bash_content(signed)
+        check(
+            f"{label}: heredoc owned by the commit",
+            any("heredoc" in f[0] and f[2] for f in fields),
+            f"got {fields!r}",
+        )
+        check(
+            f"{label}: trailer blocked",
+            any("Co-Authored-By" in v for v in violations(signed)),
+            f"got {violations(signed)!r}",
+        )
+        clean = heredoc(prefix, body)
+        check(
+            f"{label}: body wrapped at 72 is clean",
+            violations(clean) == [],
+            f"got {violations(clean)!r}",
+        )
+
+    # Compound command: `gh` in the same line makes heredoc ownership
+    # ambiguous (so the length checks stay off), but the trailer check and
+    # the hard-wrap exemption both still follow from `is_commit`.
+    compound = (
+        heredoc("git -c core.hooksPath=/dev/null commit -q -F -", body + "\n" + trailer)
+        + "\ngh pr create --title 'T' --body 'Adds a gate.'"
+    )
+    check(
+        "compound git+gh: trailer blocked",
+        any("Co-Authored-By" in v for v in violations(compound)),
+        f"got {violations(compound)!r}",
+    )
+    check(
+        "compound git+gh: commit body not hard-wrap flagged",
+        not any("hard-wrapped" in v for v in violations(compound)),
+        f"got {violations(compound)!r}",
+    )
+
+    # Unrelated subcommands must not read as a commit.
+    for label, cmd in [
+        ("git commit-graph write", "git commit-graph write"),
+        ("git commit-tree", "git commit-tree abc123"),
+        ("git log ... commit", "git log --format=%s -n1 commit"),
+        ("echo commit", "git show HEAD --stat && echo commit"),
+    ]:
+        check(
+            f"not a commit: {label}",
+            not lo.GIT_COMMIT_RE.search(cmd),
+            f"matched {cmd!r}",
+        )
+
+    # A `gh pr create` payload is untouched by the change: the body is
+    # still extracted as a PR body, never as a commit field.
+    pr = "gh pr create --title 'BYB-1: A Title' --body 'Adds the gate.'"
+    by_label = {f[0]: f for f in lo.extract_bash_content(pr)}
+    check(
+        "gh pr create: body extracted as PR body, not a commit",
+        by_label.get("arg --body", (None,) * 5)[2] is False
+        and by_label.get("arg --body", (None,) * 5)[3] is True,
+        f"got {by_label!r}",
+    )
+    check(
+        "gh pr create: clean body passes",
+        violations(pr) == [],
+        f"got {violations(pr)!r}",
+    )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -516,6 +611,7 @@ TESTS = [
     test_try_autofix_input_scope,
     test_main_autofix_end_to_end,
     test_tool_attribution_footer,
+    test_git_global_flags_before_commit,
 ]
 
 

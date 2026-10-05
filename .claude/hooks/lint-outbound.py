@@ -655,6 +655,31 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
 BODY_FILE_FLAG_RE = re.compile(r"(?:^|\s)--body-file[=\s]+(\S+)")
 COMMIT_FILE_FLAG_RE = re.compile(r"(?:^|\s)(?:-F|--file)[=\s]+(\S+)")
 
+# Git accepts global options between `git` and the subcommand, so
+# `git -c core.hooksPath=/dev/null commit` is a commit that a bare
+# `git\s+commit` test misses. That miss skipped the `Co-Authored-By:`
+# check (which fires on commit fields only) and linted the commit body as
+# external content, where its 72-char wrap reads as a hard wrap.
+#
+# Every token between `git` and the subcommand must look like a flag or a
+# known flag's value, so other subcommands (`git log ... commit`) stay
+# out. Separate-value options are enumerated to keep each token's arity
+# unambiguous, which bounds backtracking.
+GIT_GLOBAL_OPT = (
+    r"-[cC](?:=|\s+)\S+"
+    r"|--(?:git-dir|work-tree|namespace|exec-path|config-env|super-prefix)"
+    r"(?:=|\s+)\S+"
+    r"|--[\w-]+(?:=\S+)?"
+    r"|-[A-Za-z]+"
+)
+# `(?![-\w])` keeps `git commit-graph` from reading as a commit.
+GIT_COMMIT_RE = re.compile(
+    rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])"
+)
+OUTBOUND_COMMAND_RE = re.compile(
+    rf"{GIT_COMMIT_RE.pattern}|\bgh\s+(?:pr|issue)\s+\w+|\bgh\s+api\b"
+)
+
 
 def extract_bash_content(
     command: str,
@@ -669,10 +694,10 @@ def extract_bash_content(
     deterministic subject-length and body-wrap checks, so it is set only
     when the field is unambiguously an entire commit message.
     """
-    if not re.search(r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+|gh\s+api\b)", command):
+    if not OUTBOUND_COMMAND_RE.search(command):
         return []
 
-    is_commit = bool(re.search(r"\bgit\s+commit\b", command))
+    is_commit = bool(GIT_COMMIT_RE.search(command))
     has_gh = bool(re.search(r"\bgh\s+(pr|issue|api)\b", command))
     is_pr_body = bool(re.search(r"\bgh\s+pr\s+(create|edit)\b", command))
     fields: list[tuple[str, str, bool, bool, bool]] = []
