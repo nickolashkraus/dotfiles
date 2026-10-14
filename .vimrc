@@ -1351,24 +1351,34 @@ let g:NERDTreeCaseSensitiveSort = 1
 " Find and reveal the file for the active buffer in the NERDTree window.
 nnoremap <Leader>nf :NERDTreeFind<CR>
 
-" Resize NERDTree window to fit the longest line.
+" Toggle the NERDTree window between its default width and the width of its
+" longest line.
 function! NERDTreeResize()
-  let l:max = 0
   let l:win = g:NERDTree.GetWinNum()
 
-  if l:win != -1
-    execute l:win . 'wincmd w'
-
-    " Find the longest line in the NERDTree buffer.
-    for line in getline(1, '$')
-      let l:curr = len(line)
-      if l:curr > l:max
-        let l:max = l:curr
-      endif
-    endfor
-
-    execute 'vertical resize ' . l:max
+  if l:win == -1
+    return
   endif
+
+  let l:id = win_getid(l:win)
+  let l:default = get(g:, 'NERDTreeWinSize', 31)
+
+  " Already widened (or hand-resized), so go back to the default width.
+  if winwidth(l:win) != l:default
+    call win_execute(l:id, 'vertical resize ' . l:default)
+    return
+  endif
+
+  " Find the longest line in the NERDTree buffer.
+  let l:max = 0
+  for line in getbufline(winbufnr(l:win), 1, '$')
+    let l:curr = len(line)
+    if l:curr > l:max
+      let l:max = l:curr
+    endif
+  endfor
+
+  call win_execute(l:id, 'vertical resize ' . l:max)
 endfunction
 
 command! NERDTreeResize call NERDTreeResize()

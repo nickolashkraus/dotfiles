@@ -198,16 +198,23 @@ _pr_body_lint() {
   # Run the outbound hooks against a body file exactly as a tool call would.
   #
   # Editing a description on GitHub skips these entirely, so this is the only
-  # path where the typography rules actually gate the text. lint-outbound.py
-  # is deterministic and free; rule-check.py costs a Sonnet call, so it only
-  # runs once the cheap pass is clean.
-  local file=$1 number=$2 payload
+  # path where the typography rules actually gate the text.
+  #
+  # Only the deterministic pass runs by default. rule-check.py costs a Sonnet
+  # call, which put ten-odd seconds of silence between saving the buffer and
+  # the push prompt, and its job is catching agent slop rather than grading
+  # prose I wrote by hand. Set PR_BODY_DEEP_LINT=1 to opt in.
+  local file=$1 number=$2 repo=$3 payload
   payload=$(
     python3 -c 'import json, sys; print(json.dumps({"tool_name": "Bash", "tool_input": {"command": sys.argv[1]}}))' \
-      "gh pr edit $number --body-file $file"
+      "gh pr edit $number --repo $repo --body-file $file"
   ) || return 1
   print -r -- "$payload" | python3 "$HOME/.claude/hooks/lint-outbound.py" || return 1
-  print -r -- "$payload" | python3 "$HOME/.claude/hooks/rule-check.py" || return 1
+  if [[ -n $PR_BODY_DEEP_LINT ]]; then
+    print -n "pr_body: running the deep lint (Sonnet call)... "
+    print -r -- "$payload" | python3 "$HOME/.claude/hooks/rule-check.py" || { print; return 1; }
+    print "clean"
+  fi
 }
 
 pr_body() {
@@ -242,19 +249,24 @@ pr_body() {
   local -a target=()
   [[ -n $1 ]] && target=("$1")
 
+  # `url` is read so every later call can name the repo explicitly. Resolving
+  # the target once and then passing a bare number makes every subsequent call
+  # resolve against the current directory instead, which fails whenever the
+  # argument was a URL for some other repository.
   local meta
-  meta=$(gh pr view "${target[@]}" --json number,title --jq '[.number, .title] | @tsv' 2>/dev/null) || {
+  meta=$(gh pr view "${target[@]}" --json number,title,url --jq '[.number, .title, .url] | @tsv' 2>/dev/null) || {
     print -u2 "pr_body: no pull request found; pass a number or URL"
     return 1
   }
-  local number title
-  IFS=$'\t' read -r number title <<< "$meta"
+  local number title url
+  IFS=$'\t' read -r number title url <<< "$meta"
+  local repo=${${url#https://github.com/}%/pull/*}
 
   local file="$gitdir/pr-body.md"
   local remote="$gitdir/pr-body.remote.md"
   local fetched="$gitdir/pr-body.fetched.md"
 
-  gh pr view "$number" --json body --jq .body > "$fetched" || return 1
+  gh pr view "$number" --repo "$repo" --json body --jq .body > "$fetched" || return 1
 
   if [[ $mode == show ]]; then
     if (( $+commands[bat] )); then
@@ -301,7 +313,7 @@ pr_body() {
   diff -u --label "#$number on GitHub" --label "your local buffer" "$remote" "$file"
   print
 
-  _pr_body_lint "$file" "$number" || {
+  _pr_body_lint "$file" "$number" "$repo" || {
     print -u2 "pr_body: #$number not pushed; the buffer is kept at $file"
     return 1
   }
@@ -323,7 +335,7 @@ pr_body() {
     print
   fi
 
-  gh pr edit "$number" --body-file "$file" || return 1
+  gh pr edit "$number" --repo "$repo" --body-file "$file" || return 1
   cp "$file" "$remote"
   print "pr_body: updated #$number ($title)"
 }
