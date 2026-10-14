@@ -62,6 +62,86 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ai_slop import AI_SLOP_PATTERNS  # noqa: E402
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
+
+# British spellings, per rules/typography.md. Only forms with no American
+# homograph are listed, so a hit is always wrong rather than a judgement call.
+# Fenced blocks and inline code spans are already stripped before this runs,
+# which is what exempts identifiers, API fields and log output. "towards" is
+# left out on purpose: both it and "toward" are acceptable American usage, so
+# the rule states a preference and the linter does not gate it.
+BRITISH_SPELLINGS = {
+    "amongst": "among",
+    "behaviour": "behavior",
+    "behavioural": "behavioral",
+    "behaviours": "behaviors",
+    "cancelled": "canceled",
+    "cancelling": "canceling",
+    "canonicalise": "canonicalize",
+    "canonicalised": "canonicalized",
+    "canonicalises": "canonicalizes",
+    "canonicalising": "canonicalizing",
+    "centre": "center",
+    "centred": "centered",
+    "centres": "centers",
+    "centring": "centering",
+    "colour": "color",
+    "coloured": "colored",
+    "colourful": "colorful",
+    "colours": "colors",
+    "defence": "defense",
+    "defences": "defenses",
+    "fulfil": "fulfill",
+    "fulfils": "fulfills",
+    "initialise": "initialize",
+    "initialised": "initialized",
+    "initialises": "initializes",
+    "initialising": "initializing",
+    "labelled": "labeled",
+    "labelling": "labeling",
+    "learnt": "learned",
+    "licence": "license",
+    "licences": "licenses",
+    "modelled": "modeled",
+    "modelling": "modeling",
+    "normalise": "normalize",
+    "normalised": "normalized",
+    "normalises": "normalizes",
+    "normalising": "normalizing",
+    "optimise": "optimize",
+    "optimised": "optimized",
+    "optimises": "optimizes",
+    "optimising": "optimizing",
+    "organisation": "organization",
+    "organisations": "organizations",
+    "organise": "organize",
+    "organised": "organized",
+    "organises": "organizes",
+    "organising": "organizing",
+    "prioritise": "prioritize",
+    "prioritised": "prioritized",
+    "prioritises": "prioritizes",
+    "prioritising": "prioritizing",
+    "recognisable": "recognizable",
+    "recognise": "recognize",
+    "recognised": "recognized",
+    "recognises": "recognizes",
+    "recognising": "recognizing",
+    "serialise": "serialize",
+    "serialised": "serialized",
+    "serialises": "serializes",
+    "serialising": "serializing",
+    "summarise": "summarize",
+    "summarised": "summarized",
+    "summarises": "summarizes",
+    "summarising": "summarizing",
+    "travelled": "traveled",
+    "travelling": "traveling",
+    "whilst": "while",
+}
+
+BRITISH_RE = re.compile(
+    r"\b(" + "|".join(sorted(BRITISH_SPELLINGS)) + r")\b", re.IGNORECASE
+)
 # Bullet lead-ins that require a capitalized first word after the colon
 # per rules/typography.md: a bold label (`**X**:`), a Markdown-link label
 # (`[X](url):`), or a code-span label (`` `X`: ``), optionally followed
@@ -207,6 +287,22 @@ PR_AUTOCLOSE_RE = re.compile(
     r"^\s*(?:Closes|Fixes|Resolves)\s*[:#]",
     re.IGNORECASE | re.MULTILINE,
 )
+
+LINEAR_REF_RE = re.compile(r"\b([A-Z]{2,10}-\d+)\b")
+LINEAR_ISSUE_ROOT = Path.home() / "nickolashkraus/agent-os/master/domains"
+
+# A PR body and its Linear issue answer different questions: the issue says why
+# the work exists and what it has to do, the body says what a reviewer of this
+# diff needs that the diff does not show. A sentence appearing verbatim in both
+# means one was pasted into the other, which leaves the reader two copies to
+# read and one of them to re-read on every later edit.
+#
+# Matching per sentence rather than per paragraph, because a reflow changes
+# line breaks but not sentences. Short sentences collide by coincidence, so the
+# floor is deliberately high.
+DUPLICATED_SENTENCE_MIN_WORDS = 12
+DUPLICATED_SENTENCE_REPORT_LIMIT = 3
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 # The "Generated with Claude Code" footer, which is never wanted on any
 # surface. Matched at line start in every shape it ships in: with or without
 # the robot emoji, as a Markdown link or as bare text, "generated with" or
@@ -441,6 +537,89 @@ def lint_commit_message(text: str, field: str) -> list[str]:
     return violations
 
 
+
+def _sentences(text: str) -> list[str]:
+    """Split prose into whitespace-normalized sentences.
+
+    Paragraphs are split first, so a heading does not run into the sentence
+    below it. A merged pair matches nothing, which would hide the copy this
+    check exists to find.
+    """
+    out: list[str] = []
+    for block in re.split(r"\n\s*\n", text):
+        collapsed = re.sub(r"\s+", " ", block).strip()
+        if not collapsed:
+            continue
+        out.extend(
+            part.strip() for part in _SENTENCE_SPLIT_RE.split(collapsed) if part.strip()
+        )
+    return out
+
+
+def strip_frontmatter(text: str) -> str:
+    """Drop a leading YAML frontmatter block.
+
+    The issue files open with one, and its keys and titles are not prose, so
+    leaving them in makes a title collide with a PR body that legitimately
+    names the same thing.
+    """
+    if not text.startswith("---\n"):
+        return text
+    end = text.find("\n---\n", 4)
+    return text if end == -1 else text[end + 5 :]
+
+
+def linear_issue_bodies(text: str) -> list[tuple[str, str]]:
+    """Return (slug, issue text) for every Linear issue the text references.
+
+    Reads the local issue files rather than calling Linear, so the check stays
+    deterministic and free. A slug with no file on disk is skipped.
+    """
+    found: list[tuple[str, str]] = []
+    for slug in dict.fromkeys(LINEAR_REF_RE.findall(text)):
+        if not LINEAR_ISSUE_ROOT.is_dir():
+            break
+        for path in LINEAR_ISSUE_ROOT.glob(f"**/linear/issues/{slug}-*.md"):
+            try:
+                found.append((slug, strip_frontmatter(path.read_text())))
+            except OSError:
+                continue
+            break
+    return found
+
+
+def duplicated_from_linear(text: str, field: str) -> list[str]:
+    """Flag sentences the PR body shares verbatim with its Linear issue."""
+    body_sentences = [
+        sentence
+        for sentence in _sentences(text)
+        if len(sentence.split()) >= DUPLICATED_SENTENCE_MIN_WORDS
+    ]
+    if not body_sentences:
+        return []
+
+    violations: list[str] = []
+    for slug, issue in linear_issue_bodies(text):
+        issue_sentences = set(_sentences(issue))
+        shared = [s for s in body_sentences if s in issue_sentences]
+        if not shared:
+            continue
+        shown = shared[:DUPLICATED_SENTENCE_REPORT_LIMIT]
+        detail = "; ".join(f'"{s[:70]}..."' for s in shown)
+        more = (
+            f" (and {len(shared) - len(shown)} more)"
+            if len(shared) > len(shown)
+            else ""
+        )
+        violations.append(
+            f"{field}: {len(shared)} sentence(s) copied verbatim from {slug} "
+            f"{detail}{more} -- the issue says why the work exists, the PR body "
+            "says what this diff needs a reviewer to know; do not paste one "
+            "into the other"
+        )
+    return violations
+
+
 def lint_text(
     text: str,
     field: str,
@@ -471,6 +650,9 @@ def lint_text(
             f"{field}: contains the `Generated with Claude Code` footer "
             "(never wanted on any surface; delete the line)"
         )
+
+    if is_pr_body:
+        violations.extend(duplicated_from_linear(text, field))
 
     if is_pr_body and PR_AUTOCLOSE_RE.search(text):
         violations.append(
@@ -524,6 +706,16 @@ def lint_text(
                     f"{field} line {lineno}: AI slop, {slop_label} "
                     f"(`{m.group(0)}`; {slop_hint}; see rules/general.md)"
                 )
+        british = BRITISH_RE.search(line)
+        if british:
+            found = british.group(1)
+            american = BRITISH_SPELLINGS[found.lower()]
+            if found[:1].isupper():
+                american = american.capitalize()
+            violations.append(
+                f"{field} line {lineno}: British spelling \"{found}\" "
+                f"(use \"{american}\" per rules/typography.md)"
+            )
         if LIST_LEADIN_RE.match(raw):
             violations.append(
                 f"{field} line {lineno}: list item uses `**X** -` "

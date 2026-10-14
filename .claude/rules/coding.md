@@ -46,6 +46,35 @@ object's real fields, not recalling them, and asking which guarantees come
 free. Anything reimplemented on top of an existing guarantee is code that can
 drift from it.
 
+### Name the alternative you are rejecting
+
+Before writing integration code against a system you do not own, write down
+the option you are not taking and why: "I considered adding an endpoint to X
+and rejected it because Y." If Y comes out empty, that is the answer, and the
+work belongs on the other side of the boundary.
+
+This has to produce an artifact rather than ask for wider thinking. Verifying
+a claim once it is in front of me is reliable; choosing what to put in front
+of me is the weak half. A rule that says "consider the alternatives" does not
+fire. A rule that demands a written-down rejected option does, because the
+absence of a reason is visible on the page.
+
+The trigger is a service boundary. Enumerate what the other service already
+exposes, then state whether the question you are asking should be one call
+there instead of N calls here.
+
+**A ticket that undersells the work turns the scoping check off.** This is the
+inverse of the failure above, and the more dangerous one, because nothing
+feels wrong. BYB-5354 said "the endpoint already exists, so this is the client
+call, not wholly new code". I read membership-service's routes, found that
+`/entitlements/active` answered half the question (granted, but not whether
+any capacity was left), and built a per-key `/{key}/access` fan-out around it
+instead of asking whether the endpoint should exist. The right change was one
+new endpoint in membership-service composing two services it already had.
+I had been handed a review finding for that same N+1 shape, inside the same
+service, an hour earlier. Small tickets need this check more than large ones,
+not less.
+
 ### Verify an external contract before asserting it
 
 Never name a third-party API field, method, or guarantee from recall. Read it
@@ -161,6 +190,13 @@ measure it.
   `# Get the user` above `get_user()`).
 - Never add trailing comments that narrate what a line does (e.g., `x
   = 1  # set x to 1`).
+- A docstring is for the caller, not the reviewer. Four to six lines is
+  plenty for a non-trivial function: what it returns, and the one or two
+  caveats a caller gets wrong otherwise. Design rationale, rejected
+  alternatives, comparisons to sibling functions and anything a ticket or
+  PR body already says do not go here. If a docstring runs past about ten
+  lines, the surplus is almost always PR-body material; see the "One fact,
+  one surface" rule in @rules/writing.md.
 
 ## Testing
 

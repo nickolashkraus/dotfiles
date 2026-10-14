@@ -222,6 +222,25 @@ from an ADR or the failure-mode bullets from a PR body loses real value.
   beat single-word acknowledgments when the agent needs to know what to do.
   Acknowledgments after a clean ping can be one word ("Acked.").
 
+**One fact, one surface.** The Linear issue, the PR body, the commit
+message and the docstring answer different questions, and no sentence
+belongs to two of them:
+
+- **Linear issue**: Why the work exists and what it has to do.
+- **PR body**: What a reviewer of *this diff* needs that the diff does
+  not show. Mostly the choices taken and the alternatives rejected.
+- **Commit message**: The same, compressed, for someone reading `git log`.
+- **Docstring**: What a caller has to know to use the thing correctly.
+
+Never paste one into another. Duplication costs the reader two copies to
+read and me an edit in every copy whenever one changes, and it is the
+main way these surfaces get bloated. `hooks/lint-outbound.py` rejects a
+PR body sharing a verbatim sentence with its Linear issue.
+
+Investigation evidence (row counts, grant quantities, the names of
+things found in a Dev database) belongs in the issue or in chat, not in
+a PR body and never in a docstring.
+
 **Calibration check**: if you're about to tell an agent "cut from N lines
 to N/9 lines" or "make this one sentence," that's almost certainly an
 overcorrection. The right ask is usually "cut N/3 lines" or "trim

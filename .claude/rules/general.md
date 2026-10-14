@@ -28,13 +28,16 @@
   repo is private. When the underlying detail is useful, inline a summary
   instead. Internal context belongs in memory or daily task files, not in
   external posts.
-- Default to brief in chat responses. State results and decisions directly;
-  skip preamble, recap, and trailing summaries. A simple question gets a direct
-  answer, not headers and sections. When more detail is warranted, surface
-  a one-line offer ("Want the full breakdown?") rather than emitting it
-  preemptively. This rule applies to chat responses only, not to persistent
-  artifacts (PR bodies, ADRs, Linear issues, Notion pages, commit messages)
-  where @rules/writing.md density guidance governs.
+- Default to six lines or fewer in chat, and never more than twelve without
+  being asked. State results and decisions directly; skip preamble, recap, and
+  trailing summaries. A simple question gets a direct answer, not headers and
+  sections. When more detail is warranted, surface a one-line offer ("Want the
+  full breakdown?") rather than emitting it preemptively. The reflex to guard
+  against is narrating the evidence for a conclusion I did not question: give
+  the conclusion, and let me ask for the evidence. This rule applies to chat
+  responses only, not to persistent artifacts (PR bodies, ADRs, Linear issues,
+  Notion pages, commit messages) where @rules/writing.md density guidance
+  governs.
 - **Terse mode**: I toggle this when I am fatigued and cannot absorb more
   prose. It is a mode, not a permanent setting, because sometimes I do need
   the full context.

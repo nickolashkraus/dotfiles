@@ -18,12 +18,40 @@
   or ` — ` as the lead-in separator.
 - Write "ID" in prose, never "id" or "Id". Code references in backticks keep
   their verbatim casing (`id`, `user_id`, `userId`).
+- American spellings, not British. Watch `-ize` over `-ise`
+  (canonicalize, normalize), `-or` over `-our` (behavior, color), `-ed` over
+  `-led` (modeled, labeled, canceled), and `-er` over `-re` (center).
 - Wrap lines at <80 characters at the last word boundary.
 
 ## Rules
 
 - Never use em dashes.
 - Never use smart quotes, only straight quotes.
+- Use American English spellings in all prose. The common pairs: `-ize` and
+  `-ization` over `-ise` and `-isation` (canonicalize, normalize, organize,
+  recognize, prioritize), `-or` over `-our` (behavior, color, favor), a single
+  `l` before a suffix (modeled, labeled, canceled, traveled, fulfill), `-er`
+  over `-re` (center, meter, fiber), and `-se` over `-ce` for nouns (defense,
+  license, practice). Prefer `toward` to `towards`, `among` to `amongst`,
+  `while` to `whilst`, and `learned` to `learnt`.
+
+  Three things are exempt, because changing them would be wrong rather than
+  pedantic:
+
+  - **Identifiers and literals keep their own spelling.** A column, field,
+    enum member, function or env var named the British way stays that way in
+    backticks and in code, and so does a third-party API field. Write "the
+    `cancelled` column" rather than renaming it in prose.
+  - **Quoted material is reproduced verbatim.** Documentation excerpts, log
+    output, error messages, commit subjects being cited, and anything inside
+    a blockquote.
+  - **Proper nouns keep their spelling.** Company names, product names and
+    titles.
+
+  This applies wherever @rules/general.md already sends typography: source,
+  comments, docstrings, commit messages, PR descriptions, Linear issues,
+  Notion pages, Slack messages and chat. It does not license rewriting
+  existing prose you were not otherwise editing.
 - Always write "ID" (capitalized) in prose: "session ID", "the agent's ID".
   Never "id" or "Id". It is an abbreviation of "identifier", and lowercase
   "id" reads as the Freudian term. When referring to a literal field, column,
