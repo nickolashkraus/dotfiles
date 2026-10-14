@@ -90,6 +90,19 @@ not pin a schema it has not verified. Related endpoints:
 `deploys/<id>/confirm` (only engages when a manual deploy's post-promotion
 health check returns `unhealthy` or `error`), and `redeploy-previous`.
 
+An unhealthy check parks the deploy at `awaiting_confirmation` with traffic
+already shifted, and it auto-rolls back at `confirmation_deadline`, 10 minutes
+out. Read `health_check_result` at once: a p95 spike with zero errors in the
+first minute is usually cold start, so check current latency in the Cloud Run
+request logs before deciding. The body is `{"action": "continue"}` or
+`{"action": "rollback"}`; an empty body is a 422.
+
+A deploy that ends `unknown` on "Deploy driver error: TimeoutError" can mean
+Cloud Run is still importing the image. Read the newest revision with `gcloud
+run revisions describe` before retrying; `ContainerImageImportFailed` with
+healthy image manifests was transient once (2026-10-09), and the retry
+succeeded.
+
 ## Prod deploys need explicit approval
 
 A Prod deploy is an outward-facing, hard-to-reverse action. Never start one

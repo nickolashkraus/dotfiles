@@ -97,52 +97,83 @@ Notes:
   background and read the JSON when it completes. stderr is the verbose
   per-rule log; the JSON file is the review.
 
-## Step 3: Read the result
+## Step 3: Fix the real bugs, then stop
 
 Read the output JSON. The shape mirrors the posted review: `findings`
 (each with tier, path, line, body) and a summary with tier counts and risk.
 
-- **Zero findings**: Report "Pulse clean" with the risk level and stop.
-- **Findings**: For each, assess legitimacy with the same bias-toward-fixing
-  standard as `fix-ci`. Fix legitimate findings in the worktree. Dismissals
-  require the bot to be clearly wrong (misread code, contradicts repo
-  conventions or the function's own docstring); note dismissals for the PR
-  description rather than replying (there is no PR yet).
+**This gate exists to catch defects before they reach a reviewer, not to
+produce a clean Pulse result.** Fix the findings that name a defect: a wrong
+result, a lost write, a race, a regression the diff introduces, a claim in a
+comment or docstring that the code contradicts. Leave everything else for the
+PR, where the same bot will raise it again if it still holds and a human can
+weigh it.
 
-## Step 4: Iterate until clean (with a convergence stop)
+Leave, specifically:
 
-After fixing, re-run Step 2 on the updated diff. Repeat until Pulse reports
-zero critical and zero should-fix findings.
+- A finding whose substance is a rule ID rather than a failure (for example
+  "violates PY-MIG-03") where the rule's premise does not hold for this code:
+  chunking demanded on a table with four matching rows, a logging shape that
+  contradicts every sibling call in the file.
+- Style, naming, comment-coverage and test-coverage findings.
+- Anything you would answer with "correct in general, not here".
 
-**Stop criterion for non-converging runs.** Some changes never reach zero
-because a rule pack over-fires on that change's shape. The clearest case is a
-documentation, rules, or prompt file (for example `rules/*.md`): the
-prompt-quality packs review it as if it were an executable review prompt and
-keep surfacing fresh instruction-clarity angles on the same content, so the
-finding count plateaus or rises across rounds instead of falling. When findings
-stop converging (roughly: two consecutive rounds where the count does not drop,
-or the same passage is re-flagged from a new angle after a good-faith reword),
-do not keep looping. Instead: incorporate the substantively valuable findings
-(real bugs, factual errors, genuine omissions), dismiss the residual
-prompt-clarity findings with a one-line reason, note the dismissals for the PR
-description, and proceed. Chasing a doc-file review to literal zero is the
-over-investment this stop is meant to prevent.
+Note what you left and why, in one line each, for the PR description. There is
+no PR yet, so there is nothing to reply to.
+
+## Step 4: Do not re-run
+
+Run Pulse once. Fix the real bugs. Push.
+
+Three reasons:
+
+- **The local run cannot preempt the CI check**, because it is the same bot
+  with the same rule packs. Clearing it locally does not reduce what CI finds;
+  CI re-reviews from scratch and routinely raises findings on a diff the local
+  run passed.
+- **Driving findings to zero may not change the outcome.** Auto-approval is
+  gated on the risk *tier*, not the findings (`decideReviewEvent` in
+  `pulse/src/risk-assessment.ts`): zero criticals approves only at very-low,
+  low or medium. At medium-high and above the check reports `failure` with
+  "Owner approval required" and needs a named owner, however clean the
+  findings are. Read `summary.risk` in the JSON before spending anything on
+  convergence.
+- **Iterating generates work.** A local finding can ask for code that the CI
+  run then flags as a violation of a different rule, so the fix is written and
+  then removed. One rule pack does not know what another asked for, and a
+  second local round is where that collision gets built rather than caught.
+
+If a fix in Step 3 was substantial enough that you want it checked, that is
+what the PR review is for. Re-run locally only when the user asks.
+
+## Step 5: Check the size gate before pushing
 
 **Size gate counts ADDED lines.** The deployed bot short-circuits PRs whose
 counted ADDED lines exceed 2,000 (strict `>`; excludes come from configured
-globs). Two traps observed on a 2,012-line PR: (1) "reducing the diff" by
-deduplicating pre-existing code makes it WORSE, since rewriting existing
-lines converts them into added lines; (2) each fix round adds tests, so a
-PR hovering at the limit will re-trip the gate mid-review. Check the count
-with `git diff <base>...HEAD --numstat | awk '{a+=$1} END {print a}'`
-before pushing. If near or over the limit, either trim added prose in the
-new files or split into stacked PRs by phase (sync leg vs. endpoint leg);
-while the gate is tripped the bot skips re-review entirely and its standing
-CHANGES_REQUESTED review blocks the PR.
+globs). Check the count before pushing:
+
+```bash
+git diff <base>...HEAD --numstat | awk '{a+=$1} END {print a}'
+```
+
+Two traps for a PR near the limit:
+
+- **Deduplicating existing code makes it worse, not better.** Rewriting a
+  line converts it into an added line, so a change that shortens the file can
+  still raise the counted total.
+- **Each fix round adds lines**, usually tests, so a PR just under the limit
+  can cross it mid-review.
+
+Over the limit, the bot skips review entirely and its standing
+`CHANGES_REQUESTED` blocks the PR. Get under it by trimming added prose in
+the new files, or split into stacked PRs along a seam in the change.
 
 Then re-run the repo's standard local verification (ruff, pyright, pytest for
 the touched files) since the fixes changed code after the last verification
 pass.
 
-Report the final state: findings fixed (with one-line descriptions),
-findings dismissed (with reasons), and the final risk assessment.
+Report the final state in a few lines: the bugs fixed (one line each), the
+count left for the PR with a one-line reason each, and the risk tier with
+whether it is above the auto-approve cut-line. Say the tier explicitly, since
+it tells the user up front whether an owner approval is needed regardless of
+what the findings say.

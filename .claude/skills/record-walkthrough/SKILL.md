@@ -84,9 +84,15 @@ runner (e.g. `admin-app-fe-next/dev`, v24+ for `page.screencast`).
 Write one text file per section (`seg1.txt`..`segN.txt`), then:
 
 ```
-uvx edge-tts --voice en-US-AriaNeural --pitch=-12Hz --rate=-4% \
-  --file segN.txt --write-media nsegN.mp3
+uvx --from "edge-tts==7.2.3" edge-tts --voice en-US-AriaNeural \
+  --pitch=-12Hz --rate=-4% --file segN.txt --write-media nsegN.mp3
 ```
+
+Pin the version. Unpinned `uvx edge-tts` resolves to 7.2.8, which fails the
+handshake with `WSServerHandshakeError: 403` against
+`speech.platform.bing.com` (a stale `Sec-MS-GEC` computation). 7.2.3 works;
+7.1.0 and older also 403. The 403 reads like a network or auth problem and is
+neither, so check the version before reaching for the offline fallback.
 
 - `en-US-AriaNeural` at `-12Hz` pitch and `-4%` rate is the approved
   warm/low register. Never clone a real person's voice.
@@ -103,11 +109,16 @@ uvx edge-tts --voice en-US-AriaNeural --pitch=-12Hz --rate=-4% \
 
 Two corrections are mandatory before placing audio:
 
-1. **Retime the video to wall clock.** Screencast timestamps drift (a
-   prior run produced 94.9s of video for 87.6s of wall clock, ~8% long),
-   so wall-clock offsets drift out of sync by the end. Compute `ratio
-   = wallclock_duration / ffprobe_video_duration` and prepend
-   `setpts=PTS*<ratio>` to the video filter chain.
+1. **Retime the video to wall clock.** Screencast timestamps drift (one run
+   produced 94.9s of video for 87.6s of wall clock, ~8% long; another 132.0s
+   for 112.6s, ~17%), so wall-clock offsets drift out of sync by the end.
+   Compute `ratio = wallclock_duration / video_duration` and prepend
+   `setpts=PTS*<ratio>` to the video filter chain. The screencast `.webm`
+   carries no duration in its header, so `ffprobe -show_entries
+   format=duration` returns `N/A`; measure by decoding instead, with
+   `ffmpeg -i rec.webm -f null - 2>&1 | grep -oE "time=[0-9:.]+" | tail -1`.
+   Reference `${ratio}` with braces in the filter string, since `$R[v]`
+   expands to the wrong thing in bash.
 2. **Loudness-normalize, never naive gain.** `volume=2.2` after `amix`
    clipped at 0.0 dB. Use `loudnorm`.
 

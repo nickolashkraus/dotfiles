@@ -51,6 +51,19 @@ Classify every check as **pass**, **fail**, or **pending**.
 - If any checks are pending, wait 30 seconds and re-check. Always wait for
   **all** checks to complete before moving on, including external checks
   (Cloud Build, Sentry, Wiz, third-party scanners).
+- **An empty pending set is not the finish line.** A check can be registered
+  minutes after the others settle, so "every row passes" and "every check
+  ran" are different claims. On member-journey-services#146, `pulse-review`
+  was absent while the rest of the rollup was green, appeared about two
+  minutes later (twice, on two different commits), and carried the only
+  finding on the PR. Before treating the wait as over, list the checks
+  a recent PR in the same repo received
+  (`gh pr view <other-pr> --json statusCheckRollup`) and account for each one
+  this PR is missing. A check absent because of a base-branch or path filter
+  is fine once you have confirmed that is the reason; a check absent because
+  it has not started yet means keep waiting. Review bots are the usual
+  late arrivals, which is exactly the case where stopping early costs
+  a finding.
 - **Don't fake the handoff.** If you start a background wait (`Monitor`,
   `ScheduleWakeup`, `/loop`, or any `run_in_background` task), you must
   register a concrete resumption (cron, scheduled wakeup, or loop tick) in

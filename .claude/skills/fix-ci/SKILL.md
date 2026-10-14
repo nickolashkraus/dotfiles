@@ -25,7 +25,14 @@ not batch-loop across PRs without re-entering the procedure for each one.
 
 Parse `$ARGUMENTS` for flags:
 
-- `--in-place`: Fix bot comments directly on this branch (no stacked PR).
+- `--in-place`: Fix bot comments directly on this branch. **This is now the
+  default**, and the flag is accepted only so existing invocations keep
+  working. A stacked fix PR costs a worktree, a second CI run, a second
+  review thread and two summary cross-posts, and the review bots now land
+  findings fast enough that the parent PR is still open and unreviewed when
+  they arrive. Fixing in place is what I want every time.
+- `--stacked`: Opt in to the old behavior and delegate to `fix-bot-reviews`.
+  Only use this when I ask for it by name.
 - `--re-review [all | unresolved]`: See "Filter bot comments by resolution
   status" in PROCEDURES.md.
 
@@ -76,44 +83,21 @@ in PROCEDURES.md.
 
 If no actionable bot comments remain and all checks pass, go to Step 7.
 
-### If `--in-place` was NOT set
+### If `--stacked` was set
 
-**Pre-check**: Trivial fixes auto-promote to in-place. Before delegating,
-size up the actionable findings. If the total fix is *trivial*, apply
-in-place on the current branch instead of spinning up a stacked fix PR. The
-stacked-PR overhead (worktree, separate PR, separate CI run, separate review
-thread, summary cross-posts) is not worth it for a one-line fix.
+Invoke `Skill(skill: "fix-bot-reviews", args: "<pr-ref> [--re-review
+<value>]")`, where `<pr-ref>` is the original PR URL or number the user
+passed (or the resolved number if the PR was inferred from the current
+branch), and `<value>` is the value remembered from Step 1. Skip to Step 7
+after `fix-bot-reviews` completes.
 
-Treat a fix as trivial when **all** of the following hold:
+### Otherwise (the default, and what `--in-place` selects)
 
-- Total affected files: 1-3
-- Total code delta: under ~15 lines (excluding test parametrize-list
-  adjustments).
-- No new helpers, abstractions, or refactors. Existing code shape is
-  preserved; you are tweaking constants, frozensets, guards, or conditionals.
-- Test changes are limited to parametrize lists, docstrings, or
-  assertion-value flips. No new test classes or fixtures.
-- The bot finding is precise and the suggested fix is well-defined. You are
-  not making a judgment call that could span multiple files.
-
-When in doubt, delegate. The asymmetry is: a small fix done in-place is
-cheap; a sprawling fix done in-place pollutes the parent branch's commit
-history and review surface, and the user cannot ask for the fix to be
-revised separately.
-
-If the fix is trivial: Act as if `--in-place` was passed and follow the
-in-place section below.
-
-If the fix is non-trivial: Invoke
-`Skill(skill: "fix-bot-reviews", args: "<pr-ref> [--re-review <value>]")`,
-where `<pr-ref>` is the original PR URL or number the user passed (or the
-resolved number if the PR was inferred from the current branch), and
-`<value>` is the value remembered from Step 1 (omit the flag entirely if
-`--re-review` was not set on this invocation). This creates a stacked fix
-PR for the bot comment fixes. Skip to Step 7 after `fix-bot-reviews`
-completes.
-
-### If `--in-place` was set
+**Bot findings are advice, not a gate.** Weigh each one against the code and
+the rules, and dismiss the ones that do not hold rather than fixing
+everything a bot can generate. Two rounds on the same code is the signal
+that the bot is generating complexity rather than finding defects: say so,
+report what is left, and stop. Do not open a third round without asking.
 
 Before editing, sync the local worktree to the PR head. A worktree left on an
 older commit (or a concurrent session's push) means you fix code that no longer

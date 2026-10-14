@@ -71,6 +71,21 @@ snapshot commit (another session writing the shared daily log did this on
 snapshot branch, push again, then cherry-pick both commits with
 `--no-commit` in one call before the `git reset HEAD`.
 
+When another session is writing to the tree, or the index holds staged
+changes that `git reset HEAD` would wipe, skip Steps 3 and 5 and build the
+commit without touching the working tree or the index. The 2026-10-08 run
+did this with a staged file from another session:
+
+```
+GIT_INDEX_FILE=<scratch>/snap-index git read-tree HEAD
+GIT_INDEX_FILE=<scratch>/snap-index git add -A
+TREE=$(GIT_INDEX_FILE=<scratch>/snap-index git write-tree)
+COMMIT=$(git commit-tree "$TREE" -p HEAD -m "Snapshot working tree DATE")
+git branch SNAPSHOT-DATE.XX "$COMMIT"
+```
+
+Then push the branch as in Step 4.
+
 ## Step 6: Confirm
 
 Print the snapshot branch name and confirm that the default branch is back to

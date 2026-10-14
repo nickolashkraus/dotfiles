@@ -147,6 +147,16 @@ The synthesis should include:
   leverage. Each recommendation has a scope, a rationale, and a rough
   cost/benefit framing.
 
+**Verify the mechanism before review, not only after.** Every claim in the
+synthesis that names something the recommendation depends on (a table, a
+constraint, a lock, an endpoint, an idempotency primitive) gets read in the
+code before the synthesis goes out for review. The fact-check gate below still
+runs, but it runs too late to stop a wrong mechanism from spending the round
+budget: on `entitlement-hold-vs-consume` the recommendation named a primitive
+whose unique constraint made it unusable for the job, and three of the four
+reviewers each spent a round refuting it. One code read beforehand would have
+replaced all three.
+
 Use `~/.claude/skills/swarm-core/prompts/synthesis-review.md`. Spawn the four
 agents in parallel. Substitute `{own_findings_path}`, `{synthesis_path}`, and
 `{output_file}` (= `{artifact_dir}/{agent}/synthesis.md`).

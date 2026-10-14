@@ -91,23 +91,69 @@ Target the **session**, with a trailing colon. `-t 1` is parsed as window index
 1 and fails with `create window failed: index 1 in use`; `-t '1:'` means "that
 session, next free index".
 
-Then show the diff and leave an interactive shell behind it:
+Leave the pane as a plain interactive shell in the worktree. **Do not run
+`git diff`, or any other command, in it.** Nickolas reads the diff in his own
+editor, and a pager sitting in the pane means he has to dismiss it before the
+shell is usable.
+
+One thing not to do:
+
+- Do not take focus. Pass `-d` so the window opens in the background and
+  Nickolas's cursor stays where it is. He decides when to switch to it; a
+  window that grabs focus interrupts whatever he was reading. Report the
+  target so he can jump to it himself.
+
+## Step 5: Split a second pane for the pull request body
+
+The layout is the worktree on the left and the pull request body on the right.
+The body is the one thing worth having on screen that is not already in his
+editor.
+
+Capture the new pane's ID from the split and send to that, never to a guessed
+pane index:
 
 ```bash
-tmux send-keys -t '<session>:<name>' 'git diff origin/<base>' Enter
+BODY_PANE=$(tmux split-window -h -d -P -F '#{pane_id}' \
+  -t '<session>:<name>' -c '<worktree>')
+tmux send-keys -t "$BODY_PANE" \
+  'gh pr view --json body --jq .body | bat --language md --style plain' Enter
 ```
 
-Take `<base>` from `baseRefName` in Step 1 rather than assuming `main`; some
-repos are on `master`.
+**Never target `<name>.1`.** Pane indices are positional, so `.1` is only the
+new pane when the window had exactly one. Re-invoking this skill on a window
+Nickolas has already split himself makes `.1` one of *his* panes, and
+`send-keys` types the command straight into whatever is running there. It did
+exactly that once, into a vim buffer in INSERT mode, mangling two lines of an
+unsaved PR-body draft. `#{pane_id}` (`%7`-style) is stable and unambiguous.
 
-Two things not to do:
+For the same reason, check the pane count before splitting:
 
-- Do not pass the diff as the window's command (`tmux new-window ... 'git diff
-  ...'`). The window closes as soon as the pager exits.
-- Do not pass `-d`. The window should be active, since the point is to review
-  the change now.
+```bash
+tmux list-panes -t '<session>:<name>' -F '#{pane_index} #{pane_current_command}'
+```
 
-## Step 5: Report
+More than one pane means the window is already laid out. Leave it alone and
+say so rather than adding a pane to someone else's arrangement.
+
+Three further details that matter:
+
+- **`-d` is correct here too.** Without it the new pane takes focus and the
+  window opens on the body instead of the diff. The diff is the thing being
+  reviewed, so it stays the active pane within the window.
+- **`-h` is the side-by-side split.** tmux names it "horizontal" after the
+  split axis, but it produces a vertical divider with the panes left and
+  right, which is what a wide terminal wants. `-v` stacks them and halves the
+  diff's height for no gain.
+- **Read the body from `gh`, not from `/tmp/pr-<N>-body.md`.** The temp file
+  exists only when this session just created the pull request; `gh` also works
+  when reopening a window days later, and it shows the body as it stands now
+  rather than as it was first written.
+
+Pass `--jq .body` unquoted so the string survives `send-keys` without nested
+quoting. If `bat` is not installed, `less` is the fallback; do not silently
+drop the pager, since a long body scrolls off the top.
+
+## Step 6: Report
 
 One or two lines:
 
@@ -115,4 +161,5 @@ One or two lines:
 - That a plain `git commit` and `git push` updates the pull request, because the
   branch already tracks origin.
 
-Do not re-summarize the change itself. The diff is on screen.
+Do not re-summarize the change itself. The diff and the body are both on
+screen.
