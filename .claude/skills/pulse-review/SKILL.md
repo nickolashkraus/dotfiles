@@ -56,6 +56,15 @@ reviews the PR after push.
    A stale `node_modules` from the previous checkout fails at startup
    with `ERR_MODULE_NOT_FOUND`.
 
+   A checkout already sitting on the default branch tip is not proof that
+   `node_modules` is current: it also goes stale when the lockfile moved
+   under an unchanged branch name since the last local review. That failure
+   looks different, a `SyntaxError` naming a missing export rather than a
+   missing module (observed: `The requested module 'ai' does not provide an
+   export named 'isStepCount'`). Treat any startup crash out of
+   `src/subagent.ts` or `src/review.ts` as a stale install, run `npm install`,
+   and retry once before investigating further.
+
 ## Step 2: Run Pulse
 
 Pipe the merge-base diff into the pulse checkout at
