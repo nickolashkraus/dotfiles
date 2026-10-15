@@ -1,20 +1,32 @@
 ---
 name: audit-harness
 description: >
-  Audit the Claude harness for self-improvement. Reads recent daily compact
-  logs, recent dotfiles commits, and memory; surfaces 2-5 highest-leverage
-  improvement candidates. Designed for weekly `/schedule audit-harness` or
-  ad-hoc invocation. TRIGGER when: user says "audit harness", "review the
-  harness", or this is the weekly scheduled run.
+  Audit the Claude harness (dotfiles, agent-os, bash-scripts) for
+  self-improvement. Reads recent daily compact logs, harness commits,
+  memory, and the Claude Code changelog since the last audit; surfaces 2-5
+  highest-value improvement candidates, including anything the platform
+  now does that the harness reimplements. Run it locally; a cloud
+  `/schedule` routine cannot read the local repos. TRIGGER when: user says
+  "audit harness", "review the harness", "upgrade the harness", or this is
+  the weekly scheduled run.
 disable-model-invocation: false
-allowed-tools: Bash, Read, Glob, Grep, Write
+allowed-tools: Agent, Bash, Read, Glob, Grep, Write
 argument-hint: "[--days N]"
 ---
 
 You are auditing the Claude Code harness for self-improvement
-opportunities. The deliverable is a short Markdown report of 2-5
-highest-leverage candidates, ranked by impact-per-effort. Follow every
-step in order.
+opportunities. The harness spans three repos, each a bare repo with
+a `master` worktree:
+
+- **dotfiles**: `~/nickolashkraus/dotfiles/master/.claude/` (rules,
+  skills, hooks, settings; `~/.claude/` symlinks here)
+- **agent-os**: `~/nickolashkraus/agent-os/master/.claude/` (project
+  rules and skills)
+- **bash-scripts**: `~/nickolashkraus/bash-scripts/master/` (shell
+  helpers such as `claude-wip`, `system-update`, `fh-sync`)
+
+The deliverable is a short Markdown report of 2-5 highest-value
+candidates, ranked by impact-per-effort. Follow every step in order.
 
 ## Step 1: Parse arguments
 
@@ -26,33 +38,52 @@ a 7-day window ending today).
 
 ## Step 2: Read recent activity
 
-Collect the following inputs into context. Cap each at ~100 lines via
-`tail` or `head` to keep context lean.
-
 1. Daily compact logs from
    `~/nickolashkraus/agent-os/master/notes/logs/YYYY/MM/YYYY-MM-DD.md`
-   for each date in the window. Skip dates with no log.
+   for each date in the window. Skip dates with no log. Logs average
+   about 350 lines, so do not truncate them. For a window over 7 days,
+   split the dates into chunks of about 15 logs and give each chunk to
+   a parallel subagent with the Step 3 pattern list. Each subagent
+   returns candidate patterns with dated quotes, not log contents.
 
-2. Recent commits in `.claude/` of the dotfiles repo:
+2. Commits in each repo since the cutoff:
 
    ```
    git -C ~/nickolashkraus/dotfiles/master log --since=<cutoff> \
      --pretty='%h %ad %s' --date=short -- .claude/
+   git -C ~/nickolashkraus/agent-os/master log --since=<cutoff> \
+     --pretty='%h %ad %s' --date=short -- .claude/
+   git -C ~/nickolashkraus/bash-scripts/master log --since=<cutoff> \
+     --pretty='%h %ad %s' --date=short
    ```
 
-3. Current memory index:
+3. Memory indexes and entries modified in the window, for both the
+   dotfiles and agent-os projects:
 
    ```
-   ~/.claude/projects/-Users-nickolas-nickolashkraus-dotfiles/memory/MEMORY.md
+   ~/.claude/projects/-Users-nickolas-nickolashkraus-dotfiles/memory/
+   ~/.claude/projects/-Users-nickolas-nickolashkraus-agent-os/memory/
    ```
 
-4. Recent additions to the memory directory (files modified in the
-   window):
+4. The previous `harness-audit-*.md` report in the dotfiles memory
+   directory, so candidates it already closed are not re-proposed.
+
+5. The platform delta. The changelog lives at
+   `~/.claude/cache/changelog.md`, newest first, one `## <version>`
+   section per release, with no dates. The current version is
+   `claude --version`. The baseline is the `Claude Code` line of the
+   previous report; if it has none, take the last version published
+   before the previous report's date:
 
    ```
-   find ~/.claude/projects/-Users-nickolas-nickolashkraus-dotfiles/memory \
-     -name '*.md' -newer <some-marker> | head -20
+   npm view @anthropic-ai/claude-code time --json
    ```
+
+   Split the sections between the baseline and the current version into
+   chunks of about 1,000 entries and give each chunk to a parallel
+   subagent along with a listing of the three repos' skills, hooks,
+   rules, and scripts. Each subagent returns only the entries that
+   touch something the harness does, with the file it touches.
 
 ## Step 3: Pattern-spot
 
@@ -62,9 +93,9 @@ pattern is a candidate signal of a harness gap.
 - **Manual recovery**: A skill was invoked but the user had to step in
   with an inline correction ("no, do X instead", "stop", "actually
   use Y"). The skill's instructions are insufficient.
-- **Repeat fix**: The same kind of fix landed across multiple sessions
-  (e.g., "fix typography in PR body" three days in a row). Suggests
-  a missing lint check or a stale rule.
+- **Repeat fix**: The same kind of fix was committed across multiple
+  sessions (e.g., "fix typography in PR body" three days in a row).
+  Suggests a missing lint check or a stale rule.
 - **Tool errors**: An MCP or built-in tool call failed repeatedly with
   the same error. Suggests auth/config drift or a missing precondition
   the skill should set up.
@@ -77,9 +108,14 @@ pattern is a candidate signal of a harness gap.
 - **Untouched skills**: A skill has not been invoked in the window
   despite the kind of work it covers being done manually. Suggests
   weak discoverability (missing TRIGGER cue or wrong description).
+- **Platform overlap**: A skill, hook, rule, script, or memory
+  reimplements or works around something the platform now provides or
+  has fixed. Replacing it with the native feature removes code that
+  can drift. A stale workaround memory counts.
 
-Ignore one-off noise. A pattern must show up at least twice in the
-window to count.
+Ignore one-off noise. A friction pattern must show up at least twice
+in the window to count. A platform overlap needs one changelog entry
+and one harness file it makes redundant.
 
 ## Step 4: Rank candidates
 
@@ -119,15 +155,17 @@ metadata:
 # Harness Audit: YYYY-MM-DD
 
 Window: <cutoff> to <today> (N days).
-Inputs scanned: <log-count> daily logs, <commit-count> commits,
-<memory-count> memory entries.
+Claude Code: <baseline> to <current>.
+Inputs scanned: <log-count> daily logs, <commit-count> commits
+(dotfiles/agent-os/bash-scripts), <memory-count> memory entries,
+<entry-count> changelog entries.
 
 ## Top candidates
 
 ### 1. <Short title> (impact: <high|medium|low>, effort: <minutes|hours|days>)
 
-**Pattern**: <what you observed, with evidence — quote log lines or
-cite commit SHAs>.
+**Pattern**: <what you observed, with evidence: quote log lines, cite
+commit SHAs, or name the changelog version>.
 
 **Why it matters**: <the cost of not fixing>.
 
