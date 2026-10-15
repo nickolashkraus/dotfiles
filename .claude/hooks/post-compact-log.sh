@@ -38,13 +38,24 @@ text = re.sub(r"<analysis>.*?</analysis>", "", text, flags=re.DOTALL)
 text = re.sub(r"</?summary>", "", text)
 text = text.strip()
 
-# Parse numbered sections (e.g., "1. Primary Request and Intent:").
+# Parse numbered sections. Headers arrive as "1. Primary Request and
+# Intent:", "1. **Primary Request and Intent:**" or "## 1. Primary
+# Request and Intent". A header without a trailing colon must name a known
+# section, so numbered list items are not mistaken for one.
+KNOWN_SECTIONS = {
+    "primary request and intent",
+    "key technical concepts",
+    "key decisions",
+    "current work",
+    "pending tasks",
+}
 sections = {}
 current = None
 for line in text.split("\n"):
-    m = re.match(r"^\d+\.\s+(.+?):\s*$", line)
-    if m:
-        current = m.group(1).strip()
+    norm = re.sub(r"^#+\s*", "", line.replace("**", ""))
+    m = re.match(r"^\d+\.\s+(.+?)(:?)\s*$", norm)
+    if m and (m.group(2) or m.group(1).strip().lower() in KNOWN_SECTIONS):
+        current = m.group(1).strip().lower()
         sections[current] = []
     elif current is not None:
         sections[current].append(line)
@@ -169,21 +180,21 @@ def format_section(label, text, max_sentences=3):
 
 parts = []
 
-intent = sections.get("Primary Request and Intent", "")
+intent = sections.get("primary request and intent", "")
 if intent:
     parts.append(format_section("Intent", intent))
 
-work = sections.get("Current Work", "")
+work = sections.get("current work", "")
 if work:
     parts.append(format_section("Work", work))
 
 findings = sections.get(
-    "Key Technical Concepts", sections.get("Key Decisions", "")
+    "key technical concepts", sections.get("key decisions", "")
 )
 if findings:
     parts.append(format_section("Findings", findings))
 
-pending = sections.get("Pending Tasks", "")
+pending = sections.get("pending tasks", "")
 if pending:
     parts.append(format_section("Pending", pending))
 
