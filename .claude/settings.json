@@ -6,6 +6,10 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "hooks": {
     "PostCompact": [
       {
