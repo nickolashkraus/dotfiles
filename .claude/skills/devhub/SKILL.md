@@ -93,8 +93,11 @@ health check returns `unhealthy` or `error`), and `redeploy-previous`.
 An unhealthy check parks the deploy at `awaiting_confirmation` with traffic
 already shifted, and it auto-rolls back at `confirmation_deadline`, 10 minutes
 out. Read `health_check_result` at once: a p95 spike with zero errors in the
-first minute is usually cold start, so check current latency in the Cloud Run
-request logs before deciding. The body is `{"action": "continue"}` or
+first minute is usually cold start, so check current latency before deciding.
+Read it from Cloud Monitoring (`run.googleapis.com/request_latencies` with
+`ALIGN_PERCENTILE_95`, and `request_count` grouped by `response_code_class`)
+rather than the request logs, which went to a `redacted-app-logs` sink by
+2026-10-15. The body is `{"action": "continue"}` or
 `{"action": "rollback"}`; an empty body is a 422.
 
 A deploy that ends `unknown` on "Deploy driver error: TimeoutError" can mean
