@@ -11,6 +11,17 @@
     "pr": ""
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-start-state.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "PostCompact": [
       {
         "matcher": "manual|auto",
