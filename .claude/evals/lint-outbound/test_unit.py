@@ -4,8 +4,9 @@ Deterministic unit tests for ~/.claude/hooks/lint-outbound.py.
 
 Covers the regex layer end to end: table-padding measured on source
 width, commit subject/body length rules and their exemptions, payload
-extraction from Bash (interpreter heredocs, compound-command flag
-ownership, gh `@file` bodies), the hard-wrap detector, and the
+extraction from Bash (interpreter heredocs, heredocs written into
+Markdown files, compound-command flag ownership, gh `@file` bodies), the
+hard-wrap detector, and the
 label-colon capitalization rules. Most cases are regressions for the
 2026-07-06 false-positive batch.
 
@@ -183,6 +184,46 @@ def test_interpreter_heredoc_skipped() -> None:
     check(
         "commit-only heredoc marked full commit message",
         any("heredoc" in f[0] and f[4] for f in fields),
+        f"got {fields!r}",
+    )
+
+
+def test_markdown_heredoc_writes() -> None:
+    section("extract_fields: heredocs written into Markdown files are linted")
+    bad = "Done — shipped.\n"
+    flagged = {
+        "cat >> before marker": f"cat >> notes/2026-10-15.md <<'EOF'\n{bad}EOF",
+        "redirect after marker": f"cat <<'EOF' >> notes/2026-10-15.md\n{bad}EOF",
+        "tee -a": f"tee -a /tmp/pr-body.md <<EOF >/dev/null\n{bad}EOF",
+        "after a cd": f"cd ~/x && cat > 'a b/n.md' <<EOF\n{bad}EOF",
+    }
+    for name, cmd in flagged.items():
+        violations = lo.collect_violations("Bash", {"command": cmd})
+        check(
+            f"{name}: em dash flagged",
+            any("em dash" in v for v in violations),
+            f"got {violations!r}",
+        )
+    skipped = {
+        "non-Markdown target": f"cat > out.txt <<'EOF'\n{bad}EOF",
+        "interpreter heredoc": f"python3 - <<'PY' > out.md\n{bad}PY",
+        "variable target": f'cat >> "$f" <<EOF\n{bad}EOF',
+        "no redirect": f"cat <<'EOF'\n{bad}EOF",
+    }
+    for name, cmd in skipped.items():
+        violations = lo.collect_violations("Bash", {"command": cmd})
+        check(f"{name}: not linted", not violations, f"got {violations!r}")
+    clean = "cat >> notes/2026-10-15.md <<'EOF'\n- **Email**: Inbox zero\nEOF"
+    check(
+        "clean heredoc passes",
+        not lo.collect_violations("Bash", {"command": clean}),
+    )
+    fields = lo.extract_markdown_heredocs(
+        "cat >> notes/a.md <<'EOF'\nnew line only\nEOF"
+    )
+    check(
+        "only the heredoc body is linted",
+        [f[1] for f in fields] == ["new line only"],
         f"got {fields!r}",
     )
 
@@ -431,8 +472,40 @@ def test_try_autofix_input_scope() -> None:
     ti3 = {"file_path": md, "new_string": "- **Element**: Description\n"}
     check("clean content -> None", lo.try_autofix_input("Edit", ti3) is None)
 
-    # Bash is never auto-fixed.
+    # Bash commit/PR bodies are never auto-fixed.
     check("bash -> None", lo.try_autofix_input("Bash", {"command": "git commit -m 'x'"}) is None)
+
+
+def test_autofix_identifier_and_heredoc() -> None:
+    section("autofix: skips identifiers, rewrites Markdown heredoc bodies")
+    for line in ("- **Repo**: ppp-service is live", "- **SHA**: a1b2c3d", "- **CLI**: v2.1"):
+        check(f"identifier left unfixed: {line}", lo.autofix_label_colon_line(line) is None)
+        violations = lo.lint_text(line + "\n", "f", check_local_paths=False)
+        check(
+            f"identifier still blocked with backtick hint: {line}",
+            any("backticks" in v for v in violations),
+            f"got {violations!r}",
+        )
+    check(
+        "plain word with trailing period still fixed",
+        lo.autofix_label_colon_line("- **Status**: done.") == "- **Status**: Done.",
+    )
+    cmd = "cat >> notes/a.md <<'EOF'\n- **Email**: inbox zero\nEOF\necho ok"
+    fixed = lo.try_autofix_input("Bash", {"command": cmd, "description": "d"})
+    check(
+        "heredoc body capitalized, rest of command intact",
+        fixed == {
+            "command": "cat >> notes/a.md <<'EOF'\n- **Email**: Inbox zero\nEOF\necho ok",
+            "description": "d",
+        },
+        f"got {fixed!r}",
+    )
+    check("fixed command lints clean", not lo.collect_violations("Bash", fixed or {}))
+    check(
+        "non-Markdown heredoc not rewritten",
+        lo.try_autofix_input("Bash", {"command": "cat > a.txt <<'EOF'\n- **E**: x\nEOF"})
+        is None,
+    )
 
 
 def test_main_autofix_end_to_end() -> None:
@@ -465,6 +538,15 @@ def test_main_autofix_end_to_end() -> None:
     rc2, _, err2 = run({"tool_name": "Edit", "tool_input": {"file_path": md, "new_string": "- **Element**: description — x\n"}})
     check("mixed blocks (exit 2)", rc2 == 2, f"rc={rc2}")
     check("mixed reports em dash", "em dash" in err2, err2)
+
+    cmd = "cat >> notes/a.md <<'EOF'\n- **Email**: inbox zero\nEOF"
+    rc3, out3, _ = run({"tool_name": "Bash", "tool_input": {"command": cmd}})
+    hso3 = _json.loads(out3).get("hookSpecificOutput", {}) if rc3 == 0 and out3.strip() else {}
+    check(
+        "bash heredoc: updatedInput capitalized",
+        "**Email**: Inbox zero" in hso3.get("updatedInput", {}).get("command", ""),
+        f"rc={rc3} out={out3!r}",
+    )
 
 
 def test_tool_attribution_footer() -> None:
@@ -601,6 +683,7 @@ TESTS = [
     test_commit_subject_exemptions,
     test_commit_body_rules,
     test_interpreter_heredoc_skipped,
+    test_markdown_heredoc_writes,
     test_compound_command_flag_ownership,
     test_gh_api_at_file_read_not_blocked,
     test_hard_wrap_detector,
@@ -609,6 +692,7 @@ TESTS = [
     test_plain_label_colon_detector,
     test_autofix_resolves_detected,
     test_try_autofix_input_scope,
+    test_autofix_identifier_and_heredoc,
     test_main_autofix_end_to_end,
     test_tool_attribution_footer,
     test_git_global_flags_before_commit,

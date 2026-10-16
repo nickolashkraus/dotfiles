@@ -231,20 +231,34 @@ def _capitalize_after_colon(m: "re.Match[str]") -> str:
     return m.group(1) + m.group(2).upper()
 
 
+def _starts_with_identifier(rest: str) -> bool:
+    """True when `rest` opens with an identifier such as `ppp-service`,
+    `a1b2c3d` or `v2.1`, which capitalizing would corrupt."""
+    words = rest.split(maxsplit=1)
+    word = words[0].rstrip(".,;:)!?") if words else ""
+    return bool(re.search(r"[-_/.\d]", word))
+
+
 def autofix_label_colon_line(raw: str) -> str | None:
     """If `raw` is a deterministic label-colon violation (bold/link/code-span
     label, line-initial link label, or Title-Case plain label followed by a
     lowercase word), return the line with that word's first letter
     capitalized. Otherwise None. Only the cases the detectors flag with zero
     false positives are touched; the ambiguous lowercase-tail plain label is
-    left for the semantic check."""
-    if LOWERCASE_AFTER_BOLD_COLON_FIX_RE.match(raw):
-        return LOWERCASE_AFTER_BOLD_COLON_FIX_RE.sub(_capitalize_after_colon, raw, count=1)
-    if LOWERCASE_AFTER_LINK_COLON_FIX_RE.match(raw):
-        return LOWERCASE_AFTER_LINK_COLON_FIX_RE.sub(_capitalize_after_colon, raw, count=1)
+    left for the semantic check. An identifier after the colon is left
+    unfixed so the block asks for backticks instead."""
+    for fix_re in (LOWERCASE_AFTER_BOLD_COLON_FIX_RE, LOWERCASE_AFTER_LINK_COLON_FIX_RE):
+        m = fix_re.match(raw)
+        if m:
+            if _starts_with_identifier(raw[m.start(2):]):
+                return None
+            return fix_re.sub(_capitalize_after_colon, raw, count=1)
     if plain_label_colon_violation(raw):
         # The plain label carries no internal colon, so the first `: ` is the
         # label colon.
+        m = re.search(r"(:\s+)([a-z])", raw)
+        if m is None or _starts_with_identifier(raw[m.start(2):]):
+            return None
         return re.sub(r"(:\s+)([a-z])", _capitalize_after_colon, raw, count=1)
     return None
 
@@ -726,7 +740,8 @@ def lint_text(
                 f"{field} line {lineno}: bullet has a lowercase word "
                 "after the colon (always capitalize the first word "
                 "after a colon per rules/typography.md; non-alphabetic "
-                "starts like paths or code spans are naturally exempt)"
+                "starts like paths or code spans are naturally exempt, so "
+                "wrap a repo name or SHA in backticks)"
             )
         if LOWERCASE_AFTER_LINK_COLON_RE.search(line):
             violations.append(
@@ -988,6 +1003,59 @@ def extract_bash_content(
     return fields
 
 
+# A heredoc whose marker line may carry a trailing redirect, as in
+# `cat <<'EOF' >> notes.md`, which HEREDOC_RE does not match.
+FILE_HEREDOC_RE = re.compile(
+    r"<<-?\s*(['\"]?)(\w+)\1([^\n]*)\n(.*?)\n\s*\2\b",
+    re.DOTALL,
+)
+MARKDOWN_TARGET_RE = re.compile(
+    r"(?:>>?|\btee(?:\s+-a)?)\s*"
+    r"(?:'([^'$]+\.(?:md|markdown))'"
+    r"|\"([^\"$]+\.(?:md|markdown))\""
+    r"|([^\s'\"$;|&<>]+\.(?:md|markdown))(?=[\s)]|$))"
+)
+
+
+def extract_markdown_heredocs(command: str) -> list[tuple[str, str, str]]:
+    """
+    Return (field_label, text, path) for each heredoc a Bash command writes
+    into a Markdown file (`cat >> f.md <<'EOF'`, `tee -a f.md <<EOF`).
+
+    Only the heredoc body is returned, so a shared file's earlier entries
+    are not linted. Targets held in shell variables are skipped.
+    """
+    fields: list[tuple[str, str, str]] = []
+    for m, raw in _markdown_heredoc_matches(command):
+        path = os.path.abspath(os.path.expanduser(raw))
+        fields.append((f"heredoc<{m.group(2)}> into {raw}", m.group(4), path))
+    return fields
+
+
+def _markdown_heredoc_matches(
+    command: str,
+) -> Iterable[tuple["re.Match[str]", str]]:
+    for m in FILE_HEREDOC_RE.finditer(command):
+        if heredoc_feeds_interpreter(command, m.start()):
+            continue
+        owner = re.split(r"[;&\n]|\$\(", command[: m.start()])[-1] + m.group(3)
+        target = MARKDOWN_TARGET_RE.search(owner)
+        if target is not None:
+            yield m, next(g for g in target.groups() if g)
+
+
+def autofix_markdown_heredocs(command: str) -> str:
+    """Return `command` with label-colon fixes applied inside each heredoc it
+    writes into a Markdown file. Heredoc bodies are literal text, so the
+    rewrite cannot change how the shell parses the command."""
+    parts: list[str] = []
+    last = 0
+    for m, _ in _markdown_heredoc_matches(command):
+        parts += [command[last : m.start(4)], autofix_label_colons(m.group(4))]
+        last = m.end(4)
+    return "".join(parts) + command[last:]
+
+
 def is_bypass_value(value: str) -> str | None:
     """Return a reason string if `value` is a lint-bypassing reference
     (bare `$var` expansion), or None if it's a real string. A bare
@@ -1053,6 +1121,8 @@ def extract_fields(
                 cmd
             ):
                 out.append((label, text, not is_commit, is_pr_body, True, is_full))
+            for label, text, path in extract_markdown_heredocs(cmd):
+                out.append((label, text, True, False, not is_in_repo_path(path), False))
         return out
 
     if tool_name in ("Edit", "Write"):
@@ -1109,10 +1179,18 @@ def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
 
 def try_autofix_input(tool_name: str, tool_input: dict) -> dict | None:
     """Return a modified tool_input with label-colon violations auto-fixed, or
-    None when nothing safe to fix applies. Scoped to Edit/Write Markdown
-    content, where capitalizing the word after a label colon is an unambiguous
-    fix; Bash commit/PR bodies are left to block so their quoting is never
-    rewritten."""
+    None when nothing safe to fix applies. Scoped to Markdown content (Edit,
+    Write, and Bash heredocs written into a `.md` file), where capitalizing
+    the word after a label colon is an unambiguous fix; Bash commit/PR bodies
+    are left to block so their quoting is never rewritten."""
+    if tool_name == "Bash":
+        command = tool_input.get("command")
+        if not isinstance(command, str):
+            return None
+        fixed_command = autofix_markdown_heredocs(command)
+        if fixed_command == command:
+            return None
+        return {**tool_input, "command": fixed_command}
     if tool_name not in ("Edit", "Write"):
         return None
     key = "new_string" if tool_name == "Edit" else "content"
