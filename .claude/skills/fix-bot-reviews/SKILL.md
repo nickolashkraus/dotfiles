@@ -52,7 +52,13 @@ directory (`../<head-branch>-fixes-<number>`).
 
 ## Step 4: Fix bot comments
 
-For each unresolved bot comment, apply "Bias toward fixing" in PROCEDURES.md.
+First apply "Count the rounds per file, and stop at three" in
+PROCEDURES.md. If it prints anything, stop and ask before fixing: a file
+that review has already sent back three times needs a redesign, not a
+fourth stacked fix PR.
+
+Then, for each unresolved bot comment, apply "Bias toward fixing" in
+PROCEDURES.md.
 
 For legitimate findings: Read the relevant source files in the worktree to
 understand context, then apply the fix directly.

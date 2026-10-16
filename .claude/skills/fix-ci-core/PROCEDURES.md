@@ -187,6 +187,46 @@ from `$ARGUMENTS`:
   status. This is for the workflow where you review findings in the GitHub
   UI, resolve the ones you want to skip, then re-run to fix the rest.
 
+## Count the rounds per file, and stop at three
+
+Run this before fixing anything. It is a gate, not a diagnostic.
+
+```
+gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --slurp \
+  | jq -r 'add | [.[] | select(.user.type == "Bot")
+         | {p: .path, r: .pull_request_review_id}]
+        | group_by(.p)
+        | map({path: .[0].p, rounds: ([.[].r] | unique | length)})
+        | sort_by(-.rounds) | .[] | select(.rounds >= 3)
+        | "\(.rounds) rounds: \(.path)"'
+```
+
+`--slurp` matters: with `--jq`, the filter runs once per page of 100, so
+a long pull request's rounds split across pages and undercount.
+
+Empty output means proceed. **Any output means stop fixing.** Do not open
+another round on that file. Report what the command printed, say that the
+shape in that file is the problem rather than the individual findings, and
+ask whether to redesign.
+
+Count distinct review rounds touching one file, never the number of bot
+reviews on the pull request. Pulse re-reviews on every push, so its review
+count tracks pushes and says nothing about convergence. Measured on the
+Entitlement-Driven Scheduling program: the two pull requests that were
+closed unmerged and redesigned each had a single file flagged across seven
+distinct rounds (`entitlement_debit.py` on MAM #4313, the admin visit
+update subscription service on MS #364), while six pull requests that
+merged peaked at two rounds on any one file. Their raw review counts did
+not separate them at all: MAM #4313 closed at ten Pulse reviews and MAM
+#4324 merged at nine. Review state does not separate them either, since a
+merged pull request also carried `CHANGES_REQUESTED`.
+
+This is the rule in @~/.claude/rules/coding.md ("A sound design converges
+in one or two rounds") given a counter. It is written down because the
+prose version did not fire: that program ran to rounds nine and seven,
+discarding 2,763 added lines, while every individual fix along the way was
+defensible.
+
 ## Bias toward fixing
 
 For each unresolved bot comment, assess whether it is legitimate. Default

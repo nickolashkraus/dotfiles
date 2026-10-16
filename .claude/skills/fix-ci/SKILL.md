@@ -93,11 +93,14 @@ after `fix-bot-reviews` completes.
 
 ### Otherwise (the default, and what `--in-place` selects)
 
+**Run the round counter first.** Follow "Count the rounds per file, and stop
+at three" in PROCEDURES.md before reading a single finding. If it prints
+anything, stop there and ask; the design in that file is the problem, and
+another round of fixes enlarges it.
+
 **Bot findings are advice, not a gate.** Weigh each one against the code and
 the rules, and dismiss the ones that do not hold rather than fixing
-everything a bot can generate. Two rounds on the same code is the signal
-that the bot is generating complexity rather than finding defects: say so,
-report what is left, and stop. Do not open a third round without asking.
+everything a bot can generate.
 
 Before editing, sync the local worktree to the PR head. A worktree left on an
 older commit (or a concurrent session's push) means you fix code that no longer
