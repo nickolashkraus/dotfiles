@@ -124,6 +124,7 @@
     }
   },
   "awaySummaryEnabled": false,
+  "outputStyle": "Concise",
   "tui": "fullscreen",
   "timeFormat": "24-hour",
   "skipDangerousModePermissionPrompt": true,
