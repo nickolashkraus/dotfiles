@@ -32,6 +32,7 @@ tap "hashicorp/tap"
 tap "koekeishiya/formulae"
 tap "oven-sh/bun"
 
+brew "aspell"
 brew "awscli"
 brew "bash"
 brew "bat"

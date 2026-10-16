@@ -141,5 +141,11 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
   "editorMode": "vim",
+  "spellcheck": {
+    "enabled": true,
+    "checker": "aspell",
+    "language": "en_US",
+    "color": "redBright"
+  },
   "agentPushNotifEnabled": true
 }
