@@ -8,7 +8,8 @@ procedure:
 
 - **`fh-auth`**: CLI login (Auth0, ConductorOne), API secret-key
   (Fernet) token generation, Cloud Run proxy for internal services,
-  Admin App GraphQL token exchange (Okta -> FH JWT).
+  Admin App GraphQL token exchange (Okta -> FH JWT), and the member app
+  Firebase ID token for MAM calls made as a member.
 - **`fh-database`**: Cloud SQL Auth Proxy for Dev/Staging (static
   `POSTGRES_PASSWORD`) and Prod (IAM group auth via ConductorOne).
 - **`fh-databricks`**: Workspace URLs, CLI OAuth profiles, the

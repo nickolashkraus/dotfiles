@@ -3,9 +3,11 @@ name: fh-auth
 description: >
   Function Health authentication runbooks: CLI login (Auth0, ConductorOne), API
   secret-key (Fernet) token generation, Cloud Run proxy for internal services,
-  and Admin App GraphQL token exchange (Okta -> FH JWT) for staff operations
-  like `updatePatient`. TRIGGER when: user mentions FH auth failure,
-  Auth0/ConductorOne login, Okta -> FH JWT exchange, GraphQL 401, Cloud Run
+  Admin App GraphQL token exchange (Okta -> FH JWT) for staff operations
+  like `updatePatient`, and the member app Firebase ID token for
+  member-facing MAM calls. TRIGGER when: user mentions FH auth failure,
+  Auth0/ConductorOne login, Okta -> FH JWT exchange, GraphQL 401, a member
+  app or MAM 401, needing a Firebase ID token for a member, Cloud Run
   proxy for an internal FH service, or needs a Fernet API key.
 disable-model-invocation: false
 allowed-tools: Bash, Read
@@ -68,6 +70,70 @@ gcloud run services proxy <service> --region=<region> \
 ```
 
 Then access the service at `http://localhost:8080`.
+
+## Member App Firebase ID Token
+
+`member-app-middleware` authenticates members with a Firebase ID token in the
+`Authorization` header (`tokens.validate_token` resolves it through
+`FirebaseUserIDDep`). Nothing mints one from a service identity: it is a member
+credential, so it comes from a member sign-in.
+
+MAM's own login route is the headless path. It proxies to Firebase
+`signInWithPassword` and returns the token.
+
+The response carries `idToken`, `refreshToken` and `expiresIn`
+(`FirebaseLoginSuccessResponseModel`). Three details that cost a retry
+otherwise:
+
+- **`POST /api/v1/login`** is the email and password route
+  (`user_email_password_login`, taking `FirebaseLoginCredentialsModel`).
+- **`/api/v1/login/credentials` is not it.** That route takes
+  `signed_challenge` and `challenge` (`CredentialsLoginModel`), the device
+  credential flow, and answers a `KeyError: 'idToken'` shaped failure when
+  posted an email and password. Reading
+  `_authenticate_user_with_email_password` and assuming the nearest route in
+  the file owns it is how that mistake gets made; check the
+  `add_api_route` binding.
+- **`fe-app-version`**: Marks the caller a web client. Without it,
+  `raise_if_mobile_version_blocked` can answer 426 whenever Statsig has a
+  minimum mobile version configured.
+
+`POST /api/v1/login/mcp` takes the same body and additionally returns
+`patientId`, which is worth using when the point is to confirm the token maps
+to the member you expect.
+
+**Nickolas signs in himself, in a separate terminal.** The password is
+a member credential on a deployed service, so an agent never handles it. Never
+run this through the `!` prefix, which adds the command and its output to the
+conversation. The password is read without echo, sent on stdin rather than
+the command line, and the token goes straight into the Keychain unprinted:
+
+```bash
+read -r -p 'Email: ' email && read -rs -p 'Password: ' password && echo
+token=$(jq -n --arg e "${email}" --arg p "${password}" \
+    '{email: $e, password: $p}' \
+  | curl -s -X POST \
+      https://development-member-app-mid-2jv3ndpkoa-ue.a.run.app/api/v1/login \
+      -H 'content-type: application/json' -H 'fe-app-version: qa' -d @- \
+  | jq -r .idToken)
+security add-generic-password -s fh-dev-member-token -a function-health \
+  -w "${token}" -j "Dev member app Firebase ID token" -U
+unset password token
+```
+
+The agent then reads it at point of use:
+
+```bash
+curl -s -H "Authorization: $(security find-generic-password \
+  -s fh-dev-member-token -a function-health -w)" \
+  https://development-member-app-mid-2jv3ndpkoa-ue.a.run.app/api/v1/pending-schedules
+```
+
+An ID token lasts about an hour. `POST /api/v1/token/refresh` mints a new one
+from the `refreshToken`, so a long run does not need a second sign-in.
+
+Browser alternative: sign into the Dev member app, then DevTools, Network, any
+MAM request, and copy the `Authorization` header.
 
 ## Admin App GraphQL Authentication
 

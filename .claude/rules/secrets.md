@@ -42,6 +42,7 @@ All entries below use the account `function-health`.
 | `datadog-app`                | Datadog app key (us5), monitor validation         |
 | `fh-github-token`            | GitHub PAT for fh-sync and system-update          |
 | `devhub`                     | DevHub (EasyDeploy) personal API key              |
+| `fh-dev-member-token`        | Dev member app Firebase ID token (about one hour) |
 
 ## Per-Application Usage
 
@@ -179,3 +180,5 @@ After adding a secret, update the Inventory table in this file.
   @rules/function-health.md.
 - **Ephemeral tokens**: Short-lived tokens (e.g.,
   `gcloud auth print-access-token`) should be generated inline, not cached.
+  The one exception is `fh-dev-member-token`: an agent cannot sign in as
+  a member, so Nickolas caches that token for it (see the `fh-auth` skill).
