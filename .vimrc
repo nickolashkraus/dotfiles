@@ -162,6 +162,27 @@ set colorcolumn=80
 " Start editing with all folds open.
 set foldlevelstart=99
 
+" Reload buffers changed outside Vim (e.g., by Claude Code). A timer checks
+" the current buffer every second in Normal mode, and every buffer is checked
+" on focus and on buffer switch. A buffer with unsaved changes is never
+" reloaded; Vim warns instead.
+set autoread
+augroup auto-reload
+  autocmd!
+  autocmd FocusGained,BufEnter * if getcmdwintype() ==# '' | checktime | endif
+augroup END
+if !exists('s:reload_timer')
+  let s:reload_timer = timer_start(1000, {->
+        \ mode() ==# 'n' && !&modified && getcmdwintype() ==# ''
+        \ ? execute('silent! checktime ' . bufnr('%')) : ''}, {'repeat': -1})
+endif
+
+" Start a client-server socket, so tools outside Vim (`vim-cursor`) can ask
+" where the cursor is.
+if has('clientserver') && empty(v:servername)
+  silent! call remote_startserver('VIM' . getpid())
+endif
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Advanced Configuration
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
