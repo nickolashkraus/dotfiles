@@ -426,6 +426,7 @@ def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
             [
                 "claude",
                 "--print",
+                "--no-session-persistence",
                 "--model",
                 "sonnet",
                 "--allowed-tools",

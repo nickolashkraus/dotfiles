@@ -71,7 +71,8 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/confirm-risky.py",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "block"
           }
         ]
       }
