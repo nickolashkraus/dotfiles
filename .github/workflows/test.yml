@@ -18,3 +18,5 @@ jobs:
         run: python3 .claude/evals/rule-check/test_unit.py
       - name: Run lint-outbound unit tests
         run: python3 .claude/evals/lint-outbound/test_unit.py
+      - name: Run pairing-guard unit tests
+        run: python3 .claude/evals/pairing-guard/test_unit.py

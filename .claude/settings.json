@@ -86,6 +86,16 @@
             "onFailure": "block"
           }
         ]
+      },
+      {
+        "matcher": "Bash|Edit|MultiEdit|NotebookEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pairing-guard.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Notification": [

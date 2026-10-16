@@ -217,6 +217,41 @@ nnoremap <Leader>cp :CopyRelPath<CR>
 command! CopyAbsPath let @+ = expand('%:p')
 nnoremap <Leader>cpu :CopyAbsPath<CR>
 
+" Function: s:ToggleClaudeGuard()
+" Toggle the Claude Code pairing guard for the current buffer's worktree.
+"
+" While the guard is on, the pairing-guard hook stops Claude Code from
+" staging, committing, pushing, switching branches or writing files from the
+" shell in that worktree. Its Edit tool still works, and it refuses a file
+" that changed since Claude last read it.
+"
+" Args: None
+" Returns: None
+function! s:ToggleClaudeGuard() abort
+  let l:dir = expand('%:p:h')
+  if !isdirectory(l:dir)
+    let l:dir = getcwd()
+  endif
+  let l:out = systemlist('git -C ' . shellescape(l:dir)
+        \ . ' rev-parse --absolute-git-dir --show-toplevel')
+  if v:shell_error || len(l:out) < 2
+    echohl ErrorMsg | echo 'Claude guard: not in a Git worktree' | echohl None
+    return
+  endif
+  let l:flag = l:out[0] . '/claude-pairing'
+  let l:name = fnamemodify(l:out[1], ':h:t') . '/' . fnamemodify(l:out[1], ':t')
+  if filereadable(l:flag)
+    call delete(l:flag)
+    echo 'Claude guard off: ' . l:name
+  else
+    call writefile([], l:flag)
+    echohl WarningMsg | echo 'Claude guard on: ' . l:name | echohl None
+  endif
+endfunction
+
+command! ToggleClaudeGuard call s:ToggleClaudeGuard()
+nnoremap <Leader>cg :ToggleClaudeGuard<CR>
+
 " Function: GetGitHubURL(...)
 " Get the GitHub URL of the file for the current buffer.
 "
