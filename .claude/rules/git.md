@@ -97,6 +97,20 @@
 - In a bare repo with worktrees, default to the `master` (or default) branch
   worktree for operations like `git log`, `git diff`, and rebasing. Do not
   operate from the bare repo root.
+- **Reach a worktree through its short link under `~/w`, not its full
+  path.** `worktree-links` maintains one symlink per worktree, named
+  `<repo-short>-<issue>[-<word>]` using the same repo abbreviations as the
+  `pr-window` skill, so the `byb-5531-debit-the-entitlement-at-booking`
+  worktree of `member-app-middleware` is reachable as `~/w/mam-5531-debit`.
+  Each repo's default worktree is the bare short name (`~/w/mam`, `~/w/mjs`,
+  `~/w/memb`, `~/w/agent-os`).
+  Run `worktree-links` after adding or removing a worktree; `system-update`
+  refreshes them daily, and `ls ~/w | grep <repo-short>` lists what exists.
+  This matters because the Bash tool's working directory resets between
+  calls, so every command in a worktree retypes the prefix: one program's
+  5,445 Bash calls carried a 75-character path that the link makes 16.
+  Full paths remain correct and are the right fallback when a link is
+  missing or stale.
 
 ## Commits
 
