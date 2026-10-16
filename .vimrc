@@ -1106,7 +1106,8 @@ endfunction
 " Toggle the diff base between HEAD (default) and the merge base with the
 " default branch, mimicking a pull request diff. The base is shared with
 " nerdtree-git-plugin (see the nerdtree-git-plugin section), so the tree's
-" status flags follow the same toggle.
+" status flags and its changed-files filter (<Leader>nc) follow the same
+" toggle.
 function! ToggleGitGutterDiffBase()
   if empty(get(g:, 'gitgutter_diff_base', ''))
     let l:branch = s:GitDefaultBranch()
@@ -1133,6 +1134,9 @@ function! ToggleGitGutterDiffBase()
   GitGutterAll
   if exists(':NERDTreeRefreshRoot') == 2
     NERDTreeRefreshRoot
+  endif
+  if get(g:, 'nerdtree_changed_only', 0)
+    call s:NERDTreeRenderChanged()
   endif
   echo l:msg
 endfunction
@@ -1404,6 +1408,100 @@ endfunction
 
 command! NERDTreeResize call NERDTreeResize()
 nnoremap <Leader>nr :NERDTreeResize<CR>
+
+" Paths under the NERDTree root that differ from the gitgutter diff base (HEAD
+" by default, see ToggleGitGutterDiffBase), plus untracked files, keyed by
+" absolute path. Ancestor directories are included so the tree can reach each
+" file. Returns -1 outside a Git repository. Cached for one second, since
+" NERDTree calls the filter once per node on every render.
+function! s:NERDTreeChangedPaths(root) abort
+  let l:base = get(g:, 'gitgutter_diff_base', '')
+  let l:key = a:root . "\n" . l:base
+  if get(s:, 'nerdtree_changed_key', '') ==# l:key
+        \ && reltimefloat(reltime(s:nerdtree_changed_time)) < 1.0
+    return s:nerdtree_changed_paths
+  endif
+  let l:git = 'git -c core.quotePath=false -C ' . shellescape(a:root)
+  let l:files = systemlist(l:git . ' diff --name-only --relative'
+        \ . ' --diff-filter=d ' . shellescape(empty(l:base) ? 'HEAD' : l:base))
+  if v:shell_error
+    let l:paths = -1
+  else
+    let l:files += systemlist(l:git . ' ls-files --others --exclude-standard')
+    let l:paths = {}
+    let l:root = substitute(a:root, '/$', '', '')
+    for l:file in l:files
+      let l:path = l:root
+      for l:part in split(l:file, '/')
+        let l:path .= '/' . l:part
+        let l:paths[l:path] = 1
+      endfor
+    endfor
+  endif
+  let s:nerdtree_changed_key = l:key
+  let s:nerdtree_changed_time = reltime()
+  let s:nerdtree_changed_paths = l:paths
+  return l:paths
+endfunction
+
+" NERDTree path filter: hide every path without changes while the filter is
+" on. Like g:NERDTreeIgnore, it is bypassed while NERDTree's own file filters
+" are off ('f' in the tree).
+function! s:NERDTreeChangedFilter(params) abort
+  if !get(g:, 'nerdtree_changed_only', 0)
+    return 0
+  endif
+  let l:paths = s:NERDTreeChangedPaths(a:params.nerdtree.root.path.str())
+  return type(l:paths) == v:t_dict && !has_key(l:paths, a:params.path.str())
+endfunction
+
+" Re-render the tree, expanding every directory with changes while the filter
+" is on.
+function! s:NERDTreeRenderChanged() abort
+  if !exists('g:NERDTree') || !g:NERDTree.IsOpen()
+    return
+  endif
+  let l:cmd = 'call b:NERDTree.render()'
+  if get(g:, 'nerdtree_changed_only', 0)
+    let l:cmd = 'silent call b:NERDTree.root.openRecursively() | ' . l:cmd
+  endif
+  call win_execute(win_getid(g:NERDTree.GetWinNum()), l:cmd)
+endfunction
+
+" Toggle showing only changed files in NERDTree. The diff base follows
+" <Leader>hb, so the tree shows either uncommitted changes or the full pull
+" request diff.
+function! NERDTreeToggleChangedOnly()
+  let g:nerdtree_changed_only = !get(g:, 'nerdtree_changed_only', 0)
+  call s:NERDTreeRenderChanged()
+  if g:nerdtree_changed_only
+    let l:base = get(g:, 'gitgutter_diff_base', '')
+    echo 'NERDTree: changed files only (vs '
+          \ . (empty(l:base) ? 'HEAD' : strpart(l:base, 0, 7)) . ')'
+  else
+    echo 'NERDTree: all files'
+  endif
+endfunction
+
+" NERDTree loads after this file, so register the filter once it exists.
+function! s:AddNERDTreeChangedFilter() abort
+  if !get(g:, 'nerdtree_changed_filter_added', 0)
+        \ && exists('*NERDTreeAddPathFilter')
+    call NERDTreeAddPathFilter(function('s:NERDTreeChangedFilter'))
+    let g:nerdtree_changed_filter_added = 1
+  endif
+endfunction
+
+augroup nerdtree-changed-only
+  autocmd!
+  autocmd VimEnter * call s:AddNERDTreeChangedFilter()
+augroup END
+if v:vim_did_enter
+  call s:AddNERDTreeChangedFilter()
+endif
+
+command! NERDTreeToggleChangedOnly call NERDTreeToggleChangedOnly()
+nnoremap <silent> <Leader>nc :NERDTreeToggleChangedOnly<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " nerdtree-git-plugin
