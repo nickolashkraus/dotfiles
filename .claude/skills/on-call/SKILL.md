@@ -23,7 +23,7 @@ allowed-tools: >
   mcp__datadog__search_datadog_logs,
   mcp__datadog__get_datadog_metric,
   mcp__claude_ai_Slack__slack_send_message
-argument-hint: "[--role leader|follower] [--dry-run] [--off-shift]"
+argument-hint: "[--role leader|follower] [--dry-run] [--off-shift] [--path <escalation-path-id>]"
 ---
 
 # On-Call
@@ -47,7 +47,14 @@ The loop is self-paced. Every tick ends with `ScheduleWakeup` at 60 seconds
 while Nickolas is on shift (the level timer is ten minutes, and a tick must
 never be the reason a page climbs), and 300 seconds otherwise, where the
 only work is the liveness check. `--off-shift` forces the 60-second cadence
-outside a shift, for drills.
+outside a shift, for drills. `--path <id>` watches a different escalation
+path instead of EP011, for the private test path used in drills; every
+other rule is unchanged, and pages on a test path count as on shift.
+`--path self` reads with `user: ["me"]` and no path filter, which catches
+pages sent straight to Nickolas by `escalation_create` in a drill. Every
+escalation is mirrored into `#incidents-escalations` with the on-call
+user tagged, so a synthetic drill is visible to the whole org; prefer
+`--dry-run --off-shift` against real traffic.
 
 ## Constants
 
@@ -134,6 +141,8 @@ is `triggered`:
   A page the leader already acked shows `acked` and is skipped.
 - **Dry run**: Log `would-ack` and do nothing.
 
+The `escalation_respond` response body is stale (it still reads
+`triggered`), so confirm with `escalation_show` before logging the ack.
 Record the result, including an error, in `pages.jsonl` and the shift log.
 If `escalation_respond` errors on a page that still targets Nickolas, retry
 once on this tick, then notify him: an unacked page is the one failure this
