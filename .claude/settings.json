@@ -3,12 +3,12 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1"
   },
-  "permissions": {
-    "defaultMode": "bypassPermissions"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "SessionStart": [
@@ -132,9 +132,16 @@
       }
     ]
   },
+  "outputStyle": "Concise",
   "feedbackSurveyRate": 0,
   "spinnerTipsEnabled": false,
   "syntaxHighlightingDisabled": false,
+  "spellcheck": {
+    "enabled": true,
+    "checker": "aspell",
+    "language": "en_US",
+    "color": "redBright"
+  },
   "effortLevel": "high",
   "modelSettings": {
     "claude-opus-5": {
@@ -142,20 +149,17 @@
     },
     "claude-opus-5-5": {
       "effortLevel": "xhigh"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
     }
   },
   "awaySummaryEnabled": false,
-  "outputStyle": "Concise",
   "tui": "fullscreen",
   "timeFormat": "24-hour",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
   "editorMode": "vim",
-  "spellcheck": {
-    "enabled": true,
-    "checker": "aspell",
-    "language": "en_US",
-    "color": "redBright"
-  },
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "model": "fable"
 }
