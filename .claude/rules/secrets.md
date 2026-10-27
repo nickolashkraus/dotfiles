@@ -85,10 +85,14 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
 - `stripe-prod`: Restricted key scoped for agents. Live mode, read-only.
   Never use this for write operations.
 - `stripe-prod-webhooks`: Restricted key scoped for agents. Live mode, scope
-  `webhook_endpoints:write` only. Use exclusively for managing
-  transaction-service webhook endpoint subscriptions; do not reach for this
-  when adding Live write capability for any other Stripe resource. Mint
-  a separate narrowly-scoped key instead.
+  `webhook_endpoints:write` only. Use exclusively for managing the event
+  subscriptions on the transaction-service and ppp-service webhook
+  endpoints (the latter is the Dhalia publisher,
+  `stripe-dhalia-webhook-publisher.partners.functionhealth.com`); do not
+  reach for this when adding Live write capability for any other Stripe
+  resource. Mint a separate narrowly-scoped key instead. An update replaces
+  `enabled_events` wholesale, so read the endpoint first and send the full
+  list plus the additions.
 - `stripe-prod-limited-write`: Restricted key scoped for agents. Live mode,
   read plus `subscriptions:write`, `coupons:write`, `promotion_code:write`,
   `products:write`, and `prices:write` (widened 2026-09-25 for the SuppCo
