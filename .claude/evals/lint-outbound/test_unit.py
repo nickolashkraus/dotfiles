@@ -678,6 +678,22 @@ def test_git_global_flags_before_commit() -> None:
     )
 
 
+def test_in_repo_path_prefixes() -> None:
+    section("is_in_repo_path: ~/w worktree links are in-repo")
+    home = Path.home()
+    for label, path, expected in [
+        ("~/w worktree link", f"{home}/w/dot/.claude/skills/x/SKILL.md", True),
+        ("real repo path", f"{home}/nickolashkraus/dotfiles/README.md", True),
+        ("/tmp PR body draft", "/tmp/pr-1-body.md", False),
+        ("~/wiki is not ~/w", f"{home}/wiki/page.md", False),
+    ]:
+        check(
+            f"{label}: in_repo={expected}",
+            lo.is_in_repo_path(path) is expected,
+            f"got {lo.is_in_repo_path(path)!r} for {path}",
+        )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -696,6 +712,7 @@ TESTS = [
     test_main_autofix_end_to_end,
     test_tool_attribution_footer,
     test_git_global_flags_before_commit,
+    test_in_repo_path_prefixes,
 ]
 
 

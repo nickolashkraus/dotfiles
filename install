@@ -526,17 +526,25 @@ check_dir_exists "${dotfiles}/.claude/rules" || exit 1
 check_dir_exists "${dotfiles}/.claude/skills" || exit 1
 check_file_exists "${dotfiles}/.claude/CLAUDE.md" || exit 1
 check_file_exists "${dotfiles}/.claude/settings.json" || exit 1
-mkdir -p "${HOME}/.claude"
-rm -rf "${HOME}/.claude/hooks" || true
-rm -rf "${HOME}/.claude/rules" || true
-rm -rf "${HOME}/.claude/skills" || true
-rm -f "${HOME}/.claude/CLAUDE.md" || true
-rm -f "${HOME}/.claude/settings.json" || true
-run ln -s "${dotfiles}/.claude/hooks" "${HOME}/.claude/hooks"
-run ln -s "${dotfiles}/.claude/rules" "${HOME}/.claude/rules"
-run ln -s "${dotfiles}/.claude/skills" "${HOME}/.claude/skills"
-run ln -s "${dotfiles}/.claude/CLAUDE.md" "${HOME}/.claude/CLAUDE.md"
-run ln -s "${dotfiles}/.claude/settings.json" "${HOME}/.claude/settings.json"
+# Two config directories share one harness. `~/.claude` is the personal
+# account (the default) and `~/.claude-fh` is the Function Health
+# Enterprise account, selected with `CLAUDE_CONFIG_DIR` by the `claude-fh`
+# shell function. Each directory keeps its own login, `.claude.json`,
+# projects, sessions and plugins; only the dotfiles-managed files below
+# are linked into both.
+for claude_dir in "${HOME}/.claude" "${HOME}/.claude-fh"; do
+  mkdir -p "${claude_dir}"
+  rm -rf "${claude_dir}/hooks" || true
+  rm -rf "${claude_dir}/rules" || true
+  rm -rf "${claude_dir}/skills" || true
+  rm -f "${claude_dir}/CLAUDE.md" || true
+  rm -f "${claude_dir}/settings.json" || true
+  run ln -s "${dotfiles}/.claude/hooks" "${claude_dir}/hooks"
+  run ln -s "${dotfiles}/.claude/rules" "${claude_dir}/rules"
+  run ln -s "${dotfiles}/.claude/skills" "${claude_dir}/skills"
+  run ln -s "${dotfiles}/.claude/CLAUDE.md" "${claude_dir}/CLAUDE.md"
+  run ln -s "${dotfiles}/.claude/settings.json" "${claude_dir}/settings.json"
+done
 
 # Wire `.claude/git-hooks/pre-commit` as the dotfiles repo's pre-commit
 # hook. Validates staged `.claude/` changes (YAML parse, JSON parse,

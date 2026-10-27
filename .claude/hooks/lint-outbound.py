@@ -1085,6 +1085,8 @@ IN_REPO_PREFIXES = tuple(
     f"{_HOME / name}/"
     for name in (
         ".claude",
+        ".claude-fh",
+        "w",
         "nickolashkraus",
         "Function-Health",
         "Function-Health-Terraform-Modules",

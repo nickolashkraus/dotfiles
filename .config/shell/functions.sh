@@ -193,3 +193,27 @@ gws() {
     ) GOOGLE_WORKSPACE_PROJECT_ID="$project" command gws "$@"
   fi
 }
+
+# Launch Claude Code on the Function Health Enterprise account. The account
+# lives in its own config directory (`~/.claude-fh`) so its login, sessions,
+# projects and connectors never mix with the personal account in `~/.claude`.
+# The harness (hooks, rules, skills, settings.json) is the same set of
+# dotfiles symlinks in both; see the Claude Code section of `install`.
+claude-fh() {
+  CLAUDE_CONFIG_DIR="${HOME}/.claude-fh" command claude --dangerously-skip-permissions "$@"
+}
+
+# Show which account each Claude Code config directory is logged into.
+claude-accounts() {
+  local dir cfg
+  for dir in "${HOME}/.claude" "${HOME}/.claude-fh"; do
+    cfg="${dir}/.claude.json"
+    [[ "$dir" == "${HOME}/.claude" ]] && cfg="${HOME}/.claude.json"
+    if [[ -f "$cfg" ]]; then
+      printf '%s: ' "$dir"
+      python3 -c "import json,sys; a=json.load(open(sys.argv[1])).get('oauthAccount') or {}; print(a.get('emailAddress','(not logged in)'), '|', a.get('organizationName',''))" "$cfg"
+    else
+      printf '%s: (not logged in)\n' "$dir"
+    fi
+  done
+}

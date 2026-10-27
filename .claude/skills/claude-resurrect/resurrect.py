@@ -18,7 +18,9 @@ import json
 import os
 import sys
 
-PROJECTS = os.path.expanduser("~/.claude/projects")
+PROJECTS = os.path.join(
+    os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects"
+)
 
 # User messages that are not genuine turns (harness/hook/skill-runner noise).
 _NOISE_PREFIXES = ("<", "Caveat", "[SYSTEM NOTIFICATION")
