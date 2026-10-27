@@ -107,7 +107,7 @@ cask "linear"
 cask "notion"
 cask "obsidian"
 cask "slack"
-cask "todoist-app"
 
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
+mas "Todoist", id: 585829637
