@@ -30,6 +30,10 @@ alias gcp='git log -1 --pretty=%B | pbcopy'
 alias gp='git push origin $(git branch --show-current)'
 alias k='kubectl'
 alias tf='terraform'
+# Local tmux 3.8 build that synchronizes popup redraws, which stops the cursor
+# blinking in popups. Drop it once upstream tmux ships the same change; the
+# patch is ~/.local/src/tmux-3.8-overlay-sync.patch.
+alias tmux='$HOME/.local/tmux-3.8-sync-install/bin/tmux'
 alias tmux-config='vim $XDG_CONFIG_HOME/tmux/tmux.conf'
 alias tmux-kill='tmux kill-server'
 alias tmux-restore='tmux start-server \; run-shell "$HOME/.local/share/tmux/plugins/tmux-resurrect/scripts/restore.sh"'
