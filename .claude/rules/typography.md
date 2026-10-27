@@ -13,7 +13,13 @@
   `` `foo` ``, numbers like `5min`, URLs) are naturally exempt because there is
   no letter to capitalize. Conventional-commit subject lines
   (`fix(rules): flag x`) are exempt; the spec lowercases both the type and the
-  description (see rules/git.md).
+  description (see rules/git.md). Messages a script prints (errors, warnings,
+  status lines and prompts) are exempt and follow the GNU convention instead:
+  `prog: message` (errors and prompts on stderr), lowercase unless the first
+  word is a proper noun or an identifier, no trailing period, and no `ERROR:`
+  label or color
+  (`pr-body: checking spelling and facts (Sonnet call)...`,
+  `pr-body: push this description to #12? [y/N]`).
 - Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
   or ` — ` as the lead-in separator.
 - Write "ID" in prose, never "id" or "Id". Code references in backticks keep
