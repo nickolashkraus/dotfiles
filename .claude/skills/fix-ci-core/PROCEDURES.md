@@ -91,6 +91,17 @@ than committing a no-op or closing/reopening the PR.
   next push to the branch, or the user can click "Re-run" in the GitHub UI. If
   the failure is a GitHub-side infra blip and the check is not in the required
   ruleset, report it rather than manufacturing a push.
+- **No Actions run on the head commit at all**: A force-push seconds after
+  a prior push can leave the head with no GitHub Actions check suite, so
+  nothing exists to rerun. Confirm with
+  `gh api repos/{owner}/{repo}/commits/<sha>/check-suites`. Only a new head
+  fixes it; a clean rebase onto a base the branch is behind is legitimate,
+  but it is a force-push, so ask first.
+- **CodeQL alerts resurfaced by a whole-file rewrite**: A line-ending or
+  formatting change can flag alerts already open on the base, because every
+  line on their data-flow path changed. Match rule and location against
+  `code-scanning/alerts?ref=refs/heads/<base>` before treating them as new;
+  clearing a base-branch alert (fix or dismiss) is the user's call.
 - **External check (e.g., Google Cloud Build)**: `gh run rerun` does not
   apply. First try GitHub's check-run rerequest:
   `gh api -X POST repos/{owner}/{repo}/check-runs/<check-run-id>/rerequest`.
@@ -108,6 +119,11 @@ than committing a no-op or closing/reopening the PR.
 **IMPORTANT**: Every check must pass, including non-required ones.
 A non-blocking failure is still a failure and must be cleared, not
 documented around.
+
+The one exception is `pulse-review` failing with the title "Owner approval
+required". That is the risk-tier gate (medium-high and above), not a
+finding, and no commit clears it. Once its review shows zero critical and
+zero should-fix, report the tier and the owning team and stop.
 
 **IMPORTANT**: Never close and reopen a PR to retrigger CI. It rewrites
 timestamps, fires PR-lifecycle webhooks with side effects, and leaves the
@@ -337,6 +353,11 @@ gh pr comment <pr-number> --body '## Bot Review Findings
 
 This summary is in addition to the individual replies already posted on
 each bot comment thread.
+
+On a later round, update the existing summary comment in place
+(`gh api -X PATCH repos/{owner}/{repo}/issues/comments/<id> -F
+body=@/tmp/pr-<pr-number>-summary.md`) and continue the numbering, so the
+PR carries one table rather than one per round.
 
 ### Canonical Fixed/Dismissed template
 

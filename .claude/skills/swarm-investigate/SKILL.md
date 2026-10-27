@@ -185,6 +185,13 @@ push. Subject per rules/git.md (capitalized, imperative, <=50 chars), e.g.
 `"swarm-investigate: {slug}"` form violates the commit-subject rules and the
 lint hooks will reject it.
 
+The user may narrow this at the approval gate. On 2026-10-21 (INC-8427) he
+asked for `final.md` only, directly on master: copy it into the master
+worktree at the same artifact path, drop any line that points at artifacts
+left behind (e.g. "Full agent analyses: `analysis.md`"), `git add` and commit
+that one path so other sessions' dirty files stay out, and push. Leave the
+worktree in place and say so; deleting it discards the other artifacts.
+
 If a Linear issue exists (or `--linear` was provided), post the findings as a
 **comment** on the issue (never overwrite the description) containing an inline
 summary of the report: root cause, scope, and recommended actions. Never link

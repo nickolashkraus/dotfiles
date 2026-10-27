@@ -44,6 +44,11 @@ Classify every check as **pass**, **fail**, or **pending**.
 - If any checks have **failed**, go to Step 3.
 - If all checks **pass**, go to Step 4.
 
+A failing `pulse-review` titled "Owner approval required" is an approval
+gate, not a CI failure; it flips to pass when a code owner approves. `gh pr
+checks` can keep showing the stale failure, so read the head commit's check
+runs (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) instead.
+
 ## Step 3: Summarize failures
 
 For each failed check, report:
@@ -70,6 +75,10 @@ Do not proceed until the user explicitly approves (e.g., "yes", "approved",
 ## Step 5: Deploy
 
 If no deploy script was provided, tell the user all checks pass and stop.
+When the user asked to merge and ship instead, check whether the PR already
+merged (`gh pr view --json state,mergedBy`), squash-merge it if not, and
+hand the Prod deploy to the `devhub` skill for EasyDeploy-managed services
+(e.g. ppp-service), or `release-trunk` only for tag-triggered repos.
 
 If a deploy script was provided:
 

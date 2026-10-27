@@ -72,9 +72,18 @@ branch and push:
 
 ```bash
 git -C ~/nickolashkraus/agent-os/{slug} add -A
-git -C ~/nickolashkraus/agent-os/{slug} commit -m "swarm-<name>: {slug}"
+git -C ~/nickolashkraus/agent-os/{slug} commit -F -
 git -C ~/nickolashkraus/agent-os/{slug} push -u origin {slug}
 ```
+
+The subject follows `@~/.claude/rules/git.md` like any other commit:
+capitalized, imperative, 50 characters or less, no trailing period, and no
+`swarm-<name>:` prefix. A literal `-m "swarm-research: {slug}"` is rejected
+by `hooks/rule-check.py`, which also rejects a body carrying process
+narration (draft counts, review rounds, agent counts) or investigation
+evidence (row counts, rates, timestamps). Keep the body to what a reader of
+`git log` needs: the findings and why they matter. The swarm's identity is
+already in the artifact path, so it does not belong in the subject.
 
 For Bug and Feature swarms, the code PR happens in the code worktree
 (separate from the agent-os artifacts), per the skill body.

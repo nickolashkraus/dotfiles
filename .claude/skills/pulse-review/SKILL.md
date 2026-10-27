@@ -137,7 +137,9 @@ Three reasons:
   low or medium. At medium-high and above the check reports `failure` with
   "Owner approval required" and needs a named owner, however clean the
   findings are. Read `summary.risk` in the JSON before spending anything on
-  convergence.
+  convergence. The local JSON can omit `risk` entirely (observed on a clean
+  zero-finding run); then report the tier as unknown until the PR check
+  posts it, rather than inferring one.
 - **Iterating generates work.** A local finding can ask for code that the CI
   run then flags as a violation of a different rule, so the fix is written and
   then removed. One rule pack does not know what another asked for, and a
