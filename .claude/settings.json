@@ -10,6 +10,7 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -160,6 +161,5 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",
   "editorMode": "vim",
-  "agentPushNotifEnabled": true,
-  "model": "fable"
+  "agentPushNotifEnabled": true
 }
