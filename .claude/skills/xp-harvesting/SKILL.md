@@ -110,12 +110,12 @@ for attempt in 1 2 3; do
   head=$(gh pr view $PR -R $R --json headRefOid -q .headRefOid)
   for i in $(seq 1 60); do
     out=$(gh pr view $PR -R $R --json statusCheckRollup,mergeStateStatus,headRefOid)
-    [ "$(echo "$out" | jq -r .headRefOid)" != "$head" ] && break
-    pending=$(echo "$out" | jq '[.statusCheckRollup[]|select((.status // "COMPLETED")!="COMPLETED" or (.state // "")=="PENDING")]|length')
-    bad=$(echo "$out" | jq '[.statusCheckRollup[]|select(((.name // .context)|test("pr-plan-prod")) and (.conclusion=="ACTION_REQUIRED")|not)|select((.conclusion // .state) as $c|["FAILURE","ERROR","CANCELLED","TIMED_OUT","ACTION_REQUIRED"]|index($c))]|length')
-    pulse=$(echo "$out" | jq -r '[.statusCheckRollup[]|select((.name // .context)=="pulse-review")|(.conclusion // .state)]|first // "none"')
-    ms=$(echo "$out" | jq -r .mergeStateStatus)
-    [ "$bad" != "0" ] && { echo "attempt $attempt: failing checks"; echo "$out" | jq -r '.statusCheckRollup[]|"\(.name // .context)=\(.conclusion // .state)"'; exit 1; }
+    [ "$(printf '%s\n' "$out" | jq -r .headRefOid)" != "$head" ] && break
+    pending=$(printf '%s\n' "$out" | jq '[.statusCheckRollup[]|select((.status // "COMPLETED")!="COMPLETED" or (.state // "")=="PENDING")]|length')
+    bad=$(printf '%s\n' "$out" | jq '[.statusCheckRollup[]|select(((.name // .context)|test("pr-plan-prod")) and (.conclusion=="ACTION_REQUIRED")|not)|select((.conclusion // .state) as $c|["FAILURE","ERROR","CANCELLED","TIMED_OUT","ACTION_REQUIRED"]|index($c))]|length')
+    pulse=$(printf '%s\n' "$out" | jq -r '[.statusCheckRollup[]|select((.name // .context)=="pulse-review")|(.conclusion // .state)]|first // "none"')
+    ms=$(printf '%s\n' "$out" | jq -r .mergeStateStatus)
+    [ "$bad" != "0" ] && { echo "attempt $attempt: failing checks"; printf '%s\n' "$out" | jq -r '.statusCheckRollup[]|"\(.name // .context)=\(.conclusion // .state)"'; exit 1; }
     if [ "$pending" = "0" ] && [ "$pulse" = "SUCCESS" ]; then
       [ "$ms" = "BEHIND" ] && { echo "attempt $attempt: behind at green"; break; }
       sleep 30
@@ -151,6 +151,9 @@ What the loop encodes:
   rather than trusting the approval. Fix it with an amended commit; the old
   thread goes outdated and the loop ignores it. The `sleep 30` gives Pulse
   time to post inline comments after its check turns green.
+- **`printf`, not `echo`**: The Bash tool runs zsh, whose `echo` expands
+  the `\n` escapes inside JSON strings, and `jq` then rejects the control
+  characters. Pipe captured `gh` JSON through `printf '%s\n'`.
 - **Stale quotes in docs**: When a doc quotes a message whose content is
   now wrong, correct the quote and add a note that it was updated. A note
   beside an untouched stale quote still reads as contradictory guidance,
