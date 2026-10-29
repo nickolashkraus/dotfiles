@@ -36,6 +36,10 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
 - Subject line: 50 characters or less, capitalized, imperative mood, no period.
 - Body (optional): Wrap at 72 characters, explain what and why.
 - No co-authored-by or signature lines.
+- Write body bullets as plain phrases, not `Label: text`. The commit hooks
+  flag label-colon bullets (lint-outbound demands a capital after the colon,
+  and rule-check then flags the capitalized form too), which blocks the
+  commit.
 
 If there is a Linear issue, prefix the subject line with it (e.g.,
 `EPD-1337: Fix bug in user login flow`).
