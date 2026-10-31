@@ -150,7 +150,14 @@ What the loop encodes:
   inline should-fix comment, so the loop checks for open review threads
   rather than trusting the approval. Fix it with an amended commit; the old
   thread goes outdated and the loop ignores it. The `sleep 30` gives Pulse
-  time to post inline comments after its check turns green.
+  time to post inline comments after its check turns green. When the
+  finding is a docstring that overstates behavior, weaken or drop the
+  claim instead of listing every branch: enumerating early returns on
+  transaction-service #2286 drew a second finding about the ones missed.
+- **Infra failures**: A check that dies before running (a registry 404
+  while installing dependencies, say) is transient when the same workflow
+  passes on other PRs. `gh run rerun <run> --failed`, then restart the
+  loop.
 - **`printf`, not `echo`**: The Bash tool runs zsh, whose `echo` expands
   the `\n` escapes inside JSON strings, and `jq` then rejects the control
   characters. Pipe captured `gh` JSON through `printf '%s\n'`.
