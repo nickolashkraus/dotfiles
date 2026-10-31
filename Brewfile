@@ -110,7 +110,12 @@ cask "slack"
 
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
-# /Applications/Todoist.app is the App Store build (it has a
-# Contents/_MASReceipt). The cask would need sudo to adopt it and fails in
-# unattended runs. Check the receipt before switching this back to the cask.
-mas "Todoist", id: 585829637
+# One Mac has the App Store build of Todoist (it has a Contents/_MASReceipt)
+# and the other has the direct download that brew records as todoist-app.
+# Managing either one through the other source tries to adopt a root-owned
+# app, which needs sudo and fails in unattended runs, so follow the receipt.
+if File.exist?("/Applications/Todoist.app/Contents/_MASReceipt")
+  mas "Todoist", id: 585829637
+else
+  cask "todoist-app"
+end
