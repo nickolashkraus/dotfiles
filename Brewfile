@@ -107,7 +107,10 @@ cask "linear"
 cask "notion"
 cask "obsidian"
 cask "slack"
-cask "todoist-app"
 
 mas "Fantastical", id: 975937182
 mas "Gifox", id: 1461845568
+# /Applications/Todoist.app is the App Store build (it has a
+# Contents/_MASReceipt). The cask would need sudo to adopt it and fails in
+# unattended runs. Check the receipt before switching this back to the cask.
+mas "Todoist", id: 585829637
