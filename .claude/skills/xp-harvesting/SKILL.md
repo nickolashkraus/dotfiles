@@ -71,7 +71,12 @@ Spawn one `general-purpose` agent per repo in a single message, named
   member-journey-services, run pytest under `env -u XDG_CONFIG_HOME`: the
   release-gate tests move `HOME` but not `XDG_CONFIG_HOME`, so their
   `git config --global` writes otherwise land in the real
-  `~/.config/git/config`, which is tracked in dotfiles.
+  `~/.config/git/config`, which is tracked in dotfiles. In
+  membership-service, pytest needs
+  `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/libpq/lib` and
+  `--postgresql-exec=/opt/homebrew/opt/postgresql@17/bin/pg_ctl` (the
+  config points at CI's Linux `pg_ctl`), and must keep the cache plugin,
+  since pytest-xprocess errors under `-p no:cacheprovider`.
 - **Commit and PR**: Imperative subject, 50 characters or fewer, no
   attribution. PR title matches; body is one or two sentences opening with
   a declarative verb.
@@ -137,7 +142,10 @@ What the loop encodes:
   to 30 minutes, and checks take about 10, so a PR can fall behind at green
   more than once. The loop rebases and retries up to three times; restart it
   if all three lose the race. Merging one PR in a strict repo puts its
-  siblings behind, which the loop handles the same way.
+  siblings behind, which the loop handles the same way. Right after a base
+  merge, `mergeStateStatus` reads `UNKNOWN` rather than `BEHIND`, so a loop
+  that waits on a base fix should run `gh pr update-branch` unconditionally
+  once the fix merges, or it judges the stale checks.
 - **Prod plan gates**: A Cloud Build `*-pr-plan-prod` check sitting at
   `ACTION_REQUIRED` is a manual approval gate, not a failure, and is not
   required. Prior PRs merged past it.
@@ -149,15 +157,24 @@ What the loop encodes:
 - **Approved with a should-fix**: Pulse can approve and still leave an
   inline should-fix comment, so the loop checks for open review threads
   rather than trusting the approval. Fix it with an amended commit; the old
-  thread goes outdated and the loop ignores it. The `sleep 30` gives Pulse
-  time to post inline comments after its check turns green. When the
-  finding is a docstring that overstates behavior, weaken or drop the
-  claim instead of listing every branch: enumerating early returns on
-  transaction-service #2286 drew a second finding about the ones missed.
+  thread goes outdated and the loop ignores it, but resolve it anyway
+  (`resolveReviewThread`). An outdated, unresolved thread kept
+  transaction-service #2286 `BLOCKED` ("base branch policy prohibits the
+  merge") for four days, though no visible rule requires resolution. The
+  `sleep 30` gives Pulse time to post inline comments after its check
+  turns green. When the finding is a docstring that overstates behavior,
+  weaken or drop the claim instead of listing every branch: enumerating
+  early returns on transaction-service #2286 drew a second finding about
+  the ones missed.
 - **Infra failures**: A check that dies before running (a registry 404
   while installing dependencies, say) is transient when the same workflow
   passes on other PRs. `gh run rerun <run> --failed`, then restart the
-  loop.
+  loop. member-app-middleware's `fh-pypi-gateway` 404s in `Install
+  dependencies` hit four checks in one afternoon, so for that repo have the
+  loop rerun failures confined to the install steps (`gh run view <run>
+  --json jobs`) a few times before exiting. When the same failures show
+  on the base branch's push runs, the base is broken: gate the loop on the
+  base's latest push run going green instead of rerunning.
 - **`printf`, not `echo`**: The Bash tool runs zsh, whose `echo` expands
   the `\n` escapes inside JSON strings, and `jq` then rejects the control
   characters. Pipe captured `gh` JSON through `printf '%s\n'`.
@@ -181,7 +198,9 @@ After the user agrees, remove each worktree the sweep created:
 2. `git -C <worktree> cherry origin/<base> HEAD` must print only `-` lines.
    A rebase done through `gh pr update-branch` rewrites the remote branch
    and leaves the old commit locally, so it shows as unpushed even though
-   its change is on the base.
+   its change is on the base. A `+` can also appear when later commits on
+   the base touch the same lines, which changes the patch ID; if the local
+   `HEAD` equals the merged PR's `headRefOid`, it is safe to remove.
 3. `git -C ~/Function-Health/<repo> worktree remove <worktree>`, never
    `--force`.
 4. `git branch -D <branch>` for merged PRs only. Keep a closed PR's branch
