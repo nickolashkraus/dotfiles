@@ -162,6 +162,10 @@ set colorcolumn=80
 " Start editing with all folds open.
 set foldlevelstart=99
 
+" Start diffs (e.g., :Gdiffsplit) with all folds open. Diff mode resets
+" 'foldlevel' to 0, so a large context leaves no unchanged lines to fold.
+set diffopt+=context:99999
+
 " Reload buffers changed outside Vim (e.g., by Claude Code). A timer checks
 " the current buffer every second in Normal mode, and every buffer is checked
 " on focus and on buffer switch. A buffer with unsaved changes is never
