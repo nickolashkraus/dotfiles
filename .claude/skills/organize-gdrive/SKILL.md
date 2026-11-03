@@ -2,18 +2,19 @@
 name: organize-gdrive
 description: >
   Audit and reorganize a Google Drive: inventory the tree, find dead
-  shortcuts and duplicates, group recurring meeting notes into per-event
-  folders, and reconcile agent-os manifest Drive IDs against what is
-  actually there. TRIGGER when: user says "organize my Drive", "clean up
-  Google Drive", "is my Drive organized", asks to file meeting notes, or
-  asks to check that manifest Drive paths are current.
+  shortcuts and duplicates, file meeting notes into their project or team
+  folders, normalize meeting titles, and reconcile agent-os manifests
+  against what is actually there. TRIGGER when: user says "organize my
+  Drive", "clean up Google Drive", "is my Drive organized", asks to file
+  or rename meeting notes, or asks to check that manifest Drive paths are
+  current.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, mcp__claude_ai_Google_Drive__*
 argument-hint: "[account]"
 ---
 
 You are auditing and reorganizing a Google Drive. Work in the order below.
-Never skip Step 5; a mutation is not done until it is verified through a
+Never skip Step 6; a mutation is not done until it is verified through a
 path independent of the tool that made it.
 
 ## Access Model
@@ -29,6 +30,11 @@ Two tools, two jobs. Do not substitute one for the other.
   403s. Do not try to widen that scope; see
   @~/.claude/rules/function-health.md and the standing memory. The
   connector is bound to the FH account and does write.
+
+`gws` is a shell function, not a binary on `PATH`. Call it from Bash. A
+Python `subprocess` call to `gws` skips the wrapper, authenticates as
+something else, and returns `{"files":[]}` with exit 0, which reads as an
+empty folder rather than an error.
 
 What the connector can do:
 
@@ -73,7 +79,8 @@ before any JSON parse, or the decode fails at char 0.
 
 Build a path helper from `parents[0]` and print the tree, collapsing any
 folder with more than about eight leaf files so the output stays
-readable.
+readable. Folder names contain `/` (`TS/PPP/Checkout`), so join path
+segments with ` > ` rather than `/`.
 
 ## Step 2: Health Audit
 
@@ -83,12 +90,17 @@ result the user wants.
 - **Dead shortcuts**: Resolve every `shortcutDetails.targetId`. A cached
   `targetMimeType` does NOT prove the target still exists, so fetch each
   one.
-- **Name drift**: Shortcut name against the live target name.
+- **Name drift**: Shortcut name against the live target name, after
+  normalizing both with the Step 4 title rule. Shortcuts are renamed on
+  purpose, so only a difference in the event name or date is drift.
 - **Duplicate names** and **duplicate shortcut targets** (two shortcuts
   to one doc).
 - **Empty folders**, **orphans**, **multi-parent items**.
 - **External exposure**: Any permission with `type: anyone`, a
   non-company `emailAddress`, or a foreign `domain`.
+- **Projects without a local project**: Every folder under `Projects`
+  and `Teams` needs an agent-os `manifest.yaml` whose `gdrive.root` is
+  that folder (Step 7 runs the match).
 
 For the per-file fan-out, mint a token once and use threads. A raw
 `curl`/`urllib` call against `drive.googleapis.com` with an ADC token
@@ -108,16 +120,20 @@ That 403 is not a permissions problem. Do not report it as one.
 Treat a hub doc sharing its folder's name (a `PPP Service` shortcut
 inside the `PPP Service` folder) as intentional, not a duplicate.
 
-## Step 3: Group Recurring Meetings
+## Step 3: Place Meetings
 
-The organizing rule: **one folder per recurring event, named with the
-event name, living inside the project or team folder that owns it.**
+Every dated meeting item has exactly one home:
 
-Group by the series name with the trailing date, time, and
-`Notes by Gemini` / `Recording` suffix stripped. Then apply:
+| Meeting                                | Home                                          |
+| -------------------------------------- | --------------------------------------------- |
+| Series with 3+ distinct dates          | `<Project or Team>/<Event>` folder            |
+| One-off that belongs to a project/team | Directly in that project or team folder       |
+| One-off with no project (1:1s, ad hoc) | `Google Meet/Meeting Notes`                   |
 
-- **Include** a series with **three or more distinct dates**. Below that
-  a folder is noise.
+Group by the series name with the date, the time, the `- 1`/`- 2`
+same-day label, and the `Notes by Gemini`/`Recording` suffix stripped.
+Then apply:
+
 - **Count distinct dates, not items.** Notes plus Recording of one
   meeting is one date and is not a series. A duplicate shortcut in two
   folders is also one date.
@@ -125,37 +141,86 @@ Group by the series name with the trailing date, time, and
   titles (`... (Bi-Weekly)`, `... (Bi-Weekly) - Amit hosting`, and the
   bare name). Fold them together and name the folder after the dominant
   title.
-- **Exclude** Gemini's generic `Meeting started ...`, which is one title
-  covering unrelated meetings.
+- **`Meeting started ...` is not a series.** Gemini uses that one title
+  for unrelated meetings. Rename each one (Step 4), then place it as a
+  one-off.
 - **Leave standing hub docs at the project level.** A `Notes - <Event>`
   running-notes doc is not a dated instance; burying it among the
   instances makes it harder to find.
-- **Skip** a series already in its own folder.
+- **Skip** a series already in its own folder in the right project.
+- **Flatten one-off meeting folders.** A folder holding a single
+  meeting's notes and recording is clutter: move its items up into their
+  home and trash the emptied folder.
+- **Empty Meet's auto folders.** Meet creates
+  `Google Meet/<Event> (recurring)` and per-meeting folders and drops new
+  shortcuts there. Move every item out to its home, then trash each
+  emptied subfolder. Meet recreates one when the next meeting runs. Never
+  trash `Google Meet` itself or `Google Meet/Meeting Notes`.
+- **Duplicate shortcuts**: Keep the copy in the item's home per the table
+  above and trash the other.
 
 Surface every judgment call in the final report, especially the series
-you excluded and why.
+you excluded and why, and any one-off whose project was a guess.
 
-## Step 4: Execute
+## Step 4: Normalize Meeting Titles
 
-Create folders first, then move. Issue `update_file` calls several per
-message so they run concurrently; the connector has no batch endpoint and
-a large regrouping runs to dozens of calls.
+Rename every dated meeting item the user owns (shortcuts, Gemini notes
+docs and recordings) to `<Event> - YYYY/MM/DD`, and
+`<Event> - YYYY/MM/DD - Recording` for a recording:
 
-Before the first move, confirm the whole move set is objects the user
-owns. Dump the id-to-destination list to the scratchpad so a crash
-mid-run is recoverable.
+- **Drop**: The time, the time zone (including `GMT-03:00` offsets, so
+  match `GMT[+-]HH:MM` before a bare `[A-Z]{2,5}` zone), and
+  `Notes by Gemini` in either the `- Notes by Gemini` or
+  `[Notes by Gemini]` form.
+- **Insert** ` - ` before the date when Gemini left it out
+  (`PPP Service | EasyDeploy 2026/08/19`).
+- **Same-day meetings**: When two meetings of one series fall on the same
+  day, label them `<Event> - YYYY/MM/DD - 1` and `- 2` in time order.
+  Read the order from the old titles' times, or from `createdTime` when a
+  title has none.
+- **Generic titles**: Rename `Meeting started ...` to a descriptive event
+  name taken from the notes' summary.
 
-## Step 5: Verify
+Before renaming, check the plan for collisions within one folder; a
+collision is a same-day pair that needs the `- 1`/`- 2` label.
+
+Renaming a doc the user owns changes its title for every attendee;
+renaming a shortcut changes only the user's Drive. Both are approved.
+Meet keeps writing new items with the time, so run this on every pass.
+
+## Step 5: Execute
+
+Create folders first, then move, then rename, then trash. Issue
+`update_file` calls about 20 per message so they run concurrently; the
+connector has no batch endpoint.
+
+Before the first call, confirm the whole move set is objects the user
+owns. Dump the id-to-change lists (moves, renames, trashes) to the
+scratchpad so a crash mid-run is recoverable.
+
+Each connector call echoes the full file object, so a run past about 40
+calls floods the context. Hand the remaining list to a background agent
+with the scratchpad file path, the exact tool and arguments allowed
+(`fileId` plus `title`, or `fileId` plus `parentId`), and a results file
+to append to. Verify its work yourself in Step 6.
+
+Trash only what Step 3 marks for trash, and only after re-listing the
+folder and confirming it is empty.
+
+## Step 6: Verify
 
 Never trust the connector's own response echo. Re-read through `gws` or
-the Drive API and assert two things:
+the Drive API and assert:
 
 1. Each destination folder holds the expected count.
 2. Each moved ID has the intended `parents[0]` and is not trashed.
+3. Each renamed ID has the intended title, and no owned item still
+   carries a time or `Notes by Gemini`.
+4. Each trashed ID reports `trashed: true`.
 
 Report the ratio (`80 / 80 landed`), not a claim that it worked.
 
-## Step 6: Reconcile agent-os Manifests
+## Step 7: Reconcile agent-os Manifests
 
 Each team and project under `~/nickolashkraus/agent-os/master/domains/`
 has a `manifest.yaml` whose `gdrive` block carries a `root` folder ID,
@@ -165,14 +230,22 @@ an optional `folders` list, and `docs`/`sheets` entries. Discover them:
 find domains -name manifest.yaml
 ```
 
-Extract every long ID from the `gdrive` block of each manifest, resolve
+Extract every Drive ID from the `gdrive` block of each manifest, resolve
 each against the live Drive, and report anything that 404s or comes back
-trashed. Then:
+trashed. Skip the `local:` keys, which hold repo paths that can look
+like IDs. Then:
 
-- Repoint a `root` whose folder was trashed or renamed away.
+- Repoint a `root` whose folder was trashed or merged away.
 - Delete keys pointing at files that no longer exist.
 - Add a `folders:` entry for each new event folder from Step 3, with a
   one-line `note` giving the date range.
+- Report every `Projects` or `Teams` folder that no manifest's
+  `gdrive.root` points at, and offer to create the local project. Do not
+  create one unasked.
+
+Leave a manifest `name:` that mirrors a doc someone else owns as it is;
+only the user's shortcut to it was renamed, so the doc's real title still
+carries the time.
 
 **A 404 on the `function` profile does not mean the ID is dead.** Check
 the entry's `profile:` key first. A `profile: personal` resource lives in
@@ -196,8 +269,9 @@ it by hand on each changed file (see the linting note in
 ## Reporting
 
 Lead with the counts and the clean checks, then the findings, then the
-judgment calls. Name what you deliberately did not do. Do not trash
-anything the user did not ask you to trash; surface it and offer.
+judgment calls. Name what you deliberately did not do.
 
-`Meeting Notes` and `Google Meet` are auto-drop folders that Gemini and
-Meet write into and recreate. An empty `Google Meet` is not a leftover.
+The trashes in Step 3 (emptied Meet subfolders, flattened one-off
+folders, duplicate shortcuts) are standing approvals. Anything else, such
+as an empty project folder or a stale doc, is surfaced and offered, never
+trashed unasked.
