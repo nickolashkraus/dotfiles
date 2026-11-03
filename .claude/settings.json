@@ -1,7 +1,8 @@
 {
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1"
+    "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1",
+    "CLAUDE_CODE_ENABLE_CFC": "1"
   },
   "attribution": {
     "commit": "",
