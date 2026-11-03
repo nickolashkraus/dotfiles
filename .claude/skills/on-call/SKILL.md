@@ -43,30 +43,30 @@ Run one loop per machine, with distinct roles:
 /loop /on-call --dry-run           # log what would happen, ack nothing
 ```
 
-The loop is self-paced. Every tick ends with `ScheduleWakeup` at 60 seconds
-while Nickolas is on shift (the level timer is ten minutes, and a tick must
-never be the reason a page climbs), and 300 seconds otherwise, where the
-only work is the liveness check. `--off-shift` forces the 60-second cadence
-outside a shift, for drills. `--path <id>` watches a different escalation
-path instead of EP011, for the private test path used in drills; every
-other rule is unchanged, and pages on a test path count as on shift.
-`--path self` reads with `user: ["me"]` and no path filter, which catches
-pages sent straight to Nickolas by `escalation_create` in a drill. Every
-escalation is mirrored into `#incidents-escalations` with the on-call
+`--role` defaults to `leader`. The loop is self-paced. Every tick ends with
+`ScheduleWakeup` at 60 seconds while Nickolas is on shift (the level timer is
+ten minutes, and a tick must never be the reason a page climbs), and 300
+seconds otherwise, where the only work is the liveness check. `--off-shift`
+forces the 60-second cadence outside a shift, for drills. `--path <id>` watches
+a different escalation path instead of EP011, for the private test path used in
+drills; every other rule is unchanged, and pages on a test path count as on
+shift. `--path self` reads with `user: ["me"]` and no path filter, which
+catches pages sent straight to Nickolas by `escalation_create` in a drill.
+Every escalation is mirrored into `#incidents-escalations` with the on-call
 user tagged, so a synthetic drill is visible to the whole org; prefer
 `--dry-run --off-shift` against real traffic.
 
 ## Constants
 
-| Name            | Value                                  |
-| --------------- | -------------------------------------- |
-| Path            | `01KNJ8X5TEDYMKF4KHN8PFMWV4` (`EP011`) |
-| Schedule        | `01KNJ9SEX49XSC6SB6A47JV50F`           |
-| Me              | `01K62P0TBPYTRRP4NHV70VA3RD`           |
-| Follower delay  | 90 seconds after `created_at`          |
-| Lookback        | 2 hours                                |
-| Outage check    | 3 minutes, in a subagent               |
-| State directory | `~/.local/state/on-call/`              |
+| Name            | Value                                    |
+| --------------- | ---------------------------------------- |
+| Path            | `01KNJ8X5TEDYMKF4KHN8PFMWV4` (`EP011`)   |
+| Schedule        | `01KNJ9SEX49XSC6SB6A47JV50F`             |
+| Me              | `01K62P0TBPYTRRP4NHV70VA3RD`             |
+| Follower delay  | 90 seconds after the target `started_at` |
+| Lookback        | 2 hours                                  |
+| Outage check    | 3 minutes, in a subagent                 |
+| State directory | `~/.local/state/on-call/`                |
 
 State is machine-local and never committed: `heartbeat` (one line, the last
 successful tick in RFC 3339), `pages.jsonl` (one line per page the machine
@@ -124,8 +124,10 @@ Call `escalation_list` with `escalation_path: [path]`, `created_after` set
 to now minus the lookback, `status: ["pending", "triggered", "acked",
 "pending_repeat"]`, and `page_size: 50`. Resolved and canceled pages are
 history, not work, so leave them out. Diff the result against
-`pages.jsonl`: anything not seen before is new, anything seen whose status
-changed is an update.
+`pages.jsonl`: anything not seen before is new, anything seen whose `status`
+or `paged_users` changed is an update. A climb to the next level leaves
+`status` at `triggered` (transition reason `level_timeout`) and adds the new
+target to `paged_users`, so a status-only diff never sees the hand-off.
 
 Do not use `incident_list` or `incident_show` in the hot path; both have
 failed schema validation on some days. `escalation_list` has not.
@@ -136,13 +138,18 @@ For each page where `you.paged` is true, `you.acked` is false, and `status`
 is `triggered`:
 
 - **Leader**: Call `escalation_respond` with `ack` now.
-- **Follower**: Call it only if `created_at` is more than the follower delay
-  in the past and the page is still `triggered` on a fresh `escalation_show`.
-  A page the leader already acked shows `acked` and is skipped.
+- **Follower**: Call it only if Nickolas's target `started_at` (from
+  `targets[]` on a fresh `escalation_show`) is more than the follower delay
+  in the past and the page is still `triggered`. A page the leader already
+  acked shows `acked` and is skipped. `created_at` is the wrong clock: on a
+  Backup week a page targets Nickolas only after the Primary level times
+  out, about eleven minutes after creation, so a delay measured from
+  `created_at` has already elapsed and the follower races the leader.
 - **Dry run**: Log `would-ack` and do nothing.
 
 The `escalation_respond` response body is stale (it still reads
-`triggered`), so confirm with `escalation_show` before logging the ack.
+`triggered`), so confirm with `escalation_show` before logging the ack. Ack
+latency is measured from Nickolas's target `started_at`, not `created_at`.
 Record the result, including an error, in `pages.jsonl` and the shift log.
 If `escalation_respond` errors on a page that still targets Nickolas, retry
 once on this tick, then notify him: an unacked page is the one failure this
