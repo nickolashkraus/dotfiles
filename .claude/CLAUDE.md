@@ -18,6 +18,7 @@ applies to all projects on this machine.
 - @rules/models.md
 - @rules/notion.md
 - @rules/secrets.md
+- @rules/security.md
 - @rules/slack.md
 - @rules/typography.md
 - @rules/writing.md
