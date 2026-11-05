@@ -2,7 +2,8 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1",
-    "CLAUDE_CODE_ENABLE_CFC": "1"
+    "CLAUDE_CODE_ENABLE_CFC": "1",
+    "ANTHROPIC_MODEL": "opus"
   },
   "attribution": {
     "commit": "",
@@ -11,7 +12,8 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "model": "fable",
+  "model": "opus",
+  "availableModels": ["opus", "fable"],
   "hooks": {
     "SessionStart": [
       {
@@ -48,6 +50,16 @@
       }
     ],
     "PreToolUse": [
+      {
+        "matcher": "Agent|Task|Workflow|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/model-policy.py",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "",
         "hooks": [

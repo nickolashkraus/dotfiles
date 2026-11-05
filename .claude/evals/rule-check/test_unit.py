@@ -2,14 +2,14 @@
 """
 Deterministic unit tests for ~/.claude/hooks/rule-check.py.
 
-Covers the parts that don't spawn Sonnet: payload extraction from Bash and
+Covers the parts that don't spawn Opus: payload extraction from Bash and
 MCP tool inputs, the override sentinel regex, the body-file resolver, and
 the load_rules concatenation. These run in milliseconds, cost nothing, and
 catch the bugs CI is actually good at catching.
 
 Run: python3 .claude/evals/rule-check/test_unit.py
 
-The end-to-end Sonnet eval lives in eval.py and is not run from here.
+The end-to-end Opus eval lives in eval.py and is not run from here.
 """
 
 from __future__ import annotations
