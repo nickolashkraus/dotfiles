@@ -694,6 +694,25 @@ def test_in_repo_path_prefixes() -> None:
         )
 
 
+def test_linear_mirror_paths_skip_lint() -> None:
+    section("extract_fields: verbatim Linear copies are not linted")
+    root = lo.LINEAR_ISSUE_ROOT / "function/projects/p"
+    for label, path, expected in [
+        ("issue copy", f"{root}/linear/P-NAV-1-p/issues/NAV-1-x.md", False),
+        ("comment copy", f"{root}/linear/comments/NAV-1.comment-abc.md", False),
+        ("linear README", f"{root}/linear/README.md", True),
+        ("project note", f"{root}/notes/2026-11-05.01.md", True),
+        ("/tmp draft", "/tmp/linear/body.md", True),
+    ]:
+        ti = {"file_path": path, "new_string": "a — b\n"}
+        flagged = lo.collect_violations("Edit", ti) != []
+        check(
+            f"{label}: flagged={expected}",
+            flagged is expected,
+            f"got {flagged!r} for {path}",
+        )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -713,6 +732,7 @@ TESTS = [
     test_tool_attribution_footer,
     test_git_global_flags_before_commit,
     test_in_repo_path_prefixes,
+    test_linear_mirror_paths_skip_lint,
 ]
 
 

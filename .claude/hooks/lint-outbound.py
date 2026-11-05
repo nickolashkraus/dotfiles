@@ -1100,6 +1100,15 @@ def is_in_repo_path(path: str) -> bool:
     return any(path.startswith(p) for p in IN_REPO_PREFIXES)
 
 
+def is_linear_mirror_path(path: str) -> bool:
+    """Linear copies are stored verbatim, so typography rules do not apply."""
+    return (
+        path.startswith(f"{LINEAR_ISSUE_ROOT}/")
+        and "/linear/" in path
+        and not path.endswith("/README.md")
+    )
+
+
 def extract_fields(
     tool_name: str, tool_input: dict
 ) -> list[tuple[str, str, bool, bool, bool, bool]]:
@@ -1132,6 +1141,8 @@ def extract_fields(
         if not isinstance(file_path, str):
             return out
         if not file_path.endswith(MARKDOWN_EXTENSIONS):
+            return out
+        if is_linear_mirror_path(file_path):
             return out
         is_external = not is_in_repo_path(file_path)
         if tool_name == "Edit":
