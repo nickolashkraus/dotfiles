@@ -1,6 +1,6 @@
 ---
 name: pr-window
-description: Open a tmux window on a pull request's worktree, with Vim on the pull request diff and `pr-body --check` beside it, so Nickolas can review and hand-edit the change
+description: Open a tmux window on a pull request's worktree, with Vim on the pull request diff, `pr-body --check` beside it and a Claude Code session named after the window under that, so Nickolas can review and hand-edit the change
 ---
 
 You are opening a tmux window on a pull request's worktree, so the change can
@@ -83,8 +83,8 @@ the name only has to be unique and recognizable at a glance, not descriptive.
 
 ## Step 4: Open the window with Vim on the diff
 
-The layout is Vim on the pull request diff on the left and `pr-body --check`
-on the right.
+The layout is Vim on the pull request diff on the left, `pr-body --check` on
+the top right, and a Claude Code session on the bottom right.
 
 If `tmux list-windows -t '<session>:' -F '#{window_index} #{window_name}'`
 already shows `<name>`, leave that window alone and report its target.
@@ -99,12 +99,19 @@ DIFF_PANE=$(tmux new-window -d -P -F '#{pane_id}' \
 tmux send-keys -t "$DIFF_PANE" "vim \
   -c 'autocmd VimEnter * ++once NERDTree' \
   -c 'autocmd VimEnter * ++once GitGutterToggleDiffBase' \
-  -c 'autocmd VimEnter * ++once NERDTreeToggleChangedOnly'" Enter
+  -c 'autocmd VimEnter * ++once NERDTreeToggleChangedOnly' \
+  $(pr-stat --vim <number>)" Enter
 ```
 
 The three commands are what `<Leader>hb` and `<Leader>nc` map to in `.vimrc`:
 the gutter diffs against the merge base with the default branch, and NERDTree
-shows only the files the pull request changes. Two details matter:
+shows only the files the pull request changes. `pr-stat --vim` (in
+`bash-scripts`) adds the `-c` arguments that put the pull request's size at the
+far right of Vim's tabline the way GitHub shows it (`+3,984 -26` and five
+proportional blocks), on the terminal background, so the window says at a
+glance how much there is to review. It is Vim's tabline rather than a tmux pane
+border because `pane-border-status` draws a line under its text and leaves a
+two-cell stub of it at each end that no option removes. Two details matter:
 
 - **The commands run on `VimEnter`, not directly from `-c`.** Vim runs `-c`
   before `VimEnter`, and `.vimrc` registers the changed-files filter on
@@ -157,7 +164,29 @@ Three further details that matter:
   fact check, shows the diff, and asks before pushing, so nothing reaches
   GitHub without Nickolas confirming it.
 
-## Step 6: Report
+## Step 6: Split a third pane for Claude Code
+
+Split the body pane, not the diff pane, and start Claude Code named after the
+window:
+
+```bash
+CLAUDE_PANE=$(tmux split-window -v -d -P -F '#{pane_id}' \
+  -t "$BODY_PANE" -c '<worktree>')
+tmux send-keys -t "$CLAUDE_PANE" "claude -n '<name>'" Enter
+```
+
+- **`-v` on `$BODY_PANE`** stacks Claude under the body and leaves the diff at
+  full height. `-d` keeps focus on the diff, as in Step 5.
+- **The session name is the window name** (`ppp#614`), so `/resume` and the
+  session list match the tmux status bar. Quote it; `#` is a comment character
+  in a shell with `interactive_comments` set.
+- **No `--model`.** The default from `settings.json` applies.
+- **Match the account.** If this session's `$CLAUDE_CONFIG_DIR` is
+  `~/.claude-fh`, send `claude-fh` instead of `claude`. Both are zsh wrappers
+  (an alias and a function), which is why they are typed into the pane's shell
+  rather than passed as the split's command.
+
+## Step 7: Report
 
 One or two lines:
 
