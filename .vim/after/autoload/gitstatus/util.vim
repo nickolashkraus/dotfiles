@@ -14,6 +14,10 @@
 "   concatenates the lines with no separator; NUL bytes instead survive as
 "   newlines in the resulting Vim string, which is what the parser splits on.
 "
+"   Also overrides gitstatus#util#ParseGitStatusLine to report a file added
+"   with 'git add -N' (status ' A') as 'IntentToAdd'. The plugin has no key
+"   for it and reports it as 'Unknown', the same as a type change.
+"
 "   This lives in after/autoload (rather than .vimrc) because Vim raises
 "   E746 when a function in the gitstatus#util# namespace is defined in
 "   a script other than autoload/gitstatus/util.vim. The override is sourced
@@ -58,4 +62,17 @@ function! gitstatus#util#BuildGitStatusCommand(root, opts) abort
         \ . ' | tr ''\0'' ''\n'' | grep ''^??'''
         \ . '; } | tr ''\n'' ''\0'''
   return ['sh', '-c', l:script]
+endfunction
+
+let s:ParseGitStatusLine = funcref('gitstatus#util#ParseGitStatusLine')
+
+" The indicator for 'IntentToAdd' is in after/autoload/gitstatus.vim.
+function! gitstatus#util#ParseGitStatusLine(statusLine, opts) abort
+  let l:result = s:ParseGitStatusLine(a:statusLine, a:opts)
+  let l:v2 = get(a:opts, 'NERDTreeGitStatusPorcelainVersion', 2) ==# 2
+  let l:xy = l:v2 ? a:statusLine[2:3] : a:statusLine[0:1]
+  if l:result[1] ==# 'Unknown' && l:xy =~# '^[ .]A$'
+    let l:result[1] = 'IntentToAdd'
+  endif
+  return l:result
 endfunction

@@ -1557,10 +1557,14 @@ let g:NERDTreeGitStatusPorcelainVersion = 1
 
 " Source the plugin's command builder, then the override in
 " .vim/after/autoload/gitstatus/util.vim, which honors the gitgutter diff
-" base (see ToggleGitGutterDiffBase). The explicit 'runtime!' matters:
-" autoload sources only the first match on 'runtimepath', which would skip
-" the after/ copy.
+" base (see ToggleGitGutterDiffBase) and reports intent-to-add files. The
+" explicit 'runtime!' matters: autoload sources only the first match on
+" 'runtimepath', which would skip the after/ copy.
 runtime! autoload/gitstatus/util.vim
+
+" Source the plugin's indicators, then the override in
+" .vim/after/autoload/gitstatus.vim, which adds one for intent-to-add files.
+runtime! autoload/gitstatus.vim
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-airline
