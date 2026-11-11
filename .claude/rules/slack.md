@@ -4,6 +4,9 @@
 - ALWAYS send messages using the `slack_send_message_draft` tool, never
   `slack_send_message`. The user reviews and approves drafts before they
   are sent.
+  - **Exception**: The `on-call` skill sends its one-line notify straight
+    to my own DM (`U09H5CVRGTG`) with `slack_send_message`, since a draft
+    never reaches my phone. No other destination and no other skill.
 
 ## Search
 

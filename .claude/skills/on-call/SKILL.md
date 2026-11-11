@@ -5,7 +5,9 @@ description: >
   incident.io. Each tick lists live pages, acks any that target Nickolas
   before the ten-minute level timer climbs past him, classifies every page,
   runs a quick outage check, and pushes a notification to Nickolas only for
-  a human-declared incident or a clear outage. Pair with `/loop`. TRIGGER
+  a human-declared incident or a clear outage. The `on-call` script polls
+  and acks without the model and runs `--triage` once per page; `/loop`
+  still works but burns tokens. TRIGGER
   when: user says "on-call", "start on-call", "watch the pager", "go on
   call", or a /loop run invokes it. SKIP: a one-off "why was I paged" read
   (answer it directly with escalation_list).
@@ -23,7 +25,7 @@ allowed-tools: >
   mcp__datadog__search_datadog_logs,
   mcp__datadog__get_datadog_metric,
   mcp__claude_ai_Slack__slack_send_message
-argument-hint: "[--role leader|follower] [--dry-run] [--off-shift] [--path <escalation-path-id>]"
+argument-hint: "[--role leader|follower] [--dry-run] [--off-shift] [--path <escalation-path-id>] | --triage <id> [--ack-failed] | --notify \"<line>\""
 ---
 
 # On-Call
@@ -35,7 +37,15 @@ the decisions, and the shift records live in
 
 ## Usage
 
-Run one loop per machine, with distinct roles:
+The `on-call` script in bash-scripts is the default runner. It polls the
+path every 30 seconds with an incident.io user key, acks each page that
+reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
+for it, so the model runs only when a page arrives. It does not read the
+control files in Step 1; write `stand-down` to `~/.local/state/on-call/control`
+to pause its acks.
+
+The `/loop` form re-reads a growing context every minute, which cost about
+$14 an hour on 2026-11-03. Run one loop per machine, with distinct roles:
 
 ```
 /loop /on-call --role leader       # machine A: acts on the first tick
@@ -55,6 +65,28 @@ catches pages sent straight to Nickolas by `escalation_create` in a drill.
 Every escalation is mirrored into `#incidents-escalations` with the on-call
 user tagged, so a synthetic drill is visible to the whole org; prefer
 `--dry-run --off-shift` against real traffic.
+
+## Headless Modes
+
+The script runs the skill headless with one of these arguments. Each run
+does its one job and ends: no `ScheduleWakeup`, no ack, no loop.
+
+- **`--triage <id> [--ack-failed]`**: Read the page from
+  `~/.local/state/on-call/escalations/<id>.json`, the public API's
+  escalation object plus `paged_at` (when the page reached Nickolas). Run
+  Step 5 and Step 6 for it alone, and wait for the outage check instead of
+  deferring it to a later tick. In this shape the class comes from the
+  `creator` key: `user` or `workflow` is `human`, and `alert` goes through
+  the noise set by `title`. Count noise recurrence from the `seen` lines in
+  `pages.jsonl`. An `unknown` check notifies as "could not classify", since
+  no later tick retries it. With `--ack-failed`, the script could not ack
+  the page and keeps retrying, so notify at once with "ack failed" in the
+  line, whatever the class. Append the class and decision to the shift log.
+- **`--notify "<line>"`**: Send the line through the notify in Step 6 and
+  stop. The script uses it when the key is rejected or polls keep failing.
+
+If `PushNotification` is unavailable headless, the Slack self-DM alone is
+enough.
 
 ## Constants
 
