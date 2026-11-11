@@ -14,7 +14,6 @@ applies to all projects on this machine.
 - @rules/incident-io.md
 - @rules/linear.md
 - @rules/meta-learning.md
-- @rules/migrations.md
 - @rules/models.md
 - @rules/notion.md
 - @rules/secrets.md

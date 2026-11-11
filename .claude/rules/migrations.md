@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/alembic/**"
+  - "**/migrations/**"
+---
+
 # Migrations
 
 - Separate schema changes (DDL) and data changes (DML) into distinct

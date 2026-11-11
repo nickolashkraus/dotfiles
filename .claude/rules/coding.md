@@ -232,7 +232,12 @@ rather than presenting an unverified guess as a fix.
 
 ## Migrations
 
-See @rules/migrations.md.
+Before writing, editing or reviewing a migration or backfill, read
+`~/.claude/rules/migrations.md` and follow it. It loads on its own when
+a file under `alembic/` or `migrations/` is opened. The short version:
+separate DDL from DML, chunk every `UPDATE` and `DELETE`, set `lock_timeout`
+and `statement_timeout` on DDL, build indexes `CONCURRENTLY`, and measure
+backfill runtime against Prod row counts before merging.
 
 ## Docker
 
