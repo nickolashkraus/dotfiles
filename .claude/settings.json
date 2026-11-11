@@ -12,8 +12,11 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
-  "availableModels": ["opus", "fable"],
+  "model": "fable",
+  "availableModels": [
+    "opus",
+    "fable"
+  ],
   "hooks": {
     "SessionStart": [
       {
@@ -165,6 +168,9 @@
       "effortLevel": "xhigh"
     },
     "claude-fable-5-1": {
+      "effortLevel": "xhigh"
+    },
+    "claude-fable-5-2": {
       "effortLevel": "xhigh"
     }
   },
