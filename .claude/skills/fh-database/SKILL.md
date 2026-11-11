@@ -73,6 +73,13 @@ engineers. Authenticate via Cloud SQL IAM group authentication:
    show up in `gcloud sql users list` as type `CLOUD_IAM_GROUP`; an individual
    who has connected appears as `CLOUD_IAM_GROUP_USER`.
 
+   **Gotcha: DB group entitlements are displayed as `member`.** The group name
+   is only in the description (`Member of db prod prod-ppp-service ro group`),
+   and `matchBatonId` can be blank, so filter `cone search -o json` on
+   `description`. The Prod grants on 2026-11-06 provisioned within seconds, and
+   login also needed
+   `SET ROLE "db-prod-<service>-<ro|rw|adm>@functionhealth.com"`.
+
    **Gotcha: `cone search`/`cone get --query` only match an entitlement's
    `alias` field.** Newly synced entitlements have `alias: ""` and are
    invisible to every query path, so the CLI returns "no entitlement found"
