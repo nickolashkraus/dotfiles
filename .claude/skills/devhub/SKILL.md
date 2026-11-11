@@ -31,7 +31,7 @@ Okta group, granted through the **Dev Hub Prod** app in ConductorOne.
 
 If the key is missing from the Keychain, it cannot be created from the API. Ask
 for it to be minted in the UI (avatar menu, Settings, MCP API key) and stored
-per @~/.claude/rules/secrets.md. Do not fall back to browser automation without
+per the `secrets` skill. Do not fall back to browser automation without
 saying so first.
 
 ## Reads

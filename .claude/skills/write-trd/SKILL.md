@@ -81,7 +81,8 @@ you can answer from code or prior context.
 
 Populate the template in TEMPLATE.md top to bottom. Follow these rules:
 
-- Follow @rules/typography.md and @rules/writing.md for all prose.
+- Follow @rules/typography.md, @rules/writing.md and the `writing-style`
+  skill for all prose.
 - Infer from code wherever possible rather than leaving placeholders.
 - For unavoidable gaps, use `[TBD: what is needed]`.
 - If mobile changes were confirmed, add a mobile consultation checklist item
