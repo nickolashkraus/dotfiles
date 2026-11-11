@@ -85,6 +85,12 @@ page state.
 Use the `notion-update-page` tool with the `replace_content` command to replace
 the page content with the cleaned Markdown.
 
+When the page already exists and the local diff is small (a few edits or one
+new section), use `update_content` with targeted `old_str`/`new_str` pairs
+instead. `replace_content` turns native page mentions back into plain links,
+and `clean_markdown.py` joins `**Date**:`/`**Status**:` lines that end in
+a two-space break into one paragraph.
+
 Strip the first H1 header from the content before replacing, since Notion uses
 the page title for that. Update the page title if it differs from the H1.
 
