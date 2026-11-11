@@ -233,7 +233,9 @@ find domains -name manifest.yaml
 Extract every Drive ID from the `gdrive` block of each manifest, resolve
 each against the live Drive, and report anything that 404s or comes back
 trashed. Skip the `local:` keys, which hold repo paths that can look
-like IDs. Then:
+like IDs, and the `id:` entries under `tabs:`, which are Docs tab IDs
+(`t.xxxx`) that always 404 as files (16 false alarms on 2026-11-10).
+Then:
 
 - Repoint a `root` whose folder was trashed or merged away.
 - Delete keys pointing at files that no longer exist.
