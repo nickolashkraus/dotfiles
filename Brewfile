@@ -82,7 +82,8 @@ brew "shfmt"
 brew "telnet"
 brew "terraform-docs"
 brew "tfenv"
-brew "tflint"
+# tflint left homebrew-core under the BUSL on 2026-05-13 and has no official
+# tap, so it is not managed here. Its GitHub releases are the official source.
 brew "tfsec"
 brew "the_silver_searcher"
 brew "tmux"
