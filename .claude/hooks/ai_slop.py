@@ -43,6 +43,9 @@ class Entry:
     bullet: str
     pattern: str | None = None
     hint: str = ""
+    # When set, the pattern fires only on a line that also matches this
+    # regex. Used where the flagged word has a common literal sense.
+    context: str | None = None
 
 
 # Order is the order the bullets appear in rules/general.md.
@@ -147,6 +150,18 @@ ENTRIES: tuple[Entry, ...] = (
         ),
         pattern=r"\bland(s|ed|ing)?\b|\brides?\b|\briding\b|\bstamp(s|ed|ing)?\b",
         hint="use a literal verb: write, send, store, carry, arrive, complete",
+        # The tic is a metaphor for data movement, so it needs a technical
+        # noun or a code span on the same line. A bike ride, arable land and
+        # a postage stamp stay legal.
+        context=r"`|\b(?:data|events?|commits?|PRs?|pull requests?|requests?"
+        r"|responses?|messages?|metadata|identifiers?|IDs?|UUIDs?|fields?"
+        r"|payloads?|changes?|deploy(?:s|ments?)?|releases?|branch(?:es)?"
+        r"|master|main|queues?|logs?|records?|rows?|columns?|tokens?|headers?"
+        r"|tickets?|issues?|merges?|migrations?|fix(?:es)?|patch(?:es)?"
+        r"|builds?|pipelines?|jobs?|webhooks?|APIs?|endpoints?|services?"
+        r"|stacks?|databases?|tables?|objects?|files?|buckets?|versions?"
+        r"|tags?|SHAs?|hash(?:es)?|workers?|subscribers?|topics?|callbacks?"
+        r"|parameters?|arguments?|variables?|configs?|cache|CI|Prod|Staging)\b",
     ),
 )
 
@@ -157,6 +172,13 @@ AI_SLOP_PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
     for entry in ENTRIES
     if entry.pattern is not None
 ]
+
+# Label to compiled context regex, for entries that set `context`.
+AI_SLOP_CONTEXT: dict[str, re.Pattern[str]] = {
+    entry.label: re.compile(entry.context)
+    for entry in ENTRIES
+    if entry.pattern is not None and entry.context is not None
+}
 
 
 def render_block() -> str:

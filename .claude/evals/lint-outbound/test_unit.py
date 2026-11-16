@@ -713,6 +713,56 @@ def test_linear_mirror_paths_skip_lint() -> None:
         )
 
 
+def test_archive_cleanup_false_positives() -> None:
+    section("archive cleanup false positives stay quiet; the rules still fire")
+
+    def slop(text: str) -> bool:
+        return any("AI slop" in v for v in lo.lint_text(text, "t", check_local_paths=False))
+
+    check("literal bike ride is legal", not slop("- **Bike**: 40 mile ride at Z2.\n"))
+    check("land as a noun is legal", not slop("Arable land value rose 7%.\n"))
+    check("figurative land still flagged", slop("The fix lands in the next release.\n"))
+    check("figurative ride with code span flagged", slop("The ID rides along in `meta`.\n"))
+
+    check("blockquote slop is legal", not slop("> We leverage robust tooling.\n"))
+    check("double-quoted slop is legal", not slop('The epic is "Utilize GitHub secrets".\n'))
+    check("plain slop still flagged", slop("We leverage the cache.\n"))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "note.md"
+        path.write_text("We leverage the cache.\n- **Name (9:58 AM)**: lowercase reply\n")
+        kept = {"file_path": str(path), "content": path.read_text()}
+        check("existing lines keep their wording", lo.collect_violations("Write", kept) == [])
+        added = {"file_path": str(path), "content": path.read_text() + "We also leverage it.\n"}
+        check("new slop line still flagged", any("AI slop" in v for v in lo.collect_violations("Write", added)))
+        path.write_text("Old line — with a dash.\n")
+        dash = {"file_path": str(path), "content": path.read_text()}
+        check("existing em dash still flagged", any("em dash" in v for v in lo.collect_violations("Write", dash)))
+        edit = {"file_path": str(path), "new_string": "Old line, no dash.\n- **Name**: lowercase\n"}
+        check("edit with a new lowercase label still flagged", any("colon" in v for v in lo.collect_violations("Edit", edit)))
+
+    def colon(text: str) -> bool:
+        return any("colon" in v for v in lo.lint_text(text, "t", check_local_paths=False))
+
+    check("URL after a bold label is legal", not colon("- **Docs**: https://example.com/x\n"))
+    check("URL after a link label is legal", not colon("[Docs](https://x): https://example.com\n"))
+    check("lowercase word after a label still flagged", colon("- **Docs**: example text\n"))
+
+    loop = (
+        "while IFS='|' read -r old new; do git mv \"$old\" \"$new\"; done <<'EOF'\n"
+        "A very long data line that is not a commit subject at all, by any measure|x\n"
+        "EOF\n"
+        "git commit -m \"Rename the notes\"\n"
+    )
+    fields = lo.extract_bash_content(loop)
+    check("data heredoc is not linted as a commit", all(not f[0].startswith("heredoc") for f in fields))
+    commit = "git commit -F - <<'EOF'\n" + "S" * 71 + "\nEOF\n"
+    check(
+        "commit heredoc subject length still checked",
+        any("subject" in v for v in lo.collect_violations("Bash", {"command": commit})),
+    )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -733,6 +783,7 @@ TESTS = [
     test_git_global_flags_before_commit,
     test_in_repo_path_prefixes,
     test_linear_mirror_paths_skip_lint,
+    test_archive_cleanup_false_positives,
 ]
 
 

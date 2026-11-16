@@ -59,7 +59,7 @@ EN_DASH = "–"
 # shapes). Checked against inline-code-scrubbed prose outside fenced
 # blocks, so identifiers like `landed_at` in code spans do not trip it.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ai_slop import AI_SLOP_PATTERNS  # noqa: E402
+from ai_slop import AI_SLOP_CONTEXT, AI_SLOP_PATTERNS  # noqa: E402
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
 
@@ -155,7 +155,7 @@ BRITISH_RE = re.compile(
 LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
     r"^\s*(?:[-*+]|\d+[.)])\s+"
     r"(?:\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\n]+\)|`[^`\n]+`)"
-    r"(?:\s*\([^)\n]*\))?\s*:\s+[a-z]"
+    r"(?:\s*\([^)\n]*\))?\s*:\s+(?![a-z][a-z0-9+.-]*://)[a-z]"
 )
 # Retained as an alias so any external consumer that imported the old
 # name keeps working.
@@ -165,14 +165,18 @@ LOWERCASE_AFTER_PLAIN_COLON_RE = LOWERCASE_AFTER_BOLD_COLON_RE
 # Capitalization is required only for label/lead-in colons; a colon joining two
 # clauses inside a flowing sentence keeps lowercase per rules/typography.md, so
 # plain mid-prose colons and mid-prose links are intentionally not flagged.
-LOWERCASE_AFTER_LINK_COLON_RE = re.compile(r"^\s*\[[^\]\n]+\]\([^)\n]+\):\s+[a-z]\S*")
+LOWERCASE_AFTER_LINK_COLON_RE = re.compile(
+    r"^\s*\[[^\]\n]+\]\([^)\n]+\):\s+(?![a-z][a-z0-9+.-]*://)[a-z]\S*"
+)
 # A line-initial PLAIN-TEXT bullet label followed by `: lowercase`, e.g.
 # `- Conventional Commits: the carve-out ...`. The bold/link/code-span label
 # forms are caught by the regexes above; this catches the unadorned label the
 # semantic check misses. Classification happens in `plain_label_colon_violation`
 # so the judgment is legible; the regex only captures the marker and the
 # pre-colon segment.
-PLAIN_LABEL_BULLET_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+([^:\n]+?):\s+[a-z]")
+PLAIN_LABEL_BULLET_RE = re.compile(
+    r"^\s*(?:[-*+]|\d+[.)])\s+([^:\n]+?):\s+(?![a-z][a-z0-9+.-]*://)[a-z]"
+)
 # Short function words allowed inside an otherwise Title-Case label without
 # breaking the all-capitalized test (`Terms of Service:`, `Ship to Prod:`).
 LABEL_CONNECTOR_WORDS = frozenset(
@@ -263,7 +267,7 @@ def autofix_label_colon_line(raw: str) -> str | None:
     return None
 
 
-def autofix_label_colons(text: str) -> str:
+def autofix_label_colons(text: str, existing: frozenset[str] = frozenset()) -> str:
     """Return `text` with every deterministic label-colon violation fixed.
     Skips fenced code blocks, matching `lint_text`'s per-line handling so the
     fix never touches a colon inside a code block."""
@@ -274,7 +278,7 @@ def autofix_label_colons(text: str) -> str:
         if body.lstrip().startswith(("```", "~~~")):
             in_code = not in_code
             continue
-        if in_code:
+        if in_code or (body.strip() and body.strip() in existing):
             continue
         fixed = autofix_label_colon_line(body)
         if fixed is not None:
@@ -634,12 +638,18 @@ def duplicated_from_linear(text: str, field: str) -> list[str]:
     return violations
 
 
+# A straight-double-quoted span, which word-level checks skip so quoted
+# material is reproduced verbatim (rules/typography.md).
+QUOTED_SPAN_RE = re.compile(r'"[^"\n]*"')
+
+
 def lint_text(
     text: str,
     field: str,
     allow_coauthor: bool = True,
     is_pr_body: bool = False,
     check_local_paths: bool = True,
+    existing: frozenset[str] = frozenset(),
 ) -> list[str]:
     """
     Return a list of violation strings for the given text.
@@ -650,6 +660,9 @@ def lint_text(
     only per rules/git.md. `check_local_paths` enables the local-path
     check AND the hard-wrap check; both apply only to outbound content
     (Bash heredocs / MCP payloads), not to in-repo dotfiles Markdown.
+    `existing` holds the stripped lines already in the file being edited;
+    word-level checks skip them so content edited in place keeps its
+    wording, while punctuation checks still apply.
     """
     violations: list[str] = []
 
@@ -699,6 +712,12 @@ def lint_text(
             continue
 
         line = scrub_inline_code(raw)
+        # Word-level checks (slop, spelling, label colons) skip lines that
+        # already exist in the file, blockquotes, and quoted spans.
+        check_words = not (raw.strip() and raw.strip() in existing)
+        prose = QUOTED_SPAN_RE.sub("", line)
+        if stripped.startswith(">"):
+            prose = ""
 
         if EM_DASH in line:
             violations.append(
@@ -714,13 +733,18 @@ def lint_text(
                 violations.append(f"{field} line {lineno}: {name} (use straight quote)")
                 break
         for slop_re, slop_label, slop_hint in AI_SLOP_PATTERNS:
-            m = slop_re.search(line)
+            if not check_words:
+                break
+            m = slop_re.search(prose)
+            context_re = AI_SLOP_CONTEXT.get(slop_label)
+            if m and context_re is not None and not context_re.search(raw):
+                m = None
             if m:
                 violations.append(
                     f"{field} line {lineno}: AI slop, {slop_label} "
                     f"(`{m.group(0)}`; {slop_hint}; see rules/general.md)"
                 )
-        british = BRITISH_RE.search(line)
+        british = BRITISH_RE.search(prose) if check_words else None
         if british:
             found = british.group(1)
             american = BRITISH_SPELLINGS[found.lower()]
@@ -735,7 +759,7 @@ def lint_text(
                 f"{field} line {lineno}: list item uses `**X** -` "
                 "(use `**X**:` per rules/typography.md)"
             )
-        if LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
+        if check_words and LOWERCASE_AFTER_BOLD_COLON_RE.match(raw):
             violations.append(
                 f"{field} line {lineno}: bullet has a lowercase word "
                 "after the colon (always capitalize the first word "
@@ -743,13 +767,13 @@ def lint_text(
                 "starts like paths or code spans are naturally exempt, so "
                 "wrap a repo name or SHA in backticks)"
             )
-        if LOWERCASE_AFTER_LINK_COLON_RE.search(line):
+        if check_words and LOWERCASE_AFTER_LINK_COLON_RE.search(line):
             violations.append(
                 f"{field} line {lineno}: link lead-in followed by "
                 "a colon and a lowercase word (capitalize the first "
                 "word after a label colon per rules/typography.md)"
             )
-        if plain_label_colon_violation(raw):
+        if check_words and plain_label_colon_violation(raw):
             violations.append(
                 f"{field} line {lineno}: bullet label followed by "
                 "a colon and a lowercase word (capitalize the first "
@@ -844,6 +868,25 @@ CODE_INTERPRETERS = frozenset(
 )
 
 
+# Heredocs that are stdin for a loop or a text filter (`done <<'EOF'`,
+# `sort <<'EOF'`) carry data, not outbound prose, even when the same command
+# later runs `git commit`.
+DATA_CONSUMERS = frozenset(
+    {"done", "while", "read", "xargs", "sort", "uniq", "grep", "sed", "tr",
+     "wc", "head", "tail", "cut", "column", "comm", "diff"}
+)
+
+
+def heredoc_feeds_data_consumer(command: str, heredoc_start: int) -> bool:
+    """True when the command word owning the heredoc at `heredoc_start`
+    is a loop terminator or a text filter."""
+    prefix = command[:heredoc_start]
+    segment = re.split(r"[|;&\n]|\$\(", prefix)[-1].strip()
+    words = segment.split()
+    first = os.path.basename(words[0]) if words else ""
+    return first in DATA_CONSUMERS
+
+
 def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
     """True when the command word owning the heredoc at `heredoc_start`
     is a code interpreter."""
@@ -916,6 +959,8 @@ def extract_bash_content(
     heredoc_is_commit = is_commit and not has_gh
     for m in HEREDOC_RE.finditer(command):
         if heredoc_feeds_interpreter(command, m.start()):
+            continue
+        if heredoc_feeds_data_consumer(command, m.start()):
             continue
         fields.append(
             (
@@ -1163,10 +1208,26 @@ def extract_fields(
     return out
 
 
+def existing_file_lines(tool_name: str, tool_input: dict) -> frozenset[str]:
+    """Stripped non-blank lines of the file an Edit or Write targets, so
+    word-level checks can tell content edited in place from new text."""
+    if tool_name not in ("Edit", "Write"):
+        return frozenset()
+    path = tool_input.get("file_path")
+    if not isinstance(path, str):
+        return frozenset()
+    try:
+        text = Path(path).read_text()
+    except (OSError, UnicodeDecodeError):
+        return frozenset()
+    return frozenset(line.strip() for line in text.splitlines() if line.strip())
+
+
 def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
     """Run every lint over the tool's outbound fields and return the flat
     list of violation strings."""
     violations: list[str] = []
+    existing = existing_file_lines(tool_name, tool_input)
     for label, text, allow_coauthor, is_pr_body, check_local_paths, is_full in (
         extract_fields(tool_name, tool_input)
     ):
@@ -1183,6 +1244,7 @@ def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
                 allow_coauthor=allow_coauthor,
                 is_pr_body=is_pr_body,
                 check_local_paths=check_local_paths,
+                existing=existing,
             )
         )
         if is_full:
@@ -1210,7 +1272,7 @@ def try_autofix_input(tool_name: str, tool_input: dict) -> dict | None:
     original = tool_input.get(key)
     if not isinstance(original, str) or not original:
         return None
-    fixed = autofix_label_colons(original)
+    fixed = autofix_label_colons(original, existing_file_lines(tool_name, tool_input))
     if fixed == original:
         return None
     new_input = dict(tool_input)
