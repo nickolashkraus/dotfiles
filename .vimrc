@@ -1384,6 +1384,7 @@ let g:NERDTreeIgnore=[
       \ '\.mypy_cache$[[dir]]',
       \ '\.pytest_cache$[[dir]]',
       \ '\.ruff_cache$[[dir]]',
+      \ '\.venv$[[dir]]',
       \ '__pycache__$[[dir]]',
       \ 'node_modules$[[dir]]',
       \ '\.DS_Store$[[file]]',
