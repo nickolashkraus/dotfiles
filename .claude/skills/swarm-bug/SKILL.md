@@ -51,9 +51,9 @@ kebab-case summary of the bug.
 
 Derive `{domain}` and `{project_or_team}` from the codebase repo path using the
 existing `~/nickolashkraus/agent-os/master/domains/` structure as the mapping
-(e.g., `Function-Health/transaction-service` maps to
-`domains/function/projects/pricing-packaging-payments-service`). If the mapping
-is ambiguous, ask the user.
+(e.g., `Function-Health/ppp-service` maps to
+`domains/function/projects/ppp-service`). If the mapping is ambiguous, ask the
+user.
 
 Set `{repo_path}` to the current working directory. This is the codebase agents
 will investigate. Exception: If the cwd is not a service codebase (e.g., you
