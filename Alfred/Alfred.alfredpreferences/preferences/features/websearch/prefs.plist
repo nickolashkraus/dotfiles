@@ -7,7 +7,7 @@
 		<key>1FA26454-410C-4E30-A223-EA65C40044C0</key>
 		<dict>
 			<key>enabled</key>
-			<true/>
+			<false/>
 			<key>keyword</key>
 			<string>ghp</string>
 			<key>text</key>
@@ -18,7 +18,7 @@
 		<key>4416690F-27B2-4E18-BF8D-252E248BCA67</key>
 		<dict>
 			<key>enabled</key>
-			<true/>
+			<false/>
 			<key>keyword</key>
 			<string>ghfh</string>
 			<key>text</key>
@@ -29,7 +29,7 @@
 		<key>E2A9DAC3-0440-4153-BA89-F2C1CE8837B2</key>
 		<dict>
 			<key>enabled</key>
-			<true/>
+			<false/>
 			<key>keyword</key>
 			<string>ghfhtm</string>
 			<key>text</key>
