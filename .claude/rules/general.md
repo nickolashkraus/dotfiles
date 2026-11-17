@@ -38,6 +38,11 @@
   responses only, not to persistent artifacts (PR bodies, ADRs, Linear issues,
   Notion pages, commit messages) where @rules/writing.md density guidance
   governs.
+- **Times in chat**: Every time you give me names its zone (`14:40 UTC`,
+  `08:40 CST`), and a date paired with a time is that zone's date. A range
+  shares one zone at its end. Convert zones and epochs with a tool
+  (`TZ=UTC date -r <epoch>`, Python `zoneinfo`), never in your head. Chat
+  only; notes, Slack, PRs and other artifacts keep their own conventions.
 - **Terse mode**: I toggle this when I am fatigued and cannot absorb more
   prose. It is a mode, not a permanent setting, because sometimes I do need
   the full context.
