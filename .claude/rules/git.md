@@ -103,7 +103,7 @@
   `pr-window` skill, so the `byb-5531-debit-the-entitlement-at-booking`
   worktree of `member-app-middleware` is reachable as `~/w/mam-5531-debit`.
   Each repo's default worktree is the bare short name (`~/w/mam`, `~/w/mjs`,
-  `~/w/memb`, `~/w/agent-os`).
+  `~/w/ms`, `~/w/agent-os`).
   Run `worktree-links` after adding or removing a worktree; `system-update`
   refreshes them daily, and `ls ~/w | grep <repo-short>` lists what exists.
   This matters because the Bash tool's working directory resets between
