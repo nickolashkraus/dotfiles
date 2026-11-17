@@ -129,6 +129,7 @@ ctrl - 6 : ~/bin/yabai-cycle "Notion"
 ctrl - 7 : ~/bin/yabai-cycle "Mail"
 ctrl - 8 : ~/bin/yabai-cycle "Todoist"
 ctrl - 9 : ~/bin/yabai-cycle "Fantastical"
+ctrl - 0 : ~/bin/yabai-cycle "iPhone Mirroring"
 
 # Focus mpv.
 ctrl - m : yabai -m window --focus $(yabai -m query --windows \
