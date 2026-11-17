@@ -7,10 +7,14 @@ Opus is the floor. New sessions start on Fable (`fable`). The latest Opus
   a workflow, skill frontmatter or `claude --model`, and never write them into
   a script. Cost and speed are not reasons to drop below Opus. A harness check
   that needs to be faster lowers `--effort`, not the model.
-- **Fable**: Reserved for special occasions when the bleeding edge is needed.
-  Never choose it on your own. Say in one line why the work needs it and wait
-  for my yes, then start the prompt or command with `# user-approved:` (or put
-  `// user-approved:` in a workflow script).
+- **Fable**: The default for my own sessions. Never choose it for a subagent,
+  workflow or script on your own. Say in one line why the work needs it and
+  wait for my yes, then start the prompt or command with `# user-approved:`
+  (or put `// user-approved:` in a workflow script).
+- **Subagents**: Name the model on every `Agent` call and workflow: the next
+  best one below the session's, which costs less, and never below Opus. From
+  a Fable session that is `opus`. A subagent with no model named inherits
+  the session's model.
 - **Scope**: This governs how we work, not what we build. A product's own model
   choice follows that product's requirements.
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 PreToolUse hook: enforces @rules/models.md for model choices a session makes
-on its own. `availableModels` in settings.json holds sessions and subagents at
-Opus, but it says nothing about Fable and `claude --setting-sources ""` skips
-it, so this hook is the visible check on top.
+on its own. `availableModels` in settings.json keeps sessions and subagents
+from dropping below Opus, but it says nothing about Fable and
+`claude --setting-sources ""` skips it, so this hook is the visible check on
+top.
 
 Blocks (exit 2) an `Agent` call, a workflow script or a `claude --model`
 command that names:
@@ -66,16 +67,16 @@ def main() -> int:
     if below:
         sys.stderr.write(
             f"BLOCKED: {', '.join(below)} is below Opus, and @rules/models.md "
-            "never allows that. Use `opus`, or omit the model to inherit it.\n"
+            "never allows that. Use `opus`.\n"
         )
         return 2
 
     if any("fable" in m for m in lowered) and not approved:
         sys.stderr.write(
-            "BLOCKED: Fable is reserved for special occasions in "
-            "@rules/models.md. Use `opus`, or tell the user in one line why "
-            "this needs the bleeding edge and wait for a yes. On the approved "
-            "retry, start the prompt or command with `# user-approved:`.\n"
+            "BLOCKED: @rules/models.md keeps Fable for the user's own "
+            "sessions. Use `opus`, or tell the user in one line why this "
+            "needs Fable and wait for a yes. On the approved retry, start "
+            "the prompt or command with `# user-approved:`.\n"
         )
         return 2
 
