@@ -1,7 +1,7 @@
 # Models
 
-Opus is the floor. The latest Opus (`opus`) is the default for every session,
-subagent, workflow and harness script.
+Opus is the floor. New sessions start on Fable (`fable`). The latest Opus
+(`opus`) is the default for every subagent, workflow and harness script.
 
 - **Below Opus**: Never use Sonnet or Haiku. Never pass them to `Agent`,
   a workflow, skill frontmatter or `claude --model`, and never write them into
@@ -19,7 +19,7 @@ subagent, workflow and harness script.
 - **`availableModels`** (`settings.json`): Allows only `opus` and `fable`. Any
   other request, including a full model ID or a subagent's `model`, runs on
   Opus without an error.
-- **`ANTHROPIC_MODEL`** (`settings.json`): Starts new sessions on `opus` over
+- **`ANTHROPIC_MODEL`** (`settings.json`): Starts new sessions on `fable` over
   a default saved by `/model` and over the Function Health org default of
   Sonnet.
 - **`hooks/model-policy.py`**: Blocks a below-Opus or unapproved Fable model
