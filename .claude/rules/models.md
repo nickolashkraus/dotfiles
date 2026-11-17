@@ -27,7 +27,8 @@ Opus is the floor. New sessions start on Fable (`fable`). The latest Opus
   a default saved by `/model` and over the Function Health org default of
   Sonnet.
 - **`hooks/model-policy.py`**: Blocks a below-Opus or unapproved Fable model
-  named by `Agent`, a workflow or `claude --model`.
+  named by `Agent`, a workflow or `claude --model`, and an `Agent` call that
+  names no model. A workflow script that names no model is not caught.
 
 `claude --setting-sources ""`, which `pr-body` uses, skips `settings.json`, so
 those callers have to name `opus` themselves.

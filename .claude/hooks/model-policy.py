@@ -13,6 +13,10 @@ command that names:
 - Fable: Unless the user approved it. The approved retry starts the prompt or
   command with `# user-approved:`, or holds `// user-approved:` in a workflow
   script, which has to begin with its `meta` export.
+
+Also blocks an `Agent` call that names no model, since the subagent would
+inherit the session's. A fork is exempt: it always runs on the session's
+model.
 """
 
 from __future__ import annotations
@@ -52,15 +56,32 @@ def requested(tool: str, tool_input: dict) -> tuple[list[str], bool]:
     return [], False
 
 
+def unnamed(tool: str, tool_input: dict) -> bool:
+    """Return whether an `Agent` call leaves its model to be inherited."""
+    if tool not in ("Agent", "Task") or tool_input.get("subagent_type") == "fork":
+        return False
+    model = tool_input.get("model")
+    return not (isinstance(model, str) and model.strip())
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
         return 0
 
-    models, approved = requested(
-        payload.get("tool_name", ""), payload.get("tool_input") or {}
-    )
+    tool = payload.get("tool_name", "")
+    tool_input = payload.get("tool_input") or {}
+
+    if unnamed(tool, tool_input):
+        sys.stderr.write(
+            "BLOCKED: This call names no model, so the subagent would inherit "
+            "the session's. @rules/models.md has agents name one on every "
+            '`Agent` call. Pass `model: "opus"`.\n'
+        )
+        return 2
+
+    models, approved = requested(tool, tool_input)
     lowered = [m.lower() for m in models]
 
     below = [m for m in lowered if "sonnet" in m or "haiku" in m or m == "opusplan"]
