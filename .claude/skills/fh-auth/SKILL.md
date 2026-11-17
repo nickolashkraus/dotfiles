@@ -106,10 +106,12 @@ to the member you expect.
 a member credential on a deployed service, so an agent never handles it. Never
 run this through the `!` prefix, which adds the command and its output to the
 conversation. The password is read without echo, sent on stdin rather than
-the command line, and the token goes straight into the Keychain unprinted:
+the command line, and the token goes straight into the Keychain unprinted.
+The prompts use zsh's `read 'var?prompt'` form, since the login shell is zsh
+and bash's `read -p` means "read from the coprocess" there:
 
-```bash
-read -r -p 'Email: ' email && read -rs -p 'Password: ' password && echo
+```zsh
+read -r 'email?Email: ' && read -rs 'password?Password: ' && echo
 token=$(jq -n --arg e "${email}" --arg p "${password}" \
     '{email: $e, password: $p}' \
   | curl -s -X POST \
