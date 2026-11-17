@@ -38,9 +38,11 @@ the decisions, and the shift records live in
 ## Usage
 
 The `on-call` script in bash-scripts is the default runner. It polls the
-path every 30 seconds with an incident.io user key, acks each page that
-reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
-for it, so the model runs only when a page arrives. It does not read the
+path every 30 seconds with an incident.io user key, acks each alert page
+that reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
+for it, so the model runs only when a page arrives. A page declared by
+a human (creator `user` or `workflow`) is left unacked so it keeps ringing,
+and still gets `--triage`, which notifies. It does not read the
 control files in Step 1; write `stand-down` to `~/.local/state/on-call/control`
 to pause its acks.
 
@@ -84,6 +86,8 @@ does its one job and ends: no `ScheduleWakeup`, no ack, no loop.
   line, whatever the class. Append the class and decision to the shift log.
 - **`--notify "<line>"`**: Send the line through the notify in Step 6 and
   stop. The script uses it when the key is rejected or polls keep failing.
+  When the line runs past 200 characters, send it verbatim in the self-DM
+  and trim only the push to fit, dropping detail such as an ID list.
 
 If `PushNotification` is unavailable headless, the Slack self-DM alone is
 enough.
