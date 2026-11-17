@@ -66,7 +66,7 @@ Use `<repo>#<number>`, for example `sre#1914`, `mjs#126`, `mam#4192`.
 | `member-journey-services` | `mjs`      |
 | `member-app-middleware`   | `mam`      |
 | `transaction-service`     | `ts`       |
-| `membership-service`      | `memb`     |
+| `membership-service`      | `ms`       |
 | `ppp-service`             | `ppp`      |
 | `enterprise-service`      | `ent`      |
 | `admin-app-fe-next`       | `admin`    |
@@ -90,6 +90,15 @@ If `tmux list-windows -t '<session>:' -F '#{window_index} #{window_name}'`
 already shows `<name>`, leave that window alone and report its target.
 Re-invoking this skill must never add panes to, or type into,
 a window Nickolas has already arranged.
+
+When he asks to close and reopen windows fresh, target every window by its
+`#{window_id}` (`@8`), never by index: `renumber-windows` is on, so each
+`kill-window` shifts the indices after it. On 2026-11-16 a loop that killed
+`1:7` and then `1:8` closed the wrong windows, including one running
+a Claude Code session. Kill with `kill-window -t @<id>`, and reopen in place
+with `new-window -b -t @<id of the window that followed>`. Stop when a
+captured pane ID comes back empty, since `send-keys` and `split-window` with
+an empty `-t` act on the caller's own pane.
 
 Open the window, capture its pane ID, and start Vim in it:
 
