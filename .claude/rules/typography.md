@@ -24,6 +24,9 @@
   or ` — ` as the lead-in separator.
 - Write "ID" in prose, never "id" or "Id". Code references in backticks keep
   their verbatim casing (`id`, `user_id`, `userId`).
+- Capitalize the first word of a suggested prompt, the tab-completion text
+  Claude Code offers as my next message (`Commit and push`, never `commit and
+  push`).
 - American spellings, not British. Watch `-ize` over `-ise`
   (canonicalize, normalize), `-or` over `-our` (behavior, color), `-ed` over
   `-led` (modeled, labeled, canceled), and `-er` over `-re` (center).
