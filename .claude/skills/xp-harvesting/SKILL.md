@@ -4,9 +4,11 @@ description: >
   Open a batch of small, genuinely useful PRs across Nickolas's top Function
   Health repos (bug fixes, dead code, docs the code contradicts), one agent
   per repo, then squash-merge each once CI is green and fh-pulse approves.
-  TRIGGER when: user says "xp harvesting", "harvest some XP", "PR sweep",
-  "open easy PRs", "PRs that will get a Pulse approval", "quick wins across
-  my repos". SKIP: a single known fix
+  Also reviews the open PRs requesting his review, which keeps reviews in
+  balance with PRs. TRIGGER when: user says "xp harvesting", "harvest some
+  XP", "PR sweep", "open easy PRs", "PRs that will get a Pulse approval",
+  "quick wins across my repos", "review the PRs requesting my review".
+  SKIP: a single known fix
   (use `ship` or `rip`); bot findings on an existing PR (use
   `fix-bot-reviews`).
 disable-model-invocation: false
@@ -32,6 +34,21 @@ gh search prs --author @me --owner Function-Health --merged \
 Skip infra repos (`sre-infra-terraform` and similar), where a merge can
 change live infrastructure.
 
+Check the balance first. The metrics score code reviews beside merged PRs,
+so a sweep while reviews lag widens the gap:
+
+```bash
+gh search prs --reviewed-by nickolashkraus --owner Function-Health \
+  --created ">=<90 days ago>" --limit 500 --json author \
+  --jq '[.[]|select(.author.login!="nickolashkraus")]|length'
+```
+
+When that count is below the merged-PR count, post reviews first (see
+Reviews below), and open no more sweep PRs in a day than reviews posted
+that day. On 2026-11-18
+it was 131 PRs to 83 reviews, and a five-repo sweep beside 51 review drafts
+was too much: the load average passed 130 and no review was posted.
+
 For each repo, record:
 
 - **Default branch**: `gh api repos/Function-Health/<repo> --jq
@@ -49,8 +66,26 @@ For each repo, record:
 
 ## Step 2: Fan out one agent per repo
 
-Spawn one `general-purpose` agent per repo in a single message, named
-`pr-<repo-short>`. Each brief must carry:
+Spawn one `general-purpose` agent per repo, at most two at a time, named
+`pr-<repo-short>`: each runs a full test suite, and five at once beside
+other sessions made the machine unusable.
+
+`Agent` subagents run on this session's account, and only the Function seat
+counts in the Vibe Check AI-usage report. To put the spend there, run each
+brief as a background headless session instead:
+
+```bash
+cd ~/w/<repo-short> && CLAUDE_CONFIG_DIR="$HOME/.claude-fh" command claude \
+  --dangerously-skip-permissions -p "$BRIEF" --model opus \
+  --name xp-sweep-<repo-short> --max-budget-usd 40 --output-format json \
+  </dev/null > <log-dir>/sweep-<repo-short>.json
+```
+
+A headless session cannot be pinged, so its brief has to end at the open
+PR. On 2026-11-18 four of them cost $2 to $12 each and took 20 to 50
+minutes; the result's `result` field is the report.
+
+Each brief must carry:
 
 - **Goal**: One small PR (under ~100 added lines) fixing a verified defect:
   a bug with a test, dead code proven unreferenced, or a doc, docstring or
@@ -64,7 +99,8 @@ Spawn one `general-purpose` agent per repo in a single message, named
 - **Worktree**: `git -C ~/Function-Health/<repo> worktree add
   ~/Function-Health/<repo>/<branch> -b <branch> origin/<base>`, then
   `worktree-links` and work through the `~/w` link. Branch names are short
-  hyphenated descriptions, no Linear slug.
+  hyphenated descriptions, no Linear slug. Never check out or edit in the
+  default worktree; one agent detached `~/w/mam` by mistake.
 - **Local CI**: The full suite exactly as `.github/workflows/*` runs it,
   through the project runner. For a bug fix, break the fix and watch the test
   fail. Run `pulse-review` once for runtime changes; skip it for docs. In
@@ -76,7 +112,19 @@ Spawn one `general-purpose` agent per repo in a single message, named
   `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/libpq/lib` and
   `--postgresql-exec=/opt/homebrew/opt/postgresql@17/bin/pg_ctl` (the
   config points at CI's Linux `pg_ctl`), and must keep the cache plugin,
-  since pytest-xprocess errors under `-p no:cacheprovider`.
+  since pytest-xprocess errors under `-p no:cacheprovider`. A
+  membership-service suite that hangs is waiting on a Pub/Sub emulator
+  a killed run left behind; `pytest --xkill` in that worktree clears it.
+  Split the suite into directories rather than cutting a run off with
+  `timeout`, which leaves its test Postgres running. The ppp-service
+  and transaction-service suites take about 10 minutes, past the Bash
+  tool's foreground limit, which moves them to the background; split the
+  run (ppp-service: `tests/migrations` on its own; transaction-service: by
+  directory). transaction-service's default worktree has no `.env`, so use
+  the `TEST_POSTGRES_*` values from `.github/workflows/pytest.yml`, on
+  another port when Homebrew Postgres holds 5432. member-app-middleware's
+  Redis-backed suites need the workflow's `redis:7-alpine` service and its
+  Redis URLs, or about 50 tests fail.
 - **Commit and PR**: Imperative subject, 50 characters or fewer, no
   attribution. PR title matches; body is one or two sentences opening with
   a declarative verb.
@@ -206,6 +254,37 @@ After the user agrees, remove each worktree the sweep created:
 4. `git branch -D <branch>` for merged PRs only. Keep a closed PR's branch
    so it can be reopened. Leave remote branches alone.
 5. Run `worktree-links`.
+
+## Reviews
+
+The other half of the balance. Follow the Review Pipeline in the agent-os
+project `domains/function/projects/xp-harvesting` (its `README.md`). Its
+`reviews/run.sh <repo> <number>` runs a drafting session and then an
+adversarial pass, both headless on the Function seat, and writes
+`reviews/<repo>-<number>.md`. Nothing reaches GitHub until Nickolas approves
+each review. Findings from the first full run, 2026-11-18:
+
+- **Queue**: `gh search prs --review-requested @me --owner Function-Health
+  --state open --limit 500` returned 210 PRs, 110 from dependabot or the
+  sync bot. Review the ready, mergeable code PRs. Set aside drafts and PRs
+  that conflict with their base, since the author has to change them.
+- **Run**: `XP_LOG_DIR=<dir> xargs -P 2 -L 1 reviews/run.sh < <list>`, one
+  `<repo> <number>` per line. Both sessions together cost about $5 and
+  8 minutes per PR. `run.sh` skips a finished file, so a stopped batch
+  resumes from the same list. Five at a time was too many.
+- **Decide**: Apply "Text That Gets Posted" in `reviews/brief.md` again
+  when writing `## To Post`. Nickolas rewrote every approval posted that
+  day: each body became `LGTM 👍🏼`, a non-blocking question was deleted
+  and the ask after a nit was cut. The COMMENT with concrete findings went
+  out unchanged.
+- **Post**: Recheck the head and the reviews first. Post with
+  `gh api -X POST repos/Function-Health/<repo>/pulls/<n>/reviews --input
+  <file>`, where the JSON holds the full head SHA as `commit_id`, `event`,
+  `body`, and `comments` with `path`, `line` and `side: "RIGHT"`. Confirm
+  each inline line is an added or context line in the diff first. Give
+  Nickolas each review's `html_url`.
+- **Another session**: When a second session reviews from the same
+  directory, split the PRs by number and let each touch only its own files.
 
 ## Report
 
