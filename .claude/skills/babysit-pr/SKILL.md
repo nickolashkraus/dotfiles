@@ -80,6 +80,14 @@ merged (`gh pr view --json state,mergedBy`), squash-merge it if not, and
 hand the Prod deploy to the `devhub` skill for EasyDeploy-managed services
 (e.g. ppp-service), or `release-trunk` only for tag-triggered repos.
 
+On a repo whose ruleset requires the branch to be up to date (ppp-service),
+a busy `main` races a plain `gh pr merge`: it fails with "not up to date",
+and `confirm-risky.py` blocks it anyway without a per-command yes. Merge
+with `gh pr merge <n> --auto --squash --match-head-commit <full-sha>`
+instead. When the merge state goes `BEHIND`, rebase onto `origin/main`,
+rerun the lint gate, push with `--force-with-lease=<branch>:<old-sha>` and
+keep watching; auto-merge and existing approvals survive the push.
+
 If a deploy script was provided:
 
 1. Verify the script exists at the given path. If not, tell the user and stop.

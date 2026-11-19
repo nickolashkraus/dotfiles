@@ -155,8 +155,11 @@ counted ADDED lines exceed 2,000 (strict `>`; excludes come from configured
 globs). Check the count before pushing:
 
 ```bash
-git diff <base>...HEAD --numstat | awk '{a+=$1} END {print a}'
+git diff <base>...HEAD --numstat | cut -f1 | paste -sd+ - | bc
 ```
+
+(No awk positional field here: the skill loader substitutes a dollar-one in
+this file with the skill's arguments, which rendered the awk form as a path.)
 
 Two traps for a PR near the limit:
 
