@@ -7,13 +7,28 @@ description: >
   statement execution API. TRIGGER when: user wants to query a Databricks
   catalog, verify that a table or column tag landed, check whether they
   have Databricks access, request a Databricks role, or troubleshoot
-  masked/redacted query results.
+  masked/redacted query results. SKIP: reading a service's own Prod rows,
+  such as whether a migration ran, a config or mapping row, or an order
+  count (use `fh-database` and request read-only through ConductorOne).
 disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
 
 Function Health Databricks runbooks. Invoke this skill when you need to
 reach a Databricks workspace, confirm access, or query a catalog.
+
+## When Not to Use Databricks
+
+Do not use Databricks to read a service's own Prod rows: whether
+a migration ran, a catalog or mapping row, an order count. Read the
+service's Postgres through the `fh-database` skill, requesting the
+instance's `ro` group in ConductorOne when access is missing. Nickolas set
+this on 2026-11-18, and "Reading Prod Data" in `rules/function-health.md`
+holds the rule.
+
+Databricks is a replicated copy with masked columns, so it cannot confirm
+a service's current state. Use it for cross-service analytics, history
+a service no longer holds and column tags.
 
 Databricks is the GCP-hosted lakehouse: Unity Catalog governance over a
 medallion (bronze, silver, gold) model. It is a Tier 0 service owned by
