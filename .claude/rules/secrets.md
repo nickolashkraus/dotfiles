@@ -27,23 +27,42 @@ the Login Keychain is unlocked.
 
 ## Inventory
 
-All entries below use the account `function-health`.
+Each Purpose is the entry's Keychain comment (`-j`) word for word, so change
+both together. New entries follow the creation template in the `secrets`
+skill.
 
-| Service                      | Purpose                                           |
-| ---------------------------- | ------------------------------------------------- |
-| `conductorone-client-id`     | ConductorOne PCC client ID                        |
-| `conductorone-client-secret` | ConductorOne PCC client secret                    |
-| `statsig-console`            | Statsig Console API key                           |
-| `stripe-test`                | Stripe restricted key (Test)                      |
-| `stripe-prod`                | Stripe restricted key (Live, read-only)           |
-| `stripe-prod-webhooks`       | Stripe restricted key (Live, webhooks:write)      |
-| `stripe-prod-limited-write`  | Stripe restricted key (Live, limited write)       |
-| `dx-api`                     | DX (getdx.com) metrics API key                    |
-| `datadog-app`                | Datadog app key (us5), monitor validation         |
-| `fh-github-token`            | GitHub PAT for fh-sync and system-update          |
-| `devhub`                     | DevHub (EasyDeploy) personal API key              |
-| `fh-dev-member-token`        | Dev member app Firebase ID token (about one hour) |
-| `incident-io`                | incident.io user key; the `on-call` script acks   |
+### `function-health`
+
+| Service                      | Purpose                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| `conductorone-client-id`     | ConductorOne PCC client ID for the cone CLI                                           |
+| `conductorone-client-secret` | ConductorOne PCC client secret for the cone CLI                                       |
+| `datadog-app`                | Datadog personal access token (us5) for monitor validation                            |
+| `devhub`                     | DevHub (EasyDeploy) personal API key (read, mutate) for REST and MCP calls            |
+| `dx-api`                     | DX (getdx.com) API token for engineering metrics                                      |
+| `fh-dev-member-token`        | Member app Firebase ID token (Dev, about one hour) for MAM calls                      |
+| `fh-github-token`            | GitHub personal access token for fh-sync and system-update                            |
+| `incident-io`                | incident.io user API key for the on-call script                                       |
+| `statsig-console`            | Statsig Console API key for agent calls                                               |
+| `stripe-prod`                | Stripe restricted key (Live, read-only) for agent reads                               |
+| `stripe-prod-limited-write`  | Stripe restricted key (Live, read plus limited write) for break-glass remediation     |
+| `stripe-prod-webhooks`       | Stripe restricted key (Live, webhook_endpoints:write) for webhook event subscriptions |
+| `stripe-test`                | Stripe restricted key (Test, full access) for agent calls                             |
+
+### `personal`
+
+| Service                      | Purpose                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| `elevenlabs-api`             | ElevenLabs API key for podcast.py                                                     |
+| `logo-dev`                   | logo.dev publishable key (pk_) for the logo image CDN                                 |
+| `logo-dev-secret`            | logo.dev secret key (sk_) for brand search                                            |
+| `monarch-token`              | Monarch API session token for monarch.py                                              |
+| `openai-api`                 | OpenAI API key for agent calls                                                        |
+| `ppp-qa-p7-dev`              | Member app password (Dev, throwaway) for PPP QA persona P7                            |
+| `workmail`                   | AWS WorkMail password for workmail.py                                                 |
+
+`workmail` is listed here, but its account is the login email, which
+`workmail.py` also uses as the IMAP user.
 
 ## Per-Application Usage
 

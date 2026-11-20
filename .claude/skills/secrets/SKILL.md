@@ -123,31 +123,53 @@ the `devhub` skill.
 ### Datadog
 
 Datadog's API needs two credentials: an org-level API key (`DD-API-KEY`) and
-a user-scoped Application key (`DD-APPLICATION-KEY`). Only the Application key
-(`datadog-app`, scoped to monitors) lives in the Keychain; the org API key is
-a Function Health secret and stays in GCP Secret Manager (`DATADOG_API_KEY` in
+a user credential in `DD-APPLICATION-KEY`. Only the user credential lives in
+the Keychain: `datadog-app` is a personal access token (`ddpat_`), despite the
+service name, and it reads more than monitors. The org API key is a Function
+Health secret and stays in GCP Secret Manager (`DATADOG_API_KEY` in
 `function-health-dev-env`). The org is on the `us5` site. For usage (e.g.,
 local monitor-query validation), invoke the `fh-datadog` skill.
 
 ## Adding a New Secret
 
-```
+Every entry follows one template:
+
+```bash
 security add-generic-password \
-  -s "<service-name>" \
-  -a "<account>" \
-  -w "<value>" \
-  -j "<one-line description of what this secret is for>" \
-  -U
+  -s <service> \
+  -a <account> \
+  -D "<kind>" \
+  -j "<Vendor> <kind> (<Env>, <scope>) for <consumer>" \
+  -U -w
 ```
 
-The `-U` flag updates the entry if it already exists. Naming conventions:
+- **Service** (`-s`): Lowercase and hyphenated, vendor first, then the
+  environment or qualifier (`stripe-prod-webhooks`, `logo-dev-secret`).
+  Never rename an existing service, since scripts look it up by name.
+- **Account** (`-a`): `function-health` for Function Health credentials and
+  `personal` for everything else. The one exception is `workmail`, whose
+  account is the login email because `workmail.py` reuses it as the IMAP
+  user.
+- **Kind** (`-D`): One of `API key`, `API token`, `restricted key`,
+  `access token`, `session token`, `ID token`, `client ID`, `client secret`
+  or `password`. Keychain Access shows it in the Kind column.
+- **Comment** (`-j`): `<Vendor> <kind> (<Env>, <scope>) for <consumer>`, such
+  as `Stripe restricted key (Live, read-only) for agent reads`. Env is Dev,
+  Staging or Prod, or Test or Live for Stripe. The consumer is the script or
+  skill that reads the key, or `agent calls` when only ad hoc agent calls
+  do. Drop the parenthetical when there is no environment or scope. Leave
+  out dates, since the Keychain records created and modified times.
+- **`-U -w` last**: `-w` with no value prompts for it twice, which keeps the
+  value out of argv and shell history. Anything after `-w` becomes the
+  value, and a trailing `-U` was once stored as the password. An agent
+  cannot answer the prompt, so it gives Nickolas the command to run with the
+  `!` prefix. A script pipes the value twice on stdin from a child with no
+  TTY, as `scripts/monarch.py` in agent-os does.
 
-- **Service**: Lowercase, hyphenated. Use `<vendor>-<purpose>` or
-  `<vendor>-<env>-<purpose>`. Examples: `conductorone-client-id`,
-  `stripe-test`.
-- **Account**: The owning context. Use `function-health` for Function Health
-  credentials and `personal` for personal accounts.
-- **Comment** (`-j`): A short human-readable description.
+To change the kind or comment on an existing entry, run the same command
+without `-w`. With `-U` and no `-w`, `security` updates the attributes and
+leaves the value untouched (tested 2026-11-19).
 
-After adding a secret, update the Inventory table in
-`~/.claude/rules/secrets.md`.
+After adding a secret, add its row to the Inventory in
+`~/.claude/rules/secrets.md`. The Purpose column is the comment, word for
+word.

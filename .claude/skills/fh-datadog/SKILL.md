@@ -2,7 +2,7 @@
 name: fh-datadog
 description: >
   Function Health Datadog runbooks. Covers API authentication (org API key
-  from GCP Secret Manager, user Application key from the Keychain, `us5`
+  from GCP Secret Manager, personal access token from the Keychain, `us5`
   site) and local monitor-query validation via the `/monitor/validate`
   endpoint. TRIGGER when: user wants to validate a Datadog monitor query
   locally, hit the Datadog API for FH, or troubleshoot Datadog auth or a
@@ -21,8 +21,9 @@ Datadog's API needs two credentials, and they live in different stores (see
 
 - **`DD-API-KEY`**: Org-level API key. A Function Health secret in GCP Secret
   Manager (`DATADOG_API_KEY` in `function-health-dev-env`).
-- **`DD-APPLICATION-KEY`**: User-scoped Application key, scoped to monitors.
-  Lives in the macOS Keychain as `datadog-app`.
+- **`DD-APPLICATION-KEY`**: A personal access token (`ddpat_`), which Datadog
+  accepts in this header. Lives in the macOS Keychain as `datadog-app`. It
+  reads more than monitors: dashboards and logs answered 200 on 2026-11-20.
 
 The org is on the `us5` site, so the API base is `api.us5.datadoghq.com`.
 

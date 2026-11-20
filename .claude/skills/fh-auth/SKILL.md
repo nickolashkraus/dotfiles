@@ -119,7 +119,9 @@ token=$(jq -n --arg e "${email}" --arg p "${password}" \
       -H 'content-type: application/json' -H 'fe-app-version: qa' -d @- \
   | jq -r .idToken)
 security add-generic-password -s fh-dev-member-token -a function-health \
-  -w "${token}" -j "Dev member app Firebase ID token" -U
+  -D "ID token" \
+  -j "Member app Firebase ID token (Dev, about one hour) for MAM calls" \
+  -U -w "${token}"
 unset password token
 ```
 
