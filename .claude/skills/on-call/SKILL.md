@@ -42,9 +42,9 @@ path every 30 seconds with an incident.io user key, acks each alert page
 that reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
 for it, so the model runs only when a page arrives. A page declared by
 a human (creator `user` or `workflow`) is left unacked so it keeps ringing,
-and still gets `--triage`, which notifies. It does not read the
-control files in Step 1; write `stand-down` to `~/.local/state/on-call/control`
-to pause its acks.
+and still gets `--triage`, which notifies. Of the control verbs in Step 1 it
+honors `stand-down` and `take-over`; write one to
+`~/.local/state/on-call/control` to pause its acks.
 
 The `/loop` form re-reads a growing context every minute, which cost about
 $14 an hour on 2026-11-03. Run one loop per machine, with distinct roles:
@@ -128,19 +128,18 @@ slower runs in a subagent that reports back on a later tick.
 
 ### Step 1: Control
 
-Read `~/nickolashkraus/agent-os/master/tasks/remote/` for files named
-`on-call-*.md` with `status: pending`. The body is one verb:
+Read `control` in the state directory. Nickolas writes it by hand, and it
+holds one verb or nothing:
 
-- **`stand down`**: Stop acking and classifying. Keep the liveness check
-  and the heartbeat. Persist `stand-down` to `control`.
-- **`resume`**: Clear `control`.
-- **`take over`**: Nickolas is at the keyboard. Same as `stand down`, but
+- **`stand-down`**: Stop acking and classifying. Keep the liveness check
+  and the heartbeat.
+- **`take-over`**: Nickolas is at the keyboard. Same as `stand-down`, but
   log that he took over so the shift report reads correctly.
-- **`page all <N>h`**: For the next N hours, notify on every page regardless
-  of class. Persist `page-all until <RFC 3339>` to `control`.
+- **`page-all until <RFC 3339>`**: Until that time, notify on every page
+  regardless of class.
 
-Mark each file `status: done` with a `## Result` line, the same shape
-`/remote` uses. The control file wins over everything below.
+An empty or missing file means normal operation. The control file wins over
+everything below.
 
 ### Step 2: Liveness
 
@@ -191,7 +190,7 @@ If `escalation_respond` errors on a page that still targets Nickolas, retry
 once on this tick, then notify him: an unacked page is the one failure this
 skill exists to prevent.
 
-Under `stand-down` or `take over`, skip this step entirely.
+Under `stand-down` or `take-over`, skip this step entirely.
 
 ### Step 5: Classify
 
