@@ -2,7 +2,7 @@
 
 These principles apply to every swarm skill (`/swarm-bug`, `/swarm-feature`,
 `/swarm-investigate`, `/swarm-verify`, `/swarm-research`). Skill-specific
-lessons live in each skill's own `PRINCIPLES.md`.
+lessons live in a skill's own `PRINCIPLES.md` where one exists (`/swarm-bug`).
 
 ## Independence Before Synthesis
 
@@ -52,9 +52,10 @@ approve. Investigation loops until no agent has new findings. Synthesis loops
 until all agents confirm the model is accurate. Review loops until all agents
 report no blocking findings. Consensus is explicit: each agent writes a verdict
 ("approved" or "has concerns") and the Orchestrator only advances when all
-verdicts are "approved." Cap at 3 rounds per phase to prevent unbounded
-iteration. If consensus is not reached, the Orchestrator surfaces the remaining
-disagreements to the user.
+verdicts are "approved." Cap at 3 rounds per phase (2 for the code review in
+`/swarm-bug` and `/swarm-feature`) to prevent unbounded iteration. If consensus
+is not reached, the Orchestrator surfaces the remaining disagreements to the
+user.
 
 ## Material-Rewrite Reset
 
