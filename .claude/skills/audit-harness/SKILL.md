@@ -41,9 +41,9 @@ window ending today).
    `~/nickolashkraus/agent-os/master/notes/logs/YYYY/MM/YYYY-MM-DD.md` for each
    date in the window. Skip dates with no log. Logs average about 350 lines, so
    do not truncate them. For a window over 7 days, split the dates into chunks
-   of about 15 logs and give each chunk to a parallel subagent with the Step
-   3 pattern list. Each subagent returns candidate patterns with dated quotes,
-   not log contents.
+   of about 15 logs and give each chunk to a parallel subagent
+   (`model: "opus"`) with the Step 3 pattern list. Each subagent returns
+   candidate patterns with dated quotes, not log contents.
 
 2. Commits in each repo since the cutoff:
 
@@ -78,10 +78,10 @@ window ending today).
    ```
 
    Split the sections between the baseline and the current version into chunks
-   of about 1,000 entries and give each chunk to a parallel subagent along with
-   a listing of the three repos' skills, hooks, rules, and scripts. Each
-   subagent returns only the entries that touch something the harness does,
-   with the file it touches.
+   of about 1,000 entries and give each chunk to a parallel subagent
+   (`model: "opus"`) along with a listing of the three repos' skills, hooks,
+   rules, and scripts. Each subagent returns only the entries that touch
+   something the harness does, with the file it touches.
 
 ## Step 3: Pattern-spot
 

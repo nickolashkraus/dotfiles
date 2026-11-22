@@ -246,9 +246,9 @@ notify per page. Log every decision with its reason.
 
 #### Outage check
 
-Spawn an `Agent` (general-purpose) with the page title, the alert ID, the
-service, and this brief. It has three minutes and returns one word plus one
-line of evidence: `outage`, `not-outage`, or `unknown`.
+Spawn an `Agent` (general-purpose, `model: "opus"`) with the page title, the
+alert ID, the service, and this brief. It has three minutes and returns one
+word plus one line of evidence: `outage`, `not-outage`, or `unknown`.
 
 An outage is one of:
 

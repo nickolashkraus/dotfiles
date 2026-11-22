@@ -30,6 +30,8 @@ When spawning the per-role investigation agents in Step 2:
 
 - All agents launch in a **single message** with multiple `Agent` tool uses,
   not sequentially.
+- Every `Agent` call names `model: "opus"`, here and in every later round, as
+  `@~/.claude/rules/models.md` requires.
 - The agent prompt template lives at
   `~/.claude/skills/swarm-<name>/prompts/investigate/<role>.md`.
 - Render the template by substituting `{repo_path}`, `{output_file}`, and any

@@ -66,9 +66,9 @@ For each repo, record:
 
 ## Step 2: Fan out one agent per repo
 
-Spawn one `general-purpose` agent per repo, at most two at a time, named
-`pr-<repo-short>`: each runs a full test suite, and five at once beside other
-sessions made the machine unusable.
+Spawn one `general-purpose` agent per repo with `model: "opus"`, at most two at
+a time, named `pr-<repo-short>`: each runs a full test suite, and five at once
+beside other sessions made the machine unusable.
 
 `Agent` subagents run on this session's account, and only the Function seat
 counts in the Vibe Check AI-usage report. To put the spend there, run each
