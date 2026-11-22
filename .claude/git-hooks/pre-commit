@@ -18,6 +18,9 @@ Catches:
     rules; mirrors the `lint-outbound.py` checks with the in-repo
     carve-out).
 
+The `SKILL.md` YAML, description and name checks need PyYAML. Without it
+the hook prints a warning, skips them and still runs the rest.
+
 Install once per clone:
 
     git config core.hooksPath .claude/git-hooks
@@ -29,11 +32,13 @@ Bypass for a single commit:
 
 from __future__ import annotations
 
+import functools
 import json
 import re
 import subprocess
 import sys
 from pathlib import Path
+from types import ModuleType
 
 SMART_QUOTES = {
     "“": "left double quote",
@@ -107,6 +112,20 @@ def lint_markdown(text: str, path: str) -> list[str]:
     return violations
 
 
+@functools.cache
+def import_yaml() -> ModuleType | None:
+    """Return the `yaml` module, or None after warning once that it is missing."""
+    try:
+        import yaml
+    except ImportError:
+        sys.stderr.write(
+            "pre-commit: cannot import yaml (PyYAML), so the SKILL.md YAML, "
+            "description and name checks were skipped\n"
+        )
+        return None
+    return yaml
+
+
 def validate_skill_frontmatter(text: str, path: str) -> list[str]:
     """
     Validate a SKILL.md frontmatter block. Catches the failure modes that
@@ -122,9 +141,8 @@ def validate_skill_frontmatter(text: str, path: str) -> list[str]:
         return violations
     fm_raw = parts[1]
 
-    try:
-        import yaml
-    except ImportError:
+    yaml = import_yaml()
+    if yaml is None:
         return violations
 
     try:
