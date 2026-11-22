@@ -151,7 +151,7 @@ what the PR review is for. Re-run locally only when the user asks.
 ## Step 5: Check the size gate before pushing
 
 **Size gate counts ADDED lines.** The deployed bot short-circuits PRs whose
-counted ADDED lines exceed 2,000 (strict `>`; excludes come from configured
+counted ADDED lines exceed 4,000 (strict `>`; excludes come from configured
 globs). Check the count before pushing:
 
 ```bash
