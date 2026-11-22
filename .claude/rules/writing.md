@@ -10,7 +10,7 @@ to everything else.
 The rubric is "informative but tight," not minimal. A reviewer or future
 reader needs the *why* and the load-bearing context. Stripping the contract
 from an ADR or the failure-mode bullets from a PR body loses real value.
-"Less verbose" never means "strip everything."
+"Less verbose" never means "strip everything".
 
 - **PR bodies**: Scale with the diff, and err far shorter than feels
   natural. A one-line change gets one sentence: what it does, and why it
@@ -55,7 +55,7 @@ Investigation evidence (row counts, grant quantities, the names of
 things found in a Dev database) belongs in the issue or in chat, not in
 a PR body and never in a docstring.
 
-**Calibration check**: if you're about to tell an agent "cut from N lines
+**Calibration check**: If you're about to tell an agent "cut from N lines
 to N/9 lines" or "make this one sentence," that's almost certainly an
 overcorrection. The right ask is usually "cut N/3 lines" or "trim
-subsection X to a paragraph."
+subsection X to a paragraph".

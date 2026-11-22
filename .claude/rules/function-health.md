@@ -76,10 +76,10 @@ composable across multiple calls in one transaction.
 
 ### Pub/Sub
 
-- Push endpoints: route prefix `/api/v1/pubsub/push_subscriptions`; function
+- Push endpoints: Route prefix `/api/v1/pubsub/push_subscriptions`; function
   names end with `_subscription`; route constants end with `_EVENT`; OIDC token
   auth; handlers must be idempotent.
-- Pull subscriptions: inherit `BaseSubscriptionService[PayloadType]`;
+- Pull subscriptions: Inherit `BaseSubscriptionService[PayloadType]`;
   `_process_event` must not commit or rollback; dead letter after 5 attempts;
   subscription names lowercase-with-hyphens ending `-subscription`.
 - Schemas: `PubSubMessage` > `Message` > `MessageAttributes` hierarchy; event
