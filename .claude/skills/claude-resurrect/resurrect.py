@@ -2,9 +2,10 @@
 """Retrieve interactive Claude Code sessions for a given date and emit a
 resume table plus a tmux rebuild script.
 
-Filters to real interactive sessions: those with at least one genuine user
-turn on the target date. Hook-spawned subsessions (rule-check, lint-outbound)
-and skill-runner-only sessions have zero genuine turns and are dropped.
+Filters to real interactive sessions: those with activity on the target date
+and at least one genuine user turn in the transcript, so a session still
+working past midnight is kept. Hook-spawned subsessions (rule-check) and
+skill-runner-only sessions have zero genuine turns and are dropped.
 Nested subagent transcripts live under */subagents/ and are excluded by the
 top-level glob.
 
@@ -16,6 +17,7 @@ import datetime
 import glob
 import json
 import os
+import shlex
 import sys
 
 PROJECTS = os.path.join(
@@ -164,14 +166,19 @@ def write_tmux_script(sessions: list[dict], target: datetime.date) -> str:
         cwd = s["cwd"]
         cmd = f"claude --resume {s['sid']}"
         if i == 0:
-            lines.append(
-                f"tmux new-session -d -s {session_name} -n {name!r} -c {cwd!r}"
-            )
+            new = f"tmux new-session -d -s {session_name}"
         else:
-            lines.append(f"tmux new-window -t {session_name} -n {name!r} -c {cwd!r}")
-        target_pane = f"{session_name}:{i}"
-        lines.append(f"tmux send-keys -t {target_pane} {cmd!r}")
-    lines.append(f"tmux attach -t {session_name}")
+            new = f"tmux new-window -t {session_name}"
+        lines.append(f"{new} -n {shlex.quote(name)} -c {shlex.quote(cwd)}")
+        lines.append(f"tmux send-keys -t {session_name}:{i} {shlex.quote(cmd)}")
+    # `tmux attach` refuses to nest, so switch the client when inside tmux.
+    lines += [
+        'if [ -n "${TMUX:-}" ]; then',
+        f"  tmux switch-client -t {session_name}",
+        "else",
+        f"  tmux attach -t {session_name}",
+        "fi",
+    ]
     with open(path, "w") as fh:
         fh.write("\n".join(lines) + "\n")
     os.chmod(path, 0o755)
