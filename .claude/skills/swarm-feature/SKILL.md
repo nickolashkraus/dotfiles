@@ -229,7 +229,8 @@ In the **code worktree**: squash commits, write the commit message (Linear
 issue slug prefix, summary of the feature), push the branch, and create the PR
 using `gh pr create`.
 
-In the **agent-os worktree**: commit all artifacts on the `{slug}` branch with
-message `"swarm-feature: {slug} design"` and push the branch.
+In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
+push the branch. The subject follows rules/git.md, with no `swarm-feature:`
+prefix (see "Ship: artifact worktree" in STEPS.md).
 
 After the code PR is created, run `/fix-ci` until all checks pass.

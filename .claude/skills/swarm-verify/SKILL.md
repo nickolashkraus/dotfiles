@@ -182,8 +182,9 @@ proceed until the user approves.
 
 ## Step 4: Ship
 
-In the **agent-os worktree**: commit all artifacts on the `{slug}` branch with
-message `"swarm-verify: {slug}"` and push.
+In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
+push. The subject follows rules/git.md, with no `swarm-verify:` prefix (see
+"Ship: artifact worktree" in STEPS.md).
 
 If the user wants to share the memo, suggest the appropriate channel (a Slack
 draft for Slack, `/update-notion-page` if the original source was a Notion doc,

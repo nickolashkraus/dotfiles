@@ -260,8 +260,9 @@ modifications unstaged) can produce a partial commit. Run `ruff` / `pyright` /
 the test suite once more and verify the diff includes every changed file before
 `git push`. Then create the PR using `gh pr create`.
 
-In the **agent-os worktree**: commit all artifacts on the `{slug}` branch with
-message `"swarm: {slug} bug analysis"` and push the branch. Do not open a PR
-for the agent-os branch unless the user requests one.
+In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
+push the branch. The subject follows rules/git.md, with no `swarm:` prefix (see
+"Ship: artifact worktree" in STEPS.md). Do not open a PR for the agent-os
+branch unless the user requests one.
 
 After the code PR is created, run `/fix-ci` until all checks pass.

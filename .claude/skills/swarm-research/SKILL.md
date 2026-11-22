@@ -180,8 +180,9 @@ proceed until the user approves.
 
 ## Step 4: Ship
 
-In the **agent-os worktree**: commit all artifacts on the `{slug}` branch with
-message `"swarm-research: {slug}"` and push.
+In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
+push. The subject follows rules/git.md, with no `swarm-research:` prefix (see
+"Ship: artifact worktree" in STEPS.md).
 
 If the user wants the document in Notion, run `/create-notion-page` against
 `final.md`. If a Linear issue should track follow-up, suggest creating one with
