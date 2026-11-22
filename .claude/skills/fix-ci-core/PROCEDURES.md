@@ -365,9 +365,9 @@ Use this template for skills that fix and dismiss findings inline (`fix-ci`,
 `fix-bot-reviews`). For the Tracked variant (`fix-ci-release`), see that
 skill's Step 7.
 
-The `rule-check.py` hook rejects tables whose columns are not padded to equal
-width (each column's header, separator, and data cells must share one width
-with a 1-space buffer). Wide Description/Reason cells make hand-alignment
+The `lint-outbound.py` hook rejects tables whose columns are not padded to
+equal width (each column's header, separator, and data cells must share one
+width with a 1-space buffer). Wide Description/Reason cells make hand-alignment
 error-prone, so build the table programmatically (pad each column to its
 longest cell) and keep the Comment cell short with a reference-style link
 (`[→](url)` plus an `[r1]: <url>` definition below the table) rather than an

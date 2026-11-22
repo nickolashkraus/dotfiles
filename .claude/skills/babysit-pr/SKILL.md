@@ -95,4 +95,4 @@ If a deploy script was provided:
    `echo "y"` into it.
 3. Report the result: success or failure with relevant output.
 
-After a successful deploy, stop monitoring. The loop can be cancelled.
+After a successful deploy, stop monitoring. The loop can be canceled.
