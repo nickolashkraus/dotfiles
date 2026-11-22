@@ -29,8 +29,10 @@ copy when done. Key elements:
 - Launch headless Chrome via `puppeteer-core` with
   `executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google
   Chrome'`, viewport 1280x800.
-- Record with `const recorder = await page.screencast({ path:
-  `${OUT}/rec.webm` })` and `await recorder.stop()` at the end.
+- Record with the call below, and `await recorder.stop()` at the end:
+  ```js
+  const recorder = await page.screencast({ path: `${OUT}/rec.webm` })
+  ```
 - Inject a fake cursor so clicks are visible (headless renders no cursor):
   a fixed-position `div#__cursor` (18px orange circle, white border,
   `z-index: 2147483647`, `pointer-events: none`) that tracks `mousemove`.
