@@ -896,6 +896,35 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
     first = os.path.basename(words[0]) if words else ""
     return first in CODE_INTERPRETERS
 
+
+# A `cat` heredoc redirected into a file (`cat > lint.yml <<'EOF'`) is that
+# file's content, not outbound prose, unless the same command reads the file
+# back as a message (`git commit -F`, `--body-file`, `--input`, `body=@file`,
+# `< file`, `$(cat file)`).
+HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
+FILE_READER_RE = re.compile(
+    r"(?:(?:^|\s)(?:-F|--file|--body-file|--input)[=\s]+|=@|<\s*|\bcat\s+)"
+    r"([^\s;|&<>()]+)"
+)
+
+
+def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
+    """True when the heredoc at `heredoc_start` is `cat` output redirected
+    into a file that nothing else in the command reads back. Files compare
+    by base name, so another spelling of the same path still counts as read
+    back and the heredoc stays a payload."""
+    segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
+    words = segment.split()
+    if not words or words[0] != "cat":
+        return False
+    target = HEREDOC_REDIRECT_RE.search(segment)
+    if target is None:
+        return False
+    name = os.path.basename(target.group(1).strip("'\""))
+    readers = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
+    return all(os.path.basename(r.strip("'\"")) != name for r in readers)
+
+
 # `gh ... --body-file <path>` and `git commit -F|--file <path>` point the
 # command at a file rather than carrying the body inline. The Write call
 # that created the file is linted only when it has a Markdown extension,
@@ -961,6 +990,8 @@ def extract_bash_content(
         if heredoc_feeds_interpreter(command, m.start()):
             continue
         if heredoc_feeds_data_consumer(command, m.start()):
+            continue
+        if heredoc_writes_other_file(command, m.start()):
             continue
         fields.append(
             (

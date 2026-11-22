@@ -188,6 +188,71 @@ def test_interpreter_heredoc_skipped() -> None:
     )
 
 
+def test_file_heredoc_is_not_the_message() -> None:
+    section("extract_bash_content: a heredoc written into another file")
+
+    def heredocs(cmd: str) -> list[str]:
+        return [f[1] for f in lo.extract_bash_content(cmd) if "heredoc" in f[0]]
+
+    workflow = (
+        "cat {redirect} .github/workflows/lint.yml <<'EOF'\n"
+        "name: lint\n"
+        "run: cat .github/workflows/lint.yml\n"
+        "EOF"
+    )
+    for redirect in (">", ">>"):
+        cmd = "git commit -m 'Clear the lint findings' -- a.sh && " + workflow.format(
+            redirect=redirect
+        )
+        check(
+            f"heredoc after `cat {redirect}` not extracted",
+            heredocs(cmd) == [],
+            f"got {heredocs(cmd)!r}",
+        )
+    cmd = "git commit -m 'Clear the lint findings' -- a.sh && " + workflow.format(
+        redirect=">"
+    )
+    check(
+        "inline message still extracted",
+        "Clear the lint findings" in [f[1] for f in lo.extract_bash_content(cmd)],
+        f"got {lo.extract_bash_content(cmd)!r}",
+    )
+
+    message = "cat > /tmp/unit-msg.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
+    both = (
+        message
+        + workflow.format(redirect=">")
+        + "\ngit commit -F /tmp/unit-msg.txt -- .github/workflows/lint.yml"
+    )
+    check(
+        "message heredoc extracted, workflow heredoc not",
+        heredocs(both) == ["Add the lint workflow"],
+        f"got {heredocs(both)!r}",
+    )
+    for reader in (
+        "git commit -F /tmp/unit-msg.txt",
+        "git commit --file=/tmp/unit-msg.txt",
+        "cd ~/repo && git commit -F unit-msg.txt",
+        "gh pr create --title 'Add lint' --body-file /tmp/unit-msg.txt",
+        "gh api repos/o/r/issues --input /tmp/unit-msg.txt",
+        "gh api repos/o/r/issues/1/comments --field body=@/tmp/unit-msg.txt",
+        "gh pr comment 1 --body-file - < /tmp/unit-msg.txt",
+        'git commit -m "$(cat /tmp/unit-msg.txt)"',
+    ):
+        check(
+            f"heredoc read back by `{reader}` extracted",
+            heredocs(message + reader) == ["Add the lint workflow"],
+            f"got {heredocs(message + reader)!r}",
+        )
+
+    stdin = "git commit -F - > /tmp/commit.log <<'EOF'\nSubject line here\nEOF"
+    check(
+        "stdin heredoc of a redirected git commit extracted",
+        heredocs(stdin) == ["Subject line here"],
+        f"got {heredocs(stdin)!r}",
+    )
+
+
 def test_markdown_heredoc_writes() -> None:
     section("extract_fields: heredocs written into Markdown files are linted")
     bad = "Done — shipped.\n"
@@ -768,6 +833,7 @@ TESTS = [
     test_commit_subject_exemptions,
     test_commit_body_rules,
     test_interpreter_heredoc_skipped,
+    test_file_heredoc_is_not_the_message,
     test_markdown_heredoc_writes,
     test_compound_command_flag_ownership,
     test_gh_api_at_file_read_not_blocked,
