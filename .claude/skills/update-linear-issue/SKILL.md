@@ -80,4 +80,9 @@ Use the `save_issue` tool with the `id` parameter to update the issue with:
 - **title**: From context.
 - **description**: The output from Step 4.
 
-Print the issue identifier when done.
+## Step 7: Confirm the write
+
+Per `rules/linear.md`, confirm a `save_issue` write with `get_issue`, not with
+the save response, which can return the previous description after an update.
+Check that the fields set in Step 6 match what was sent, then print the issue
+identifier.
