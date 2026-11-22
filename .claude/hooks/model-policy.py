@@ -26,9 +26,16 @@ import re
 import sys
 from pathlib import Path
 
+# Before `claude`: assignments, launchers, and their flags and durations
+# (`env -u NAME`, `timeout --foreground 1.5m`). Between `claude` and
+# `--model`: quoted strings whole, so a prompt can hold `;`, `|` or `&`.
 CLAUDE_MODEL_RE = re.compile(
-    r"(?:^|[;&|(\n])\s*(?:\w+=\S*\s+|env\s+|command\s+|-u\s+\w+\s+)*"
-    r"claude\b[^\n;&|]*?--model[=\s]+['\"]?([\w.\-\[\]]+)"
+    r"(?:^|[;&|(\n])\s*"
+    r"(?:(?:\w+=\S*|-u\s+\w+|env|command|nohup|time|timeout|-[\w-]+"
+    r"|\d+(?:\.\d+)?[smhd]?)\s+)*"
+    r"(?:\S*/claude(?=\s)|claude\b)"
+    r"(?:'[^']*'|\"(?:[^\"\\]|\\.)*\"|\\.|[^\n;&|'\"\\])*?"
+    r"['\"]?--model[=\s]+['\"]?([\w.\-\[\]]+)"
 )
 SCRIPT_MODEL_RE = re.compile(r"\bmodel\s*:\s*['\"]([\w.\-\[\]]+)['\"]")
 
@@ -43,7 +50,7 @@ def requested(tool: str, tool_input: dict) -> tuple[list[str], bool]:
     if tool == "Bash":
         command = str(tool_input.get("command", ""))
         approved = command.lstrip().startswith("# user-approved:")
-        return CLAUDE_MODEL_RE.findall(command), approved
+        return CLAUDE_MODEL_RE.findall(command.replace("\\\n", " ")), approved
     if tool == "Workflow":
         script = str(tool_input.get("script", ""))
         path = tool_input.get("scriptPath")
