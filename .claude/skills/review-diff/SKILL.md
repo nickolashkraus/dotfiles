@@ -4,7 +4,7 @@ description: >
   Review the diff against the default branch for typos, bugs, and
   inconsistencies. TRIGGER when: user says "review my changes / diff", before
   commit or push, after substantive edits. SKIP: single file at a known path
-  (use `review-file`); PR review (use the built-in `review` plugin).
+  (use `review-file`); PR review (use the built-in `/code-review` skill).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read
 argument-hint: "[--staged]"
@@ -34,9 +34,9 @@ default branch. If there are untracked files, read them in full. You need the
 complete context to review.
 
 If the total review surface is large (e.g., >1500 lines or >5 files), delegate
-to an Explore sub-agent with `model: "opus"`. When delegating typography fixes,
-specify that em dash replacement is contextual (`:`, `;`, `,`, `(...)`, or
-sentence break depending on the surrounding clause); never bulk-replace with
+to a general-purpose sub-agent with `model: "opus"`. When delegating typography
+fixes, specify that em dash replacement is contextual (`:`, `;`, `,`, `(...)`,
+or sentence break depending on the surrounding clause); never bulk-replace with
 a single character. Require the sub-agent to report a sample of replacements
 for spot-check.
 
