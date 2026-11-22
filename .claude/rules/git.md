@@ -117,7 +117,7 @@
 ### Commit Messages
 
 - **Subject line** (first line):
-  - 50 characters or less
+  - 50 characters or less (a `SLUG: Exact Issue Title` subject is exempt)
   - Capitalized, imperative mood (e.g., "Fix bug in user login flow")
   - No period at the end
 - **Conventional Commits carve-out**: Use Conventional Commits ONLY when the
