@@ -30,24 +30,24 @@ argument-hint: "[--role leader|follower] [--dry-run] [--off-shift] [--path <esca
 
 # On-Call
 
-Phase one of the on-call agent: watch, ack, classify, and page Nickolas when
-it matters. It posts nothing to Slack or incident.io beyond the ack. The spec,
-the decisions, and the shift records live in
+Phase one of the on-call agent: watch, ack, classify, and page Nickolas when it
+matters. It posts nothing to Slack or incident.io beyond the ack. The spec, the
+decisions, and the shift records live in
 `~/nickolashkraus/agent-os/master/domains/function/projects/on-call/`.
 
 ## Usage
 
-The `on-call` script in bash-scripts is the default runner. It polls the
-path every 30 seconds with an incident.io user key, acks each alert page
-that reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
-for it, so the model runs only when a page arrives. A page declared by
-a human (creator `user` or `workflow`) is left unacked so it keeps ringing,
-and still gets `--triage`, which notifies. Of the control verbs in Step 1 it
-honors `stand-down` and `take-over`; write one to
-`~/.local/state/on-call/control` to pause its acks.
+The `on-call` script in bash-scripts is the default runner. It polls the path
+every 30 seconds with an incident.io user key, acks each alert page that
+reaches Nickolas, and runs `claude -p --model opus "/on-call --triage <id>"`
+for it, so the model runs only when a page arrives. A page declared by a human
+(creator `user` or `workflow`) is left unacked so it keeps ringing, and still
+gets `--triage`, which notifies. Of the control verbs in Step 1 it honors
+`stand-down` and `take-over`; write one to `~/.local/state/on-call/control` to
+pause its acks.
 
-The `/loop` form re-reads a growing context every minute, which cost about
-$14 an hour on 2026-11-03. Run one loop per machine, with distinct roles:
+The `/loop` form re-reads a growing context every minute, which cost about $14
+an hour on 2026-11-03. Run one loop per machine, with distinct roles:
 
 ```
 /loop /on-call --role leader       # machine A: acts on the first tick
@@ -70,24 +70,24 @@ user tagged, so a synthetic drill is visible to the whole org; prefer
 
 ## Headless Modes
 
-The script runs the skill headless with one of these arguments. Each run
-does its one job and ends: no `ScheduleWakeup`, no ack, no loop.
+The script runs the skill headless with one of these arguments. Each run does
+its one job and ends: no `ScheduleWakeup`, no ack, no loop.
 
 - **`--triage <id> [--ack-failed]`**: Read the page from
-  `~/.local/state/on-call/escalations/<id>.json`, the public API's
-  escalation object plus `paged_at` (when the page reached Nickolas). Run
-  Step 5 and Step 6 for it alone, and wait for the outage check instead of
-  deferring it to a later tick. In this shape the class comes from the
-  `creator` key: `user` or `workflow` is `human`, and `alert` goes through
-  the noise set by `title`. Count noise recurrence from the `seen` lines in
-  `pages.jsonl`. An `unknown` check notifies as "could not classify", since
-  no later tick retries it. With `--ack-failed`, the script could not ack
-  the page and keeps retrying, so notify at once with "ack failed" in the
-  line, whatever the class. Append the class and decision to the shift log.
-- **`--notify "<line>"`**: Send the line through the notify in Step 6 and
-  stop. The script uses it when the key is rejected or polls keep failing.
-  When the line runs past 200 characters, send it verbatim in the self-DM
-  and trim only the push to fit, dropping detail such as an ID list.
+  `~/.local/state/on-call/escalations/<id>.json`, the public API's escalation
+  object plus `paged_at` (when the page reached Nickolas). Run Step 5 and Step
+  6 for it alone, and wait for the outage check instead of deferring it to
+  a later tick. In this shape the class comes from the `creator` key: `user` or
+  `workflow` is `human`, and `alert` goes through the noise set by `title`.
+  Count noise recurrence from the `seen` lines in `pages.jsonl`. An `unknown`
+  check notifies as "could not classify", since no later tick retries it. With
+  `--ack-failed`, the script could not ack the page and keeps retrying, so
+  notify at once with "ack failed" in the line, whatever the class. Append the
+  class and decision to the shift log.
+- **`--notify "<line>"`**: Send the line through the notify in Step 6 and stop.
+  The script uses it when the key is rejected or polls keep failing. When the
+  line runs past 200 characters, send it verbatim in the self-DM and trim only
+  the push to fit, dropping detail such as an ID list.
 
 If `PushNotification` is unavailable headless, the Slack self-DM alone is
 enough.
@@ -105,10 +105,10 @@ enough.
 | State directory | `~/.local/state/on-call/`                |
 
 State is machine-local and never committed: `heartbeat` (one line, the last
-successful tick in RFC 3339), `pages.jsonl` (one line per page the machine
-has seen, with the action it took), and `control` (the current control
-verb). incident.io is the only cross-machine truth; never assume the other
-machine's state from local files.
+successful tick in RFC 3339), `pages.jsonl` (one line per page the machine has
+seen, with the action it took), and `control` (the current control verb).
+incident.io is the only cross-machine truth; never assume the other machine's
+state from local files.
 
 ## Hard Limits
 
@@ -128,13 +128,13 @@ slower runs in a subagent that reports back on a later tick.
 
 ### Step 1: Control
 
-Read `control` in the state directory. Nickolas writes it by hand, and it
-holds one verb or nothing:
+Read `control` in the state directory. Nickolas writes it by hand, and it holds
+one verb or nothing:
 
-- **`stand-down`**: Stop acking and classifying. Keep the liveness check
-  and the heartbeat.
-- **`take-over`**: Nickolas is at the keyboard. Same as `stand-down`, but
-  log that he took over so the shift report reads correctly.
+- **`stand-down`**: Stop acking and classifying. Keep the liveness check and
+  the heartbeat.
+- **`take-over`**: Nickolas is at the keyboard. Same as `stand-down`, but log
+  that he took over so the shift report reads correctly.
 - **`page-all until <RFC 3339>`**: Until that time, notify on every page
   regardless of class.
 
@@ -143,15 +143,15 @@ everything below.
 
 ### Step 2: Liveness
 
-Call `schedule_list` with `user: "me"`. This is the authenticated read: a
-failure means the OAuth token behind the MCP is gone, and the agent cannot
+Call `schedule_list` with `user: "me"`. This is the authenticated read:
+a failure means the OAuth token behind the MCP is gone, and the agent cannot
 ack anything. On failure, notify once ("on-call: incident.io auth failed,
-re-login needed"; notify is defined in Step 6), log it, and skip to Step 7
-with a 60-second wakeup. Do not send the notification again until a tick succeeds.
+re-login needed"; notify is defined in Step 6), log it, and skip to Step 7 with
+a 60-second wakeup. Do not send the notification again until a tick succeeds.
 
 From the result, record whether Nickolas is on shift now (a
-`user_current_shift` on the BYBO Responders schedule) and which rotation.
-Write the heartbeat.
+`user_current_shift` on the BYBO Responders schedule) and which rotation. Write
+the heartbeat.
 
 ### Step 3: Read
 
@@ -164,43 +164,43 @@ or `paged_users` changed is an update. A climb to the next level leaves
 `status` at `triggered` (transition reason `level_timeout`) and adds the new
 target to `paged_users`, so a status-only diff never sees the hand-off.
 
-Do not use `incident_list` or `incident_show` in the hot path; both have
-failed schema validation on some days. `escalation_list` has not.
+Do not use `incident_list` or `incident_show` in the hot path; both have failed
+schema validation on some days. `escalation_list` has not.
 
 ### Step 4: Ack
 
-For each page where `you.paged` is true, `you.acked` is false, and `status`
-is `triggered`:
+For each page where `you.paged` is true, `you.acked` is false, and `status` is
+`triggered`:
 
 - **Leader**: Call `escalation_respond` with `ack` now.
 - **Follower**: Call it only if Nickolas's target `started_at` (from
-  `targets[]` on a fresh `escalation_show`) is more than the follower delay
-  in the past and the page is still `triggered`. A page the leader already
-  acked shows `acked` and is skipped. `created_at` is the wrong clock: on a
-  Backup week a page targets Nickolas only after the Primary level times
-  out, about eleven minutes after creation, so a delay measured from
-  `created_at` has already elapsed and the follower races the leader.
+  `targets[]` on a fresh `escalation_show`) is more than the follower delay in
+  the past and the page is still `triggered`. A page the leader already acked
+  shows `acked` and is skipped. `created_at` is the wrong clock: on a Backup
+  week a page targets Nickolas only after the Primary level times out, about
+  eleven minutes after creation, so a delay measured from `created_at` has
+  already elapsed and the follower races the leader.
 - **Dry run**: Log `would-ack` and do nothing.
 
-The `escalation_respond` response body is stale (it still reads
-`triggered`), so confirm with `escalation_show` before logging the ack. Ack
-latency is measured from Nickolas's target `started_at`, not `created_at`.
-Record the result, including an error, in `pages.jsonl` and the shift log.
-If `escalation_respond` errors on a page that still targets Nickolas, retry
-once on this tick, then notify him: an unacked page is the one failure this
-skill exists to prevent.
+The `escalation_respond` response body is stale (it still reads `triggered`),
+so confirm with `escalation_show` before logging the ack. Ack latency is
+measured from Nickolas's target `started_at`, not `created_at`. Record the
+result, including an error, in `pages.jsonl` and the shift log. If
+`escalation_respond` errors on a page that still targets Nickolas, retry once
+on this tick, then notify him: an unacked page is the one failure this skill
+exists to prevent.
 
 Under `stand-down` or `take-over`, skip this step entirely.
 
 ### Step 5: Classify
 
-Classify every new page on the path, not only the ones that paged Nickolas,
-so the shift log is a complete record. The class comes from `created_by`
-and the title:
+Classify every new page on the path, not only the ones that paged Nickolas, so
+the shift log is a complete record. The class comes from `created_by` and the
+title:
 
 - **`human`**: `created_by.type` is `user`, or it is `workflow` (the Pillar
-  1 Workflow pages the path when someone declares an incident). These carry
-  an `incident_reference`.
+  1 Workflow pages the path when someone declares an incident). These carry an
+  `incident_reference`.
 - **`known-noise`**: An alert whose title matches the noise set below.
 - **`alert`**: Every other alert.
 
@@ -254,8 +254,8 @@ An outage is one of:
 
 - Checkout 5xx ratio above 50% for five minutes (`transaction`,
   `POST /stripe/create_payment_intent` or `purchase_invoice` resources).
-- `STRIPE ENDPOINTS 5xx` or `STRIPE THROTTLING` firing on real traffic
-  (more than ten requests in the window).
+- `STRIPE ENDPOINTS 5xx` or `STRIPE THROTTLING` firing on real traffic (more
+  than ten requests in the window).
 - Cloud Run 5xx on `prod-membership-service`, `prod-ppp-service`, or
   `production-transaction-service` above 5% of requests for five minutes.
 - `DB CONNECTION SATURATION` or `DB CONNECTIONS WAITING` on
@@ -299,11 +299,10 @@ liveness failures. Add a one-paragraph summary to the day's
 
 ## Known Gaps
 
-- `escalation_respond` acts for the authenticated user, so pages that do
-  not target Nickolas cannot be acked here. Whether incident.io accepts an
-  ack from a non-target is untested.
+- `escalation_respond` acts for the authenticated user, so pages that do not
+  target Nickolas cannot be acked here. Whether incident.io accepts an ack from
+  a non-target is untested.
 - Phase two adds the Slack carve-out (templated triage notes in Nickolas's
-  voice, with a second agent checking the voice) and the heartbeat
-  watchdog. The Slack MCP appends a "Sent using Claude" line to every
-  message, so the notes need a different transport before that phase
-  starts.
+  voice, with a second agent checking the voice) and the heartbeat watchdog.
+  The Slack MCP appends a "Sent using Claude" line to every message, so the
+  notes need a different transport before that phase starts.

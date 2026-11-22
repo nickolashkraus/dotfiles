@@ -13,13 +13,13 @@ argument-hint: "[--in-place] [--re-review [all | unresolved]] [pr-ref]"
 You are fixing CI failures on a pull request. Follow every step in order.
 
 Shared procedures (PR resolution, check waiting, retry handling, bot comment
-fetch and filter, reply format, durable link format, summary tables) are
-loaded from:
+fetch and filter, reply format, durable link format, summary tables) are loaded
+from:
 
 @~/.claude/skills/fix-ci-core/PROCEDURES.md
 
-When working a stack of PRs, run this skill once per PR in stack order. Do
-not batch-loop across PRs without re-entering the procedure for each one.
+When working a stack of PRs, run this skill once per PR in stack order. Do not
+batch-loop across PRs without re-entering the procedure for each one.
 
 ## Step 1: Parse arguments and resolve the PR
 
@@ -27,10 +27,10 @@ Parse `$ARGUMENTS` for flags:
 
 - `--in-place`: Fix bot comments directly on this branch. **This is now the
   default**, and the flag is accepted only so existing invocations keep
-  working. A stacked fix PR costs a worktree, a second CI run, a second
-  review thread and two summary cross-posts, and the review bots now land
-  findings fast enough that the parent PR is still open and unreviewed when
-  they arrive. Fixing in place is what I want every time.
+  working. A stacked fix PR costs a worktree, a second CI run, a second review
+  thread and two summary cross-posts, and the review bots now land findings
+  fast enough that the parent PR is still open and unreviewed when they arrive.
+  Fixing in place is what I want every time.
 - `--stacked`: Opt in to the old behavior and delegate to `fix-bot-reviews`.
   Only use this when I ask for it by name.
 - `--re-review [all | unresolved]`: See "Filter bot comments by resolution
@@ -78,8 +78,8 @@ For each failure:
 
 ## Step 5: Assess review bot comments
 
-Follow "Collect bot comments" and "Filter bot comments by resolution status"
-in PROCEDURES.md.
+Follow "Collect bot comments" and "Filter bot comments by resolution status" in
+PROCEDURES.md.
 
 If no actionable bot comments remain and all checks pass, go to Step 7.
 
@@ -93,14 +93,14 @@ after `fix-bot-reviews` completes.
 
 ### Otherwise (the default, and what `--in-place` selects)
 
-**Run the round counter first.** Follow "Count the rounds per file, and stop
-at three" in PROCEDURES.md before reading a single finding. If it prints
-anything, stop there and ask; the design in that file is the problem, and
-another round of fixes enlarges it.
+**Run the round counter first.** Follow "Count the rounds per file, and stop at
+three" in PROCEDURES.md before reading a single finding. If it prints anything,
+stop there and ask; the design in that file is the problem, and another round
+of fixes enlarges it.
 
 **Bot findings are advice, not a gate.** Weigh each one against the code and
-the rules, and dismiss the ones that do not hold rather than fixing
-everything a bot can generate.
+the rules, and dismiss the ones that do not hold rather than fixing everything
+a bot can generate.
 
 Before editing, sync the local worktree to the PR head. A worktree left on an
 older commit (or a concurrent session's push) means you fix code that no longer
@@ -113,33 +113,33 @@ synced tree, not from memory of an earlier read.
 For each remaining unresolved comment, apply "Bias toward fixing" in
 PROCEDURES.md. For dismissals, follow "Reply to a bot comment".
 
-For legitimate findings, read the relevant source files to understand
-context, then apply the fix directly on the current branch.
+For legitimate findings, read the relevant source files to understand context,
+then apply the fix directly on the current branch.
 
 ## Step 6: Verify, commit, and push
 
-Run the same CI commands locally to confirm the fixes work. Use the
-project's test/lint/build commands as identified from the CI logs or project
+Run the same CI commands locally to confirm the fixes work. Use the project's
+test/lint/build commands as identified from the CI logs or project
 configuration (e.g., `Makefile`, `package.json`, `pyproject.toml`).
 
 If any command still fails, go back to Step 4. Do not push between fix
 iterations.
 
-Once **all** local verification passes (CI fixes and bot comment fixes),
-commit and push in a single push. Always create a new commit rather than
-amending and force-pushing, so that review history and prior CI runs are
-preserved. Then go back to Step 2 and wait for all checks to complete before
-taking further action. Keep iterating until every check passes and all bot
-comments are addressed.
+Once **all** local verification passes (CI fixes and bot comment fixes), commit
+and push in a single push. Always create a new commit rather than amending and
+force-pushing, so that review history and prior CI runs are preserved. Then go
+back to Step 2 and wait for all checks to complete before taking further
+action. Keep iterating until every check passes and all bot comments are
+addressed.
 
-Commit per @~/.claude/rules/git.md. The body should explain which bot
-comments were addressed and why.
+Commit per @~/.claude/rules/git.md. The body should explain which bot comments
+were addressed and why.
 
 ## Step 7: Summarize
 
-List each CI failure and review bot comment, and what you did to fix or
-resolve each one.
+List each CI failure and review bot comment, and what you did to fix or resolve
+each one.
 
-If any bot comments were addressed (fixed or dismissed), post a summary
-comment on the PR. Follow "Findings summary" in PROCEDURES.md and use the
-"Canonical Fixed/Dismissed template" from that section.
+If any bot comments were addressed (fixed or dismissed), post a summary comment
+on the PR. Follow "Findings summary" in PROCEDURES.md and use the "Canonical
+Fixed/Dismissed template" from that section.

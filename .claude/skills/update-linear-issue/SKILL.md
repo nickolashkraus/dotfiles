@@ -9,8 +9,8 @@ allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__get_issue, mcp_
 argument-hint: "<linear-issue>"
 ---
 
-You are updating a Linear issue from the current conversation context.
-Follow @rules/linear.md for all formatting and content conventions.
+You are updating a Linear issue from the current conversation context. Follow
+@rules/linear.md for all formatting and content conventions.
 
 `$ARGUMENTS` contains one value: a Linear issue identifier (e.g., EPD-123).
 

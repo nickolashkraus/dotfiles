@@ -34,11 +34,10 @@ commits that will be included in the pull request.
 If `--no-pulse` was passed, skip this step entirely and proceed to Step 4.
 
 If the repo's `origin` is in the `Function-Health` org, run
-`Skill(skill: "pulse-review")` before pushing. Fix or dismiss every finding
-per that skill and iterate until Pulse is clean (zero critical, zero
-should-fix). The goal is a PR that arrives clean vis-a-vis the `fh-pulse`
-bot every time. Note any dismissals so Step 5 can carry the reasoning into
-the PR description.
+`Skill(skill: "pulse-review")` before pushing. Fix or dismiss every finding per
+that skill and iterate until Pulse is clean (zero critical, zero should-fix).
+The goal is a PR that arrives clean vis-a-vis the `fh-pulse` bot every time.
+Note any dismissals so Step 5 can carry the reasoning into the PR description.
 
 Skip this step for non-Function-Health repos and for the pulse repo itself.
 
@@ -76,8 +75,8 @@ Create the pull request using `gh pr create` against the default branch:
   @~/.claude/rules/git.md:
   - Scale the description with the complexity of the change.
   - Trivial: Single sentence or empty body.
-  - Small to medium: Declarative summary, code snippets if helpful,
-    `**NOTE**` blocks for secondary context.
+  - Small to medium: Declarative summary, code snippets if helpful, `**NOTE**`
+    blocks for secondary context.
   - Large: `## Overview`, then `## Implementation Details`,
     `## References` as needed. Never a `## Testing` section; tests are visible
     in the diff and in CI, so restating them is noise (see

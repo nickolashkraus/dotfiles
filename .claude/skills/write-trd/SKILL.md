@@ -15,9 +15,8 @@ You are writing a TRD. Follow every step in order.
 
 Ask the user once:
 
-> Do you have supporting materials? (PRD, meeting notes, Slack
-> threads, design docs, prior art.) Paste them or share file paths.
-> Type "none" to skip.
+> Do you have supporting materials? (PRD, meeting notes, Slack threads, design
+> docs, prior art.) Paste them or share file paths. Type "none" to skip.
 
 If materials are provided, read them in full. Extract goals, constraints,
 decisions already made, named integrations, timeline hints, and open questions.
@@ -81,8 +80,8 @@ you can answer from code or prior context.
 
 Populate the template in TEMPLATE.md top to bottom. Follow these rules:
 
-- Follow @rules/typography.md, @rules/writing.md and the `writing-style`
-  skill for all prose.
+- Follow @rules/typography.md, @rules/writing.md and the `writing-style` skill
+  for all prose.
 - Infer from code wherever possible rather than leaving placeholders.
 - For unavoidable gaps, use `[TBD: what is needed]`.
 - If mobile changes were confirmed, add a mobile consultation checklist item

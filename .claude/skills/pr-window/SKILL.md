@@ -19,8 +19,8 @@ was closed.
   - **`v`**: In the session his vertical monitor shows, three stacked panes:
     the pull request body on top for his review, the diff in the middle, and
     the Claude Code session that manages the change at the bottom.
-  - **`h`**: In the current pane's session, the diff on the left, with the
-    body above the Claude Code session on the right.
+  - **`h`**: In the current pane's session, the diff on the left, with the body
+    above the Claude Code session on the right.
 - **Pull request**: An optional number or URL. Without one, Step 1 reads it
   from the worktree.
 
@@ -113,10 +113,10 @@ the name only has to be unique and recognizable at a glance, not descriptive.
 
 With `v`, the panes stack top to bottom: `pr-body --check`, Vim on the pull
 request diff, then the Claude Code session, sized 15%, 60% and 25% like
-`tmux-layout v` (30, 122 and 52 rows on the 206-row monitor). With `h`, Vim
-is on the left, `pr-body --check` on the top right and Claude Code on the
-bottom right. Either way the window opens on the diff pane, which is split to
-make the other two.
+`tmux-layout v` (30, 122 and 52 rows on the 206-row monitor). With `h`, Vim is
+on the left, `pr-body --check` on the top right and Claude Code on the bottom
+right. Either way the window opens on the diff pane, which is split to make the
+other two.
 
 If `tmux list-windows -t '<session>:' -F '#{window_index} #{window_name}'`
 already shows `<name>`, leave that window alone and report its target.
@@ -126,11 +126,11 @@ a window Nickolas has already arranged.
 When he asks to close and reopen windows fresh, target every window by its
 `#{window_id}` (`@8`), never by index: `renumber-windows` is on, so each
 `kill-window` shifts the indices after it. On 2026-11-16 a loop that killed
-`1:7` and then `1:8` closed the wrong windows, including one running
-a Claude Code session. Kill with `kill-window -t @<id>`, and reopen in place
-with `new-window -b -t @<id of the window that followed>`. Stop when a
-captured pane ID comes back empty, since `send-keys` and `split-window` with
-an empty `-t` act on the caller's own pane.
+`1:7` and then `1:8` closed the wrong windows, including one running a Claude
+Code session. Kill with `kill-window -t @<id>`, and reopen in place with
+`new-window -b -t @<id of the window that followed>`. Stop when a captured pane
+ID comes back empty, since `send-keys` and `split-window` with an empty `-t`
+act on the caller's own pane.
 
 Open the window, capture its pane ID, and start Vim in it:
 
@@ -200,11 +200,11 @@ Three further details that matter:
 - **`-d` is correct here too.** Without it the new pane takes focus and the
   window opens on the body instead of the diff. The diff is the thing being
   reviewed, so it stays the active pane within the window.
-- **The split flag follows the layout.** tmux names `-h` "horizontal" after
-  the split axis, but it produces a vertical divider with the panes left and
-  right, which is what a wide terminal wants. On the vertical monitor the
-  width is short and the height is not, so `v` stacks with `-v`, and `-b` puts
-  the body above the diff instead of below it.
+- **The split flag follows the layout.** tmux names `-h` "horizontal" after the
+  split axis, but it produces a vertical divider with the panes left and right,
+  which is what a wide terminal wants. On the vertical monitor the width is
+  short and the height is not, so `v` stacks with `-v`, and `-b` puts the body
+  above the diff instead of below it.
 - **`pr-body` fetches the live body.** It works when reopening a window days
   later, and it shows the body as it stands now rather than as it was first
   written. It opens the body in `$EDITOR`, and on exit runs the spelling and
@@ -245,7 +245,8 @@ One or two lines:
 - The window target (`2:3 sre#1914`), the layout, and the file or files worth
   editing. With `v`, the target is in the vertical monitor's session, so name
   that session; say so too when `v` fell back to `h`.
-- That a plain `git commit` and `git push` updates the pull request, because the
+- That a plain `git commit` and `git push` updates the pull request, because
+  the
   branch already tracks origin.
 
 Do not re-summarize the change itself. The diff and the body are both on

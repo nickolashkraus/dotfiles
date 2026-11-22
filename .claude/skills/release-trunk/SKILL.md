@@ -14,10 +14,10 @@ allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, Monitor, mcp__claude_
 argument-hint: "[--date YYYY-MM-DD] [--commit SHA] [--no-op] [--cc USER_IDS_OR_HANDLES]"
 ---
 
-You are cutting a trunk-based release for a Function Health service. The
-Prod deploy is triggered by pushing a Git tag matching
-`release/YYYY-MM-DD.NN`; there is no release branch, release PR, or
-cherry-picking. Follow every step in order.
+You are cutting a trunk-based release for a Function Health service. The Prod
+deploy is triggered by pushing a Git tag matching `release/YYYY-MM-DD.NN`;
+there is no release branch, release PR, or cherry-picking. Follow every step in
+order.
 
 All release content must follow `@~/.claude/rules/typography.md` and
 `@~/.claude/rules/git.md`.
@@ -31,8 +31,8 @@ Detect the service from the current working directory. Determine
 gh repo view --json nameWithOwner --jq '.nameWithOwner'
 ```
 
-Confirm the Prod deploy trigger and its tag regex. Do not assume the tag
-shape; some repos namespace tags (e.g., `release/<service>/YYYY-MM-DD.NN`):
+Confirm the Prod deploy trigger and its tag regex. Do not assume the tag shape;
+some repos namespace tags (e.g., `release/<service>/YYYY-MM-DD.NN`):
 
 ```
 gcloud builds triggers describe <service>-deploy-prod \
@@ -57,14 +57,13 @@ gcloud run services describe <prod-service-name> \
 
 The image tag is `tf_<short-sha>`. Map it to a commit:
 
-**EasyDeploy-managed services** (e.g. ppp-service) serve an
-EasyDeploy-owned image digest instead of `tf_<short-sha>`, so this
-mapping does not work. Determine the deployed version from the newest
-`release/*` tag whose Prod deploy build succeeded
-(`gcloud builds list` filtered by the trigger ID). Also check the
-trigger's `_MIGRATION_ENABLED` substitution: repos that moved
-migrations to the DevHub Migrations action pin it `false`, and the
-release then only builds the image and applies Terraform.
+**EasyDeploy-managed services** (e.g. ppp-service) serve an EasyDeploy-owned
+image digest instead of `tf_<short-sha>`, so this mapping does not work.
+Determine the deployed version from the newest `release/*` tag whose Prod
+deploy build succeeded (`gcloud builds list` filtered by the trigger ID). Also
+check the trigger's `_MIGRATION_ENABLED` substitution: repos that moved
+migrations to the DevHub Migrations action pin it `false`, and the release then
+only builds the image and applies Terraform.
 
 ```
 git log -1 --format='%h %ad %s' --date=short <short-sha>
@@ -82,10 +81,10 @@ git diff --stat <deployed-sha>..origin/main -- alembic/versions/
 - **Normal release**: Tag the tip of `origin/main`. Everything in the delta
   ships; there is no per-PR selection in trunk-based deploys. If the delta
   contains commits that must not ship, stop and surface it.
-- **No-op release** (`--no-op`): Tag the currently-deployed commit itself.
-  The build, Terraform apply, and migrations job all run, but the image
-  reference (`tf_<short-sha>`) is unchanged, so Cloud Run rolls no new
-  revision and `alembic upgrade head` has nothing to apply.
+- **No-op release** (`--no-op`): Tag the currently-deployed commit itself. The
+  build, Terraform apply, and migrations job all run, but the image reference
+  (`tf_<short-sha>`) is unchanged, so Cloud Run rolls no new revision and
+  `alembic upgrade head` has nothing to apply.
 
 Review any migrations in the delta against `@~/.claude/rules/migrations.md`
 (runtime against Prod row counts, lock behavior, chunking) before tagging.
@@ -116,11 +115,10 @@ gh release create release/<date>.<NN> \
   --title "Release <date>.<NN>" --verify-tag --notes <notes>
 ```
 
-Release notes: one line per PR in the delta, `<subject> (#NNN)`, matching
-the ppp-service convention. For a no-op release use: "No-op release to
-exercise the trunk-based release flow. The tag points at the
-currently-deployed commit (<short-sha>), so no code, migration, or secret
-changes ship."
+Release notes: one line per PR in the delta, `<subject> (#NNN)`, matching the
+ppp-service convention. For a no-op release use: "No-op release to exercise the
+trunk-based release flow. The tag points at the currently-deployed commit
+(<short-sha>), so no code, migration, or secret changes ship."
 
 A bare tag push never creates a GitHub Release; `gh release create` is a
 required step, not an optional nicety.
@@ -141,8 +139,8 @@ Then watch it to a terminal state with a background Bash loop (statuses:
 
 On `SUCCESS`, verify:
 
-1. **Cloud Run revision**: `status.latestReadyRevisionName` advanced and
-   serves 100% of traffic. For a no-op release, verify it did NOT change.
+1. **Cloud Run revision**: `status.latestReadyRevisionName` advanced and serves
+   100% of traffic. For a no-op release, verify it did NOT change.
 2. **Migrations job**: The last execution of
    `prod-<service>-db-migrations` succeeded:
 
@@ -151,24 +149,24 @@ On `SUCCESS`, verify:
      --project function-health-prod-env --region us-central1 --limit 1
    ```
 
-3. **Runtime health**: Tail Prod logs for errors for a few minutes
-   (Datadog or `gcloud run services logs read`). Watch error rate and
-   5xx on the service's Datadog monitors.
+3. **Runtime health**: Tail Prod logs for errors for a few minutes (Datadog or
+   `gcloud run services logs read`). Watch error rate and 5xx on the service's
+   Datadog monitors.
 
-On `FAILURE`, read the build log, diagnose, and surface. Prod keeps running
-the previous revision; a failed build does not need a rollback.
+On `FAILURE`, read the build log, diagnose, and surface. Prod keeps running the
+previous revision; a failed build does not need a rollback.
 
 ## Step 7: Rollback plan
 
-To roll back a bad release: tag the last known-good commit as the next
-`.NN` and push it. Never delete or re-point a pushed release tag. If a
-migration shipped, assess whether the previous code tolerates the new
-schema before rolling back code alone.
+To roll back a bad release: tag the last known-good commit as the next `.NN`
+and push it. Never delete or re-point a pushed release tag. If a migration
+shipped, assess whether the previous code tolerates the new schema before
+rolling back code alone.
 
 ## Step 8: Summarize
 
-Print: tag, GitHub Release URL, Cloud Build ID and status, Cloud Run
-revision before/after, migrations applied (or none), and any follow-ups.
-Update the daily task file in
+Print: tag, GitHub Release URL, Cloud Build ID and status, Cloud Run revision
+before/after, migrations applied (or none), and any follow-ups. Update the
+daily task file in
 `~/nickolashkraus/agent-os/master/tasks/daily/<YYYY>/<MM>/<date>.md` if one
 exists for this release.

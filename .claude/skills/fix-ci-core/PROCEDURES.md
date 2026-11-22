@@ -6,9 +6,9 @@ These procedures are referenced by:
 - `~/.claude/skills/fix-ci-release/SKILL.md`
 - `~/.claude/skills/fix-bot-reviews/SKILL.md`
 
-The skill bodies tell you which procedures to apply at each step. This file
-is the canonical source for the mechanics so that fixes and updates land in
-one place.
+The skill bodies tell you which procedures to apply at each step. This file is
+the canonical source for the mechanics so that fixes and updates land in one
+place.
 
 ## Resolve the pull request
 
@@ -27,9 +27,9 @@ If no PR is found, stop and tell the user.
 
 Resolve `{owner}/{repo}` for `gh api` calls from the PR's `url` field (the
 segment between `github.com/` and `/pull/`, e.g.,
-`https://github.com/foo/bar/pull/123` becomes `foo/bar`). This works in
-both modes (ref passed vs. inferred from current branch) and resolves
-correctly even when the URL points at a different repo.
+`https://github.com/foo/bar/pull/123` becomes `foo/bar`). This works in both
+modes (ref passed vs. inferred from current branch) and resolves correctly even
+when the URL points at a different repo.
 
 When invoking a sister skill downstream (e.g., `Skill(skill:
 "fix-bot-reviews", args: "<ref>")`), pass the original reference unchanged.
@@ -37,8 +37,8 @@ If the user provided a URL, pass the URL through; the downstream skill
 re-parses it.
 
 Extract the Linear issue slug from the PR title (the prefix before the first
-colon, e.g., `BYB-1120` from `BYB-1120: Handle missing statuses`). The slug
-is used for downstream fix PRs and Linear issue creation.
+colon, e.g., `BYB-1120` from `BYB-1120: Handle missing statuses`). The slug is
+used for downstream fix PRs and Linear issue creation.
 
 ## Wait for all checks to complete
 
@@ -49,8 +49,8 @@ gh pr checks <pr-number>
 Classify every check as **pass**, **fail**, or **pending**.
 
 - If any checks are pending, wait 30 seconds and re-check. Always wait for
-  **all** checks to complete before moving on, including external checks
-  (Cloud Build, Sentry, Wiz, third-party scanners).
+  **all** checks to complete before moving on, including external checks (Cloud
+  Build, Sentry, Wiz, third-party scanners).
 - **An empty pending set is not the finish line.** A check can be registered
   minutes after the others settle, so "every row passes" and "every check
   ran" are different claims. On member-journey-services#146, `pulse-review`
@@ -66,23 +66,23 @@ Classify every check as **pass**, **fail**, or **pending**.
   a finding.
 - **Don't fake the handoff.** If you start a background wait (`Monitor`,
   `ScheduleWakeup`, `/loop`, or any `run_in_background` task), you must
-  register a concrete resumption (cron, scheduled wakeup, or loop tick) in
-  the same turn. Don't end the turn relying on the user to re-prompt. "I'll
-  let the monitor continue running" or "waiting for monitor to notify me"
-  are not valid handoffs unless paired with a registered resumption.
+  register a concrete resumption (cron, scheduled wakeup, or loop tick) in the
+  same turn. Don't end the turn relying on the user to re-prompt. "I'll let the
+  monitor continue running" or "waiting for monitor to notify me" are not valid
+  handoffs unless paired with a registered resumption.
 
 ## Re-run failing checks
 
-For transient or infrastructure failures, re-run the specific check rather
-than committing a no-op or closing/reopening the PR.
+For transient or infrastructure failures, re-run the specific check rather than
+committing a no-op or closing/reopening the PR.
 
 - **GitHub Actions**: `gh run rerun <run-id> --failed`.
 - **Stuck-pending GitHub Actions job**: A job can finish (log ends with
   "Complete job", run conclusion is `success`) while its job record stays
   `in_progress` with a null conclusion, leaving the PR rollup pending
-  indefinitely. `--failed` reruns nothing because nothing failed; use
-  a plain `gh run rerun <run-id>` to produce a fresh attempt that reports
-  correctly. Confirm the shape first via
+  indefinitely. `--failed` reruns nothing because nothing failed; use a plain
+  `gh run rerun <run-id>` to produce a fresh attempt that reports correctly.
+  Confirm the shape first via
   `gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs`.
 - **Default-setup CodeQL** (`gh run view <run-id> --json event` shows
   `"event": "dynamic"`; no workflow file in the repo): There is no API retry
@@ -95,17 +95,17 @@ than committing a no-op or closing/reopening the PR.
   a prior push can leave the head with no GitHub Actions check suite, so
   nothing exists to rerun. Confirm with
   `gh api repos/{owner}/{repo}/commits/<sha>/check-suites`. Only a new head
-  fixes it; a clean rebase onto a base the branch is behind is legitimate,
-  but it is a force-push, so ask first.
+  fixes it; a clean rebase onto a base the branch is behind is legitimate, but
+  it is a force-push, so ask first.
 - **CodeQL alerts resurfaced by a whole-file rewrite**: A line-ending or
   formatting change can flag alerts already open on the base, because every
   line on their data-flow path changed. Match rule and location against
   `code-scanning/alerts?ref=refs/heads/<base>` before treating them as new;
   clearing a base-branch alert (fix or dismiss) is the user's call.
-- **External check (e.g., Google Cloud Build)**: `gh run rerun` does not
-  apply. First try GitHub's check-run rerequest:
-  `gh api -X POST repos/{owner}/{repo}/check-runs/<check-run-id>/rerequest`.
-  If that returns 404 (the app does not support rerequest), fall back to the
+- **External check (e.g., Google Cloud Build)**: `gh run rerun` does not apply.
+  First try GitHub's check-run rerequest:
+  `gh api -X POST repos/{owner}/{repo}/check-runs/<check-run-id>/rerequest`. If
+  that returns 404 (the app does not support rerequest), fall back to the
   provider's native retry. For Cloud Build:
 
   ```
@@ -117,20 +117,20 @@ than committing a no-op or closing/reopening the PR.
   (`gcloud builds triggers run` does not work for GitHub PR triggers).
 
 **IMPORTANT**: Every check must pass, including non-required ones.
-A non-blocking failure is still a failure and must be cleared, not
-documented around.
+A non-blocking failure is still a failure and must be cleared, not documented
+around.
 
 The one exception is `pulse-review` failing with the title "Owner approval
-required". That is the risk-tier gate (medium-high and above), not a
-finding, and no commit clears it. Once its review shows zero critical and
-zero should-fix, report the tier and the owning team and stop.
+required". That is the risk-tier gate (medium-high and above), not a finding,
+and no commit clears it. Once its review shows zero critical and zero
+should-fix, report the tier and the owning team and stop.
 
 **IMPORTANT**: Never close and reopen a PR to retrigger CI. It rewrites
 timestamps, fires PR-lifecycle webhooks with side effects, and leaves the
-original failed check as a stuck record (a new run is created under
-a different name, so it does not replace the old one). Never create an
-empty commit to "retry CI". If the retry paths above fail, diagnose and fix
-the root cause. Do not force-push or push empty commits as workarounds.
+original failed check as a stuck record (a new run is created under a different
+name, so it does not replace the old one). Never create an empty commit to
+"retry CI". If the retry paths above fail, diagnose and fix the root cause. Do
+not force-push or push empty commits as workarounds.
 
 ## Diagnose CI failures
 
@@ -146,8 +146,8 @@ If the log is too large, fetch logs for the specific failed job:
 gh run view <run-id> --log-failed --job <job-id>
 ```
 
-Read the logs carefully. Identify the root cause of each failure (lint
-error, type error, test failure, formatting issue, etc.).
+Read the logs carefully. Identify the root cause of each failure (lint error,
+type error, test failure, formatting issue, etc.).
 
 ## Collect bot comments
 
@@ -159,8 +159,8 @@ Bot comments live on two distinct endpoints; you must query both.
    gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate
    ```
 
-2. **Review-level comments** (comments attached to reviews). List all
-   reviews, filter for bot authors, then fetch each review's comments:
+2. **Review-level comments** (comments attached to reviews). List all reviews,
+   filter for bot authors, then fetch each review's comments:
 
    ```
    gh api repos/{owner}/{repo}/pulls/<pr-number>/reviews --paginate \
@@ -191,17 +191,17 @@ gh api repos/{owner}/{repo}/pulls/<pr>/comments --paginate \
 
 ## Filter bot comments by resolution status
 
-How comments are filtered depends on the `--re-review` flag value parsed
-from `$ARGUMENTS`:
+How comments are filtered depends on the `--re-review` flag value parsed from
+`$ARGUMENTS`:
 
 - **No flag** (default): Skip comments that are resolved or that
-  `nickolashkraus` has already replied to. Check the comment's reply thread
-  for any comment where `.user.login == "nickolashkraus"`.
+  `nickolashkraus` has already replied to. Check the comment's reply thread for
+  any comment where `.user.login == "nickolashkraus"`.
 - **`--re-review all`** (or `--re-review` with no value): Act on all bot
   comments regardless of resolution or reply status.
 - **`--re-review unresolved`**: Skip resolved comments, but ignore reply
-  status. This is for the workflow where you review findings in the GitHub
-  UI, resolve the ones you want to skip, then re-run to fix the rest.
+  status. This is for the workflow where you review findings in the GitHub UI,
+  resolve the ones you want to skip, then re-run to fix the rest.
 
 ## Count the rounds per file, and stop at three
 
@@ -217,61 +217,59 @@ gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --slurp \
         | "\(.rounds) rounds: \(.path)"'
 ```
 
-`--slurp` matters: with `--jq`, the filter runs once per page of 100, so
-a long pull request's rounds split across pages and undercount.
+`--slurp` matters: with `--jq`, the filter runs once per page of 100, so a long
+pull request's rounds split across pages and undercount.
 
 Empty output means proceed. **Any output means stop fixing.** Do not open
-another round on that file. Report what the command printed, say that the
-shape in that file is the problem rather than the individual findings, and
-ask whether to redesign.
+another round on that file. Report what the command printed, say that the shape
+in that file is the problem rather than the individual findings, and ask
+whether to redesign.
 
-Count distinct review rounds touching one file, never the number of bot
-reviews on the pull request. Pulse re-reviews on every push, so its review
-count tracks pushes and says nothing about convergence. Measured on the
-Entitlement-Driven Scheduling program: the two pull requests that were
-closed unmerged and redesigned each had a single file flagged across seven
-distinct rounds (`entitlement_debit.py` on MAM #4313, the admin visit
-update subscription service on MS #364), while six pull requests that
-merged peaked at two rounds on any one file. Their raw review counts did
-not separate them at all: MAM #4313 closed at ten Pulse reviews and MAM
+Count distinct review rounds touching one file, never the number of bot reviews
+on the pull request. Pulse re-reviews on every push, so its review count tracks
+pushes and says nothing about convergence. Measured on the Entitlement-Driven
+Scheduling program: the two pull requests that were closed unmerged and
+redesigned each had a single file flagged across seven distinct rounds
+(`entitlement_debit.py` on MAM #4313, the admin visit update subscription
+service on MS #364), while six pull requests that merged peaked at two rounds
+on any one file. Their raw review counts did not separate them at all:
+MAM #4313 closed at ten Pulse reviews and MAM
 #4324 merged at nine. Review state does not separate them either, since a
 merged pull request also carried `CHANGES_REQUESTED`.
 
-This is the rule in @~/.claude/rules/coding.md ("A sound design converges
-in one or two rounds") given a counter. It is written down because the
-prose version did not fire: that program ran to rounds nine and seven,
-discarding 2,763 added lines, while every individual fix along the way was
-defensible.
+This is the rule in @~/.claude/rules/coding.md ("A sound design converges in
+one or two rounds") given a counter. It is written down because the prose
+version did not fire: that program ran to rounds nine and seven, discarding
+2,763 added lines, while every individual fix along the way was defensible.
 
 ## Bias toward fixing
 
-For each unresolved bot comment, assess whether it is legitimate. Default
-to fixing. Only dismiss a comment if it is clearly wrong:
+For each unresolved bot comment, assess whether it is legitimate. Default to
+fixing. Only dismiss a comment if it is clearly wrong:
 
 - The bot misread the code or misunderstood the logic.
 - The suggestion would break existing behavior.
 - The suggestion contradicts project conventions.
 - The suggestion contradicts the product or feature specification.
-- The suggestion contradicts the function's own docstring or in-tree
-  comments. Before mutating a function based on a "sibling pattern" or
-  "consistency" argument, read the docstring of the function being changed.
-  If the docstring documents an intentional divergence (e.g., "preserved on
-  relink" vs siblings that reset), trust the docstring; the bot's analogy
-  is likely missing context.
-- The suggested test cannot guard the real artifact. Before adding a test
-  to satisfy a coverage finding, verify (1) the test asserts the actual
-  changed artifact, not an inline re-declaration of it (a tfvars/config
-  test that duplicates the input only tests the copy and never fails when
-  the real value drifts), and (2) CI actually runs the suite the test
-  joins. If either fails, the test is theater; dismiss with that
-  rationale instead of writing it. An in-tree test precedent with the
-  same flaw does not justify repeating it.
+- The suggestion contradicts the function's own docstring or in-tree comments.
+  Before mutating a function based on a "sibling pattern" or "consistency"
+  argument, read the docstring of the function being changed. If the docstring
+  documents an intentional divergence (e.g., "preserved on relink" vs siblings
+  that reset), trust the docstring; the bot's analogy is likely missing
+  context.
+- The suggested test cannot guard the real artifact. Before adding a test to
+  satisfy a coverage finding, verify (1) the test asserts the actual changed
+  artifact, not an inline re-declaration of it (a tfvars/config test that
+  duplicates the input only tests the copy and never fails when the real value
+  drifts), and (2) CI actually runs the suite the test joins. If either fails,
+  the test is theater; dismiss with that rationale instead of writing it. An
+  in-tree test precedent with the same flaw does not justify repeating it.
 
 When the finding identifies a fix in one of a parallel pair/set of helpers
-(e.g., `_try_customer_fallback` vs `_try_member_id_fallback`, or sibling
-upsert helpers), grep for the parallel sites and apply the same fix to
-each. A bot reporting on one site rarely means the issue is unique to that
-site; the omission almost always exists symmetrically.
+(e.g., `_try_customer_fallback` vs `_try_member_id_fallback`, or sibling upsert
+helpers), grep for the parallel sites and apply the same fix to each. A bot
+reporting on one site rarely means the issue is unique to that site; the
+omission almost always exists symmetrically.
 
 ## Reply to a bot comment
 
@@ -280,9 +278,9 @@ gh api repos/{owner}/{repo}/pulls/<pr-number>/comments \
   -f body='<reply>' -F in_reply_to=<comment-id>
 ```
 
-When replying (whether fixing or dismissing), include an **Evidence**
-section if external documentation (e.g., Stripe docs, API specs, framework
-guides) substantiates the decision:
+When replying (whether fixing or dismissing), include an **Evidence** section
+if external documentation (e.g., Stripe docs, API specs, framework guides)
+substantiates the decision:
 
 ```
 **Evidence**:
@@ -295,20 +293,19 @@ relevant.
 
 ## Durable comment link format
 
-Do NOT use the API's `html_url` (`pull/N#discussion_r<id>`) for comment
-links in summary tables or cross-references. That anchor lives on the
-Conversation tab and is silently collapsed for outdated comments (any
-comment whose `line` attribute is now `null` because the underlying diff
-line changed). The link appears to do nothing because GitHub does not
-auto-expand the "Outdated" section on navigation.
+Do NOT use the API's `html_url` (`pull/N#discussion_r<id>`) for comment links
+in summary tables or cross-references. That anchor lives on the Conversation
+tab and is silently collapsed for outdated comments (any comment whose `line`
+attribute is now `null` because the underlying diff line changed). The link
+appears to do nothing because GitHub does not auto-expand the "Outdated"
+section on navigation.
 
 Do NOT use the Files-tab range anchor either
-(`/files/<base>..<original_commit_id>#r<id>`). It depends on the file
-still being in the PR's current diff and on `original_commit_id` still
-being reachable from the PR's tip. Both assumptions break under rebase
-and under stacked PRs: GitHub redirects the URL to whichever PR can
-render the diff in its current state (often a parent PR), landing the
-reader far from the comment.
+(`/files/<base>..<original_commit_id>#r<id>`). It depends on the file still
+being in the PR's current diff and on `original_commit_id` still being
+reachable from the PR's tip. Both assumptions break under rebase and under
+stacked PRs: GitHub redirects the URL to whichever PR can render the diff in
+its current state (often a parent PR), landing the reader far from the comment.
 
 Use the review wrapper instead, which has the following form:
 
@@ -316,16 +313,16 @@ Use the review wrapper instead, which has the following form:
 https://github.com/<owner>/<repo>/pull/<N>#pullrequestreview-<review_id>
 ```
 
-The review wrapper renders independently of diff context. It lands the
-reader on the bot's review header in the Conversation tab, where the
-inline comment is listed in the thread. This works under rebase, under
-stacked PRs, and for comments on files no longer in the diff.
+The review wrapper renders independently of diff context. It lands the reader
+on the bot's review header in the Conversation tab, where the inline comment is
+listed in the thread. This works under rebase, under stacked PRs, and for
+comments on files no longer in the diff.
 
-The tradeoff is precision. The reader may need to scroll a few comments
-to find the specific finding. Mitigate by writing a self-contained
-Description column in the summary table (one short sentence naming the
-bot and the substance of the finding), so the link is a convenience and
-not the primary information channel.
+The tradeoff is precision. The reader may need to scroll a few comments to find
+the specific finding. Mitigate by writing a self-contained Description column
+in the summary table (one short sentence naming the bot and the substance of
+the finding), so the link is a convenience and not the primary information
+channel.
 
 Fetch `pull_request_review_id` per comment:
 
@@ -336,11 +333,11 @@ gh api repos/<owner>/<repo>/pulls/comments/<id> --jq '.pull_request_review_id'
 ## Findings summary
 
 Post a summary comment on the PR using a Markdown table. Number findings
-sequentially: `F-NN` for fixed, `D-NN` for dismissed, `T-NN` for tracked
-(when findings are filed to Linear instead of fixed).
+sequentially: `F-NN` for fixed, `D-NN` for dismissed, `T-NN` for tracked (when
+findings are filed to Linear instead of fixed).
 
-Use the durable comment link format (above) for the Comment column. Omit
-any section that has no entries.
+Use the durable comment link format (above) for the Comment column. Omit any
+section that has no entries.
 
 If there are zero findings (nothing fixed, dismissed, or tracked), post the
 short-circuit body instead of an empty table:
@@ -351,8 +348,8 @@ gh pr comment <pr-number> --body '## Bot Review Findings
 ✅ No actionable findings.'
 ```
 
-This summary is in addition to the individual replies already posted on
-each bot comment thread.
+This summary is in addition to the individual replies already posted on each
+bot comment thread.
 
 On a later round, update the existing summary comment in place
 (`gh api -X PATCH repos/{owner}/{repo}/issues/comments/<id> -F
@@ -413,6 +410,6 @@ gh pr comment <pr-number> --body-file /tmp/pr-<pr-number>-summary.md
 
 The Fix column should contain:
 
-- A linked commit SHA (e.g., [`abc1234`](commit-url)) when the fix was
-  applied in-place.
+- A linked commit SHA (e.g., [`abc1234`](commit-url)) when the fix was applied
+  in-place.
 - A link to the fix PR when the fix was delegated to `/fix-bot-reviews`.

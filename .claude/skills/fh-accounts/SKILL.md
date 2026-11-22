@@ -14,8 +14,8 @@ allowed-tools: Bash, Read
 
 ## My User
 
-Identifiers for my personal Function Health user, per environment. The
-email is the same across environments; the UUID and patient ID differ.
+Identifiers for my personal Function Health user, per environment. The email is
+the same across environments; the UUID and patient ID differ.
 
 ### Dev
 
@@ -34,10 +34,10 @@ email is the same across environments; the UUID and patient ID differ.
 
 ## My Dev QA Accounts
 
-Personal QA/test users in Function Health Dev, keyed by plus-addressed
-email on my `nickolashkraus`/`nickolas.kraus` bases. The `UUID` is
-`patient.id`, `Patient ID` is `patient.patient_identifier`, and
-`Firebase UID` is `patient.patient_firebase_id`.
+Personal QA/test users in Function Health Dev, keyed by plus-addressed email on
+my `nickolashkraus`/`nickolas.kraus` bases. The `UUID` is `patient.id`,
+`Patient ID` is `patient.patient_identifier`, and `Firebase UID` is
+`patient.patient_firebase_id`.
 
 | Email                                         | Name                                 | UUID                                   | Patient ID         | Firebase UID                   | Joined     |
 | --------------------------------------------- | ------------------------------------ | -------------------------------------- | ------------------ | ------------------------------ | ---------- |
@@ -54,21 +54,20 @@ email on my `nickolashkraus`/`nickolas.kraus` bases. The `UUID` is
 
 Notes:
 
-- The `byb1896` account is my enterprise test user (BYB-1896). The
-  `family-qa` account is for family-plan QA.
-- The `PPPLink QAThrowaway` row has no contact email or Firebase UID,
-  so it cannot be attributed by email; it is almost certainly my PPP
-  payment-link throwaway based on name and creation date.
-- To rediscover accounts, sweep the Dev monolith `patient` table by
-  name (`lname ilike '%kraus%'`, plus the `PPP`/`PPPTester` fname
-  patterns) and cross-check Firebase Auth, not just
-  `patient_contact_info.email`. Fresh accounts can have a `patient`
-  row before any contact-info email row exists, so an email-only scan
-  misses them.
+- The `byb1896` account is my enterprise test user (BYB-1896). The `family-qa`
+  account is for family-plan QA.
+- The `PPPLink QAThrowaway` row has no contact email or Firebase UID, so it
+  cannot be attributed by email; it is almost certainly my PPP payment-link
+  throwaway based on name and creation date.
+- To rediscover accounts, sweep the Dev monolith `patient` table by name
+  (`lname ilike '%kraus%'`, plus the `PPP`/`PPPTester` fname patterns) and
+  cross-check Firebase Auth, not just `patient_contact_info.email`. Fresh
+  accounts can have a `patient` row before any contact-info email row exists,
+  so an email-only scan misses them.
 
 ## Dev Member App DevTools
 
-The Dev member app exposes a `/devtools` page that gets and sets member
-values (useful for QA account setup and state manipulation):
+The Dev member app exposes a `/devtools` page that gets and sets member values
+(useful for QA account setup and state manipulation):
 
 - URL: https://development-members-app-2jv3ndpkoa-ue.a.run.app/devtools

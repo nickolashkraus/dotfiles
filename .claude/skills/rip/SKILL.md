@@ -33,9 +33,9 @@ of these:
 - Another contributor's branch
 - Anything whose effect cannot be reverted by a revert commit
 
-Rip freely when the change is a config flip, a tfvars toggle that another
-apply or review still gates, a comment, a doc, a rename, a constant, or a
-test-only edit.
+Rip freely when the change is a config flip, a tfvars toggle that another apply
+or review still gates, a comment, a doc, a rename, a constant, or a test-only
+edit.
 
 State the verdict in one line, then continue or stop. Do not deliberate in
 prose; if it is genuinely ambiguous, it is not a rip.
@@ -44,9 +44,9 @@ prose; if it is genuinely ambiguous, it is not a rip.
 
 These cost seconds and are the failures that actually hurt:
 
-1. **Read before you overwrite.** Read the file, and check `git status` for
-   the user's own staged or unstaged work before staging anything. Staged
-   changes are deliberate human work. Ask, never infer.
+1. **Read before you overwrite.** Read the file, and check `git status` for the
+   user's own staged or unstaged work before staging anything. Staged changes
+   are deliberate human work. Ask, never infer.
 2. **Verify every external contract you name.** Read the field, route, column,
    flag or topic from the SDK, the schema, the type stubs, or the source. A
    plausible name that does not exist is the expensive failure mode, because
@@ -54,8 +54,8 @@ These cost seconds and are the failures that actually hurt:
 
 ## Step 3: Commit and push
 
-Follow @~/.claude/rules/git.md for the branch name, commit subject and PR
-body. Briefly:
+Follow @~/.claude/rules/git.md for the branch name, commit subject and PR body.
+Briefly:
 
 - Branch is the lowercase Linear slug plus a short description, never the bare
   slug.
@@ -66,14 +66,13 @@ body. Briefly:
 Do not run `review-diff`, `pulse-review`, the repo lint suite or the test
 suite. The user has accepted that cost.
 
-If `--no-pr`: `git push`. If the remote moved, fetch and rebase (never
-merge), then push again. Stop here.
+If `--no-pr`: `git push`. If the remote moved, fetch and rebase (never merge),
+then push again. Stop here.
 
 Otherwise push the branch and open the PR with `gh pr create`. Scale the body
 to the change: a trivial change gets a single declarative sentence, and
-anything with a non-obvious reason gets that reason plus a `## References`
-link to the Linear issue. Use `--body-file` for anything longer than one
-line.
+anything with a non-obvious reason gets that reason plus a `## References` link
+to the Linear issue. Use `--body-file` for anything longer than one line.
 
 **Never merge.** Invoking `rip` approves the push and the PR, nothing beyond
 that.

@@ -20,12 +20,11 @@ Follow every step in order.
 
 All release content (PR titles and descriptions, Notion doc, Slack
 announcement, daily task file, commit messages) must follow
-`@~/.claude/rules/typography.md` and `@~/.claude/rules/git.md`. In
-particular: no em dashes, no smart quotes, hard-wrap prose at ~80
-columns, lead PR descriptions with a declarative verb (no "This PR
-does..."), and follow the Larger Changes structure (`## Overview`,
-`## PRs`, `## Alembic Migrations`, `## Cross-Service Dependencies`,
-`## New Secrets`, `## Notes`).
+`@~/.claude/rules/typography.md` and `@~/.claude/rules/git.md`. In particular:
+no em dashes, no smart quotes, hard-wrap prose at ~80 columns, lead PR
+descriptions with a declarative verb (no "This PR does..."), and follow the
+Larger Changes structure (`## Overview`, `## PRs`, `## Alembic Migrations`,
+`## Cross-Service Dependencies`, `## New Secrets`, `## Notes`).
 
 ## Step 1: Determine service and date
 
@@ -35,11 +34,11 @@ Detect the service from the current working directory (e.g.,
 Parse `$ARGUMENTS` for:
 
 - `--date YYYY-MM-DD`: Release date. Default to today.
-- `--team TEAM`: Linear team slug (e.g., `BYB`). Default to detecting
-  from the repo's Linear project conventions.
+- `--team TEAM`: Linear team slug (e.g., `BYB`). Default to detecting from the
+  repo's Linear project conventions.
 - `--notion URL`: Notion page URL for the release document (Step 6).
-- `--title TITLE`: Release title (e.g., "PPP v1 - Bug Fixes"). If
-  not provided, ask the user for a short release title.
+- `--title TITLE`: Release title (e.g., "PPP v1 - Bug Fixes"). If not provided,
+  ask the user for a short release title.
 - `--cc USER_IDS_OR_HANDLES`: Comma-separated list of Slack user IDs (`U...`)
   or `@handles` to cc on the deployment announcement (Step 7). Defaults to
   empty. Pass `--cc ""` to omit the cc line entirely.
@@ -71,11 +70,11 @@ Present as a table:
 git log origin/main..origin/dev --merges --oneline
 ```
 
-Match by PR number (`(#NNNN)` suffix). Flag merge commits on `dev`
-not in the Linear "Pending Deploy" list. Present discrepancies.
+Match by PR number (`(#NNNN)` suffix). Flag merge commits on `dev` not in the
+Linear "Pending Deploy" list. Present discrepancies.
 
-Ask the user to confirm which issues to include. For each, find its
-merge commit SHA on `dev`:
+Ask the user to confirm which issues to include. For each, find its merge
+commit SHA on `dev`:
 
 ```
 git log origin/dev --merges --oneline --grep="#<pr-number>"
@@ -113,23 +112,21 @@ cherry-picked merge commits).
 
 ## Step 6: Notion release document
 
-If `--notion` was not provided, ask for the Notion page URL. The
-user creates the page manually (e.g., duplicate a previous release)
-so it appears in the database view. MCP-created pages do not appear
-in Notion database views.
+If `--notion` was not provided, ask for the Notion page URL. The user creates
+the page manually (e.g., duplicate a previous release) so it appears in the
+database view. MCP-created pages do not appear in Notion database views.
 
-Read the template from `@templates/notion.md` and populate it with
-the release data. Update the page using `notion-update-page`.
+Read the template from `@templates/notion.md` and populate it with the release
+data. Update the page using `notion-update-page`.
 
 ## Step 7: Post deployment announcement
 
-Read the template from `@templates/slack.md` and populate it. Send
-as a draft using `slack_send_message_draft`.
+Read the template from `@templates/slack.md` and populate it. Send as a draft
+using `slack_send_message_draft`.
 
 ## Step 8: Create daily task file
 
-Read the template from `@templates/daily-task.md` and populate it.
-Write to
+Read the template from `@templates/daily-task.md` and populate it. Write to
 `~/nickolashkraus/agent-os/master/tasks/daily/<YYYY>/<MM>/<date>.md`.
 
 ## Step 9: Deploy
@@ -143,5 +140,4 @@ When the user is ready:
 
 ## Step 10: Summarize
 
-Print: release PR URL, Notion doc URL, PRs included, and any
-outstanding items.
+Print: release PR URL, Notion doc URL, PRs included, and any outstanding items.

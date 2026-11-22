@@ -10,9 +10,9 @@ disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
 
-Function Health GKE kubeconfig runbook. Invoke this skill when you
-need cluster credentials for `function-health-dev-env`,
-`function-health-prod-env`, or `function-health-sandbox-env`.
+Function Health GKE kubeconfig runbook. Invoke this skill when you need cluster
+credentials for `function-health-dev-env`, `function-health-prod-env`, or
+`function-health-sandbox-env`.
 
 ## GKE kubeconfig
 

@@ -65,16 +65,16 @@ git push -u origin SNAPSHOT-YYYY-MM-DD.XX
    git reset HEAD
    ```
 
-If the checkout is refused because a file changed on disk after the
-snapshot commit (another session writing the shared daily log did this on
-2026-09-18), do not stash. Commit the new change as a second commit on the
-snapshot branch, push again, then cherry-pick both commits with
-`--no-commit` in one call before the `git reset HEAD`.
+If the checkout is refused because a file changed on disk after the snapshot
+commit (another session writing the shared daily log did this on 2026-09-18),
+do not stash. Commit the new change as a second commit on the snapshot branch,
+push again, then cherry-pick both commits with `--no-commit` in one call before
+the `git reset HEAD`.
 
-When another session is writing to the tree, or the index holds staged
-changes that `git reset HEAD` would wipe, skip Steps 3 and 5 and build the
-commit without touching the working tree or the index. The 2026-10-08 run
-did this with a staged file from another session:
+When another session is writing to the tree, or the index holds staged changes
+that `git reset HEAD` would wipe, skip Steps 3 and 5 and build the commit
+without touching the working tree or the index. The 2026-10-08 run did this
+with a staged file from another session:
 
 ```
 GIT_INDEX_FILE=<scratch>/snap-index git read-tree HEAD

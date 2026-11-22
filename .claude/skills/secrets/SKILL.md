@@ -15,9 +15,9 @@ allowed-tools: Bash, Read
 # Secrets
 
 The retrieval rule and the inventory live in `~/.claude/rules/secrets.md`.
-Never write a secret value to a file, embed one as a literal in a command
-line, or echo one back in chat. Always retrieve via command substitution at
-point of use.
+Never write a secret value to a file, embed one as a literal in a command line,
+or echo one back in chat. Always retrieve via command substitution at point of
+use.
 
 ## Per-Application Usage
 
@@ -55,10 +55,10 @@ KEY=$(security find-generic-password -s stripe-test -a function-health -w)
 curl -u "${KEY}:" https://api.stripe.com/v1/...
 ```
 
-- `stripe-test`: Restricted key scoped for agents. Test mode, full access.
-  Use for all Test-mode work.
-- `stripe-prod`: Restricted key scoped for agents. Live mode, read-only.
-  Never use this for write operations.
+- `stripe-test`: Restricted key scoped for agents. Test mode, full access. Use
+  for all Test-mode work.
+- `stripe-prod`: Restricted key scoped for agents. Live mode, read-only. Never
+  use this for write operations.
 - `stripe-prod-webhooks`: Restricted key scoped for agents. Live mode, scope
   `webhook_endpoints:write` only. Use exclusively for managing the event
   subscriptions on the transaction-service and ppp-service webhook
@@ -70,20 +70,20 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
   list plus the additions.
 - `stripe-prod-limited-write`: Restricted key scoped for agents. Live mode,
   read plus `subscriptions:write`, `coupons:write`, `promotion_code:write`,
-  `products:write`, and `prices:write` (widened 2026-09-25 for the SuppCo
-  offer authoring; it previously carried only subscriptions and coupons).
-  Break-glass key for Prod subscription remediation, for minting campaign
-  coupons, and for partner-offer catalog authoring. The subscriptions scope
-  also covers `/v1/subscription_schedules`, which has no separate toggle in
-  the Dashboard. `products` and `prices` are separate toggles, and so are
-  `coupons` and `promotion_code`: a coupon can be created while the promotion
-  code on it is refused, and a product while its price is refused. Confirm the
-  target objects and the intended end state before every call, and revoke the
-  key in the Dashboard once the work is done rather than leaving Live write
-  capability resident.
+  `products:write`, and `prices:write` (widened 2026-09-25 for the SuppCo offer
+  authoring; it previously carried only subscriptions and coupons). Break-glass
+  key for Prod subscription remediation, for minting campaign coupons, and for
+  partner-offer catalog authoring. The subscriptions scope also covers
+  `/v1/subscription_schedules`, which has no separate toggle in the Dashboard.
+  `products` and `prices` are separate toggles, and so are `coupons` and
+  `promotion_code`: a coupon can be created while the promotion code on it is
+  refused, and a product while its price is refused. Confirm the target objects
+  and the intended end state before every call, and revoke the key in the
+  Dashboard once the work is done rather than leaving Live write capability
+  resident.
 
-  Probe a restricted key's scopes without mutating anything by POSTing an
-  empty body to the resource: `403` means the scope is absent, `400` (a
+  Probe a restricted key's scopes without mutating anything by POSTing an empty
+  body to the resource: `403` means the scope is absent, `400` (a
   missing-required-param complaint) means it is present.
 
   ```bash
@@ -93,9 +93,9 @@ curl -u "${KEY}:" https://api.stripe.com/v1/...
     -X POST https://api.stripe.com/v1/prices -d ""
   ```
 
-Stripe has no API for minting API keys; `/v1/api_keys` returns a 404. Every
-key above is created by hand in the Dashboard under Developers, API keys,
-Create restricted key.
+Stripe has no API for minting API keys; `/v1/api_keys` returns a 404. Every key
+above is created by hand in the Dashboard under Developers, API keys, Create
+restricted key.
 
 ### DevHub (EasyDeploy)
 
@@ -144,15 +144,14 @@ security add-generic-password \
 ```
 
 - **Service** (`-s`): Lowercase and hyphenated, vendor first, then the
-  environment or qualifier (`stripe-prod-webhooks`, `logo-dev-secret`).
-  Never rename an existing service, since scripts look it up by name.
+  environment or qualifier (`stripe-prod-webhooks`, `logo-dev-secret`). Never
+  rename an existing service, since scripts look it up by name.
 - **Account** (`-a`): `function-health` for Function Health credentials and
   `personal` for everything else. The one exception is `workmail`, whose
-  account is the login email because `workmail.py` reuses it as the IMAP
-  user.
+  account is the login email because `workmail.py` reuses it as the IMAP user.
 - **Kind** (`-D`): One of `API key`, `API token`, `restricted key`,
-  `access token`, `session token`, `ID token`, `client ID`, `client secret`
-  or `password`. Keychain Access shows it in the Kind column.
+  `access token`, `session token`, `ID token`, `client ID`, `client secret` or
+  `password`. Keychain Access shows it in the Kind column.
 - **Comment** (`-j`): `<Vendor> <kind> (<Env>, <scope>) for <consumer>`, such
   as `Stripe restricted key (Live, read-only) for agent reads`. Env is Dev,
   Staging or Prod, or Test or Live for Stripe. The consumer is the script or
@@ -160,16 +159,15 @@ security add-generic-password \
   do. Drop the parenthetical when there is no environment or scope. Leave
   out dates, since the Keychain records created and modified times.
 - **`-U -w` last**: `-w` with no value prompts for it twice, which keeps the
-  value out of argv and shell history. Anything after `-w` becomes the
-  value, and a trailing `-U` was once stored as the password. An agent
-  cannot answer the prompt, so it gives Nickolas the command to run with the
-  `!` prefix. A script pipes the value twice on stdin from a child with no
-  TTY, as `scripts/monarch.py` in agent-os does.
+  value out of argv and shell history. Anything after `-w` becomes the value,
+  and a trailing `-U` was once stored as the password. An agent cannot answer
+  the prompt, so it gives Nickolas the command to run with the `!` prefix.
+  A script pipes the value twice on stdin from a child with no TTY, as
+  `scripts/monarch.py` in agent-os does.
 
 To change the kind or comment on an existing entry, run the same command
 without `-w`. With `-U` and no `-w`, `security` updates the attributes and
 leaves the value untouched (tested 2026-11-19).
 
 After adding a secret, add its row to the Inventory in
-`~/.claude/rules/secrets.md`. The Purpose column is the comment, word for
-word.
+`~/.claude/rules/secrets.md`. The Purpose column is the comment, word for word.

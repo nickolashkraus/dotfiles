@@ -13,8 +13,8 @@ argument-hint: "[--no-pulse] [base-branch]"
 
 You are running the Pulse review bot locally against the current branch,
 reproducing the same pipeline the `fh-pulse` bot runs against a PR (per-rule
-sub-agent fan-out with repo read access, then orchestrator dedupe). The goal
-is a clean Pulse result *before* the PR exists.
+sub-agent fan-out with repo read access, then orchestrator dedupe). The goal is
+a clean Pulse result *before* the PR exists.
 
 ## Step 0: Opt-out check
 
@@ -27,8 +27,8 @@ reviews the PR after push.
 
 ## Step 1: Resolve inputs
 
-1. The reviewed repo worktree is the current working directory. It must be
-   the Function-Health service repo (not the pulse repo).
+1. The reviewed repo worktree is the current working directory. It must be the
+   Function-Health service repo (not the pulse repo).
 2. Parse `$ARGUMENTS` for a base branch (ignoring the `--no-pulse` / `--skip`
    flag handled above). If absent, use the repo's default branch:
    `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`.
@@ -45,16 +45,16 @@ reviews the PR after push.
    git -C ~/Function-Health/pulse status -sb
    ```
 
-   If the checkout is not on the default branch tip (detached, feature
-   branch, or behind), check out the default branch and fast-forward it
-   before running the review. If the checkout is dirty or holds
-   work-in-progress you cannot switch away from, say so and warn that the
-   local result may diverge from the bot.
+   If the checkout is not on the default branch tip (detached, feature branch,
+   or behind), check out the default branch and fast-forward it before running
+   the review. If the checkout is dirty or holds work-in-progress you cannot
+   switch away from, say so and warn that the local result may diverge from the
+   bot.
 
    After any branch switch or fast-forward, run
-   `npm --prefix ~/Function-Health/pulse install` before the review.
-   A stale `node_modules` from the previous checkout fails at startup
-   with `ERR_MODULE_NOT_FOUND`.
+   `npm --prefix ~/Function-Health/pulse install` before the review. A stale
+   `node_modules` from the previous checkout fails at startup with
+   `ERR_MODULE_NOT_FOUND`.
 
    A checkout already sitting on the default branch tip is not proof that
    `node_modules` is current: it also goes stale when the lockfile moved
@@ -67,10 +67,10 @@ reviews the PR after push.
 
 ## Step 2: Run Pulse
 
-Pipe the merge-base diff into the pulse checkout at
-`~/Function-Health/pulse`, with repo context and repo identity forced. The
-OpenAI key is injected at point of use from GCP Secret Manager (never write
-it to a file; the production worker reads the same secret):
+Pipe the merge-base diff into the pulse checkout at `~/Function-Health/pulse`,
+with repo context and repo identity forced. The OpenAI key is injected at point
+of use from GCP Secret Manager (never write it to a file; the production worker
+reads the same secret):
 
 ```bash
 git diff origin/<base>...HEAD | \
@@ -85,17 +85,17 @@ git diff origin/<base>...HEAD | \
 Notes:
 
 - `--repo-root` gives sub-agents `read_file`/`grep` tools rooted at the
-  worktree, matching the bot's PR checkout. Without it the review is
-  diff-only and shallower than the bot.
-- `--reviewed-repo` forces repo identity so `repo_allowlist` rule packs
-  resolve for the service repo (stdin mode would otherwise resolve the repo
-  from the invocation cwd).
+  worktree, matching the bot's PR checkout. Without it the review is diff-only
+  and shallower than the bot.
+- `--reviewed-repo` forces repo identity so `repo_allowlist` rule packs resolve
+  for the service repo (stdin mode would otherwise resolve the repo from the
+  invocation cwd).
 - Include uncommitted work by using `git diff origin/<base>` (two dots, no
-  HEAD) instead; the committed three-dot form is the default because it
-  matches what the PR will contain.
-- Runtime is a few minutes (11 rule packs fan out). Run it in the
-  background and read the JSON when it completes. stderr is the verbose
-  per-rule log; the JSON file is the review.
+  HEAD) instead; the committed three-dot form is the default because it matches
+  what the PR will contain.
+- Runtime is a few minutes (11 rule packs fan out). Run it in the background
+  and read the JSON when it completes. stderr is the verbose per-rule log; the
+  JSON file is the review.
 
 ## Step 3: Fix the real bugs, then stop
 
@@ -135,11 +135,11 @@ Three reasons:
   gated on the risk *tier*, not the findings (`decideReviewEvent` in
   `pulse/src/risk-assessment.ts`): zero criticals approves only at very-low,
   low or medium. At medium-high and above the check reports `failure` with
-  "Owner approval required" and needs a named owner, however clean the
-  findings are. Read `summary.risk` in the JSON before spending anything on
-  convergence. The local JSON can omit `risk` entirely (observed on a clean
-  zero-finding run); then report the tier as unknown until the PR check
-  posts it, rather than inferring one.
+  "Owner approval required" and needs a named owner, however clean the findings
+  are. Read `summary.risk` in the JSON before spending anything on convergence.
+  The local JSON can omit `risk` entirely (observed on a clean zero-finding
+  run); then report the tier as unknown until the PR check posts it, rather
+  than inferring one.
 - **Iterating generates work.** A local finding can ask for code that the CI
   run then flags as a violation of a different rule, so the fix is written and
   then removed. One rule pack does not know what another asked for, and a
@@ -163,15 +163,15 @@ this file with the skill's arguments, which rendered the awk form as a path.)
 
 Two traps for a PR near the limit:
 
-- **Deduplicating existing code makes it worse, not better.** Rewriting a
-  line converts it into an added line, so a change that shortens the file can
-  still raise the counted total.
+- **Deduplicating existing code makes it worse, not better.** Rewriting a line
+  converts it into an added line, so a change that shortens the file can still
+  raise the counted total.
 - **Each fix round adds lines**, usually tests, so a PR just under the limit
   can cross it mid-review.
 
 Over the limit, the bot skips review entirely and its standing
-`CHANGES_REQUESTED` blocks the PR. Get under it by trimming added prose in
-the new files, or split into stacked PRs along a seam in the change.
+`CHANGES_REQUESTED` blocks the PR. Get under it by trimming added prose in the
+new files, or split into stacked PRs along a seam in the change.
 
 Then re-run the repo's standard local verification (ruff, pyright, pytest for
 the touched files) since the fixes changed code after the last verification

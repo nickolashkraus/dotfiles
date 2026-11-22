@@ -13,10 +13,9 @@ disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
 
-Function Health authentication runbooks. Invoke this skill when you
-need to authenticate against an FH service: CLI login, secret-key
-token generation, Cloud Run internal-service access, or Admin App
-GraphQL staff mutations.
+Function Health authentication runbooks. Invoke this skill when you need to
+authenticate against an FH service: CLI login, secret-key token generation,
+Cloud Run internal-service access, or Admin App GraphQL staff mutations.
 
 ## CLI Authentication
 

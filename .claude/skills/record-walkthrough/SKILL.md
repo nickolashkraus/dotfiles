@@ -12,29 +12,28 @@ disable-model-invocation: false
 allowed-tools: Bash, Read, Write
 ---
 
-Produce a narrated walkthrough MP4 (or silent GIF) of a web app. The
-pipeline: record a headless Puppeteer screencast, generate TTS narration
-segments, then mux with ffmpeg using per-section wall-clock offsets.
+Produce a narrated walkthrough MP4 (or silent GIF) of a web app. The pipeline:
+record a headless Puppeteer screencast, generate TTS narration segments, then
+mux with ffmpeg using per-section wall-clock offsets.
 
-Do NOT use the Chrome extension's `gif_creator` for this. It captures one
-frame per action (max 50), which produces a slideshow, not a recording.
+Do NOT use the Chrome extension's `gif_creator` for this. It captures one frame
+per action (max 50), which produces a slideshow, not a recording.
 
 ## Step 1: Record the Screencast
 
-Start from `record.example.mjs` in this skill's directory: copy it into
-the runner worktree as `record.tmp.mjs`, adapt the SECTIONS block, and
-run it from there (it needs the worktree's `node_modules` for
-`puppeteer-core`). Delete the copy when done. Key elements:
+Start from `record.example.mjs` in this skill's directory: copy it into the
+runner worktree as `record.tmp.mjs`, adapt the SECTIONS block, and run it from
+there (it needs the worktree's `node_modules` for `puppeteer-core`). Delete the
+copy when done. Key elements:
 
 - Launch headless Chrome via `puppeteer-core` with
   `executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google
   Chrome'`, viewport 1280x800.
 - Record with `const recorder = await page.screencast({ path:
   `${OUT}/rec.webm` })` and `await recorder.stop()` at the end.
-- Inject a fake cursor so clicks are visible (headless renders no
-  cursor): a fixed-position `div#__cursor` (18px orange circle, white
-  border, `z-index: 2147483647`, `pointer-events: none`) that tracks
-  `mousemove`.
+- Inject a fake cursor so clicks are visible (headless renders no cursor):
+  a fixed-position `div#__cursor` (18px orange circle, white border,
+  `z-index: 2147483647`, `pointer-events: none`) that tracks `mousemove`.
 - Move the mouse with a `glide(x, y, steps)` helper (interpolated
   `page.mouse.move` at ~16ms per step) so motion looks human.
 - Click elements by text with the `::-p-text()` selector, e.g.
@@ -49,35 +48,34 @@ run it from there (it needs the worktree's `node_modules` for
 
 ### Scripted Auth (FH Admin App)
 
-The Admin App (Dev) accepts a forged session cookie, so no interactive
-login is needed:
+The Admin App (Dev) accepts a forged session cookie, so no interactive login is
+needed:
 
-- `token` cookie: `zlib.deflateSync(Buffer.from(jwt)).toString('base64')`
-  where `jwt` is `GRAPHQL_AUTH_TOKEN` from the worktree's `.env.local`
-  (Dev superuser JWT). Matches `compressToken` in
-  `src/lib/cookieTokenHelpers.ts` (values over ~3800 chars get chunked
-  into `token.0`..`token.9`; a 1440-char JWT fits unchunked).
-- `appVersion` cookie: set to the currently deployed version (footer of
-  the deployed app). Without it, the Statsig force-logout middleware in
+- `token` cookie: `zlib.deflateSync(Buffer.from(jwt)).toString('base64')` where
+  `jwt` is `GRAPHQL_AUTH_TOKEN` from the worktree's `.env.local` (Dev superuser
+  JWT). Matches `compressToken` in `src/lib/cookieTokenHelpers.ts` (values over
+  ~3800 chars get chunked into `token.0`..`token.9`; a 1440-char JWT fits
+  unchunked).
+- `appVersion` cookie: set to the currently deployed version (footer of the
+  deployed app). Without it, the Statsig force-logout middleware in
   `src/proxy.ts` redirects to `/logout?newVersion=true`.
 
-Set both with `browser.setCookie(...)` before `page.goto`. Never drive a
-real login; credential entry is prohibited.
+Set both with `browser.setCookie(...)` before `page.goto`. Never drive a real
+login; credential entry is prohibited.
 
 ### Manual Auth (FH Member App and Other Apps)
 
-The member app (`my.dev.functionhealth.com`) has no forgeable cookie,
-and extracting its session token (`localStorage.userData`) from a
-logged-in browser is blocked by the permission classifier. Do not fight
-either constraint. Launch Puppeteer **headful** with a fresh
-`userDataDir` in the scratchpad, open the login page, and poll until the
-user has logged in themselves (URL off `/login` and
-`localStorage.getItem('userData')` non-null, ~5 min deadline). Only then
-start `page.screencast`, so credentials never appear in the video. Tell
-the user a window is waiting for their login, and run the script with
+The member app (`my.dev.functionhealth.com`) has no forgeable cookie, and
+extracting its session token (`localStorage.userData`) from a logged-in browser
+is blocked by the permission classifier. Do not fight either constraint. Launch
+Puppeteer **headful** with a fresh `userDataDir` in the scratchpad, open the
+login page, and poll until the user has logged in themselves (URL off `/login`
+and `localStorage.getItem('userData')` non-null, ~5 min deadline). Only then
+start `page.screencast`, so credentials never appear in the video. Tell the
+user a window is waiting for their login, and run the script with
 `run_in_background` since it blocks on them. The target repo may lack
-`node_modules`; any worktree with a recent `puppeteer-core` works as the
-runner (e.g. `admin-app-fe-next/dev`, v24+ for `page.screencast`).
+`node_modules`; any worktree with a recent `puppeteer-core` works as the runner
+(e.g. `admin-app-fe-next/dev`, v24+ for `page.screencast`).
 
 ## Step 2: Generate Narration
 
@@ -89,17 +87,17 @@ uvx --from "edge-tts==7.2.3" edge-tts --voice en-US-AriaNeural \
 ```
 
 Pin the version. Unpinned `uvx edge-tts` resolves to 7.2.8, which fails the
-handshake with `WSServerHandshakeError: 403` against
-`speech.platform.bing.com` (a stale `Sec-MS-GEC` computation). 7.2.3 works;
-7.1.0 and older also 403. The 403 reads like a network or auth problem and is
-neither, so check the version before reaching for the offline fallback.
+handshake with `WSServerHandshakeError: 403` against `speech.platform.bing.com`
+(a stale `Sec-MS-GEC` computation). 7.2.3 works; 7.1.0 and older also 403. The
+403 reads like a network or auth problem and is neither, so check the version
+before reaching for the offline fallback.
 
-- `en-US-AriaNeural` at `-12Hz` pitch and `-4%` rate is the approved
-  warm/low register. Never clone a real person's voice.
-- edge-tts sends the text to Microsoft's service; flag this to the user
-  if the narration text is sensitive.
-- macOS `say` is the offline fallback, but only compact voices are
-  installed (Samantha is the best of them); quality is noticeably worse.
+- `en-US-AriaNeural` at `-12Hz` pitch and `-4%` rate is the approved warm/low
+  register. Never clone a real person's voice.
+- edge-tts sends the text to Microsoft's service; flag this to the user if the
+  narration text is sensitive.
+- macOS `say` is the offline fallback, but only compact voices are installed
+  (Samantha is the best of them); quality is noticeably worse.
 - Measure each segment: `ffprobe -v error -show_entries format=duration
   -of csv=p=0 nsegN.mp3`. If a segment is longer than its slot (next
   section offset minus its own), shift the following segment's delay to
@@ -119,8 +117,8 @@ Two corrections are mandatory before placing audio:
    `ffmpeg -i rec.webm -f null - 2>&1 | grep -oE "time=[0-9:.]+" | tail -1`.
    Reference `${ratio}` with braces in the filter string, since `$R[v]`
    expands to the wrong thing in bash.
-2. **Loudness-normalize, never naive gain.** `volume=2.2` after `amix`
-   clipped at 0.0 dB. Use `loudnorm`.
+2. **Loudness-normalize, never naive gain.** `volume=2.2` after `amix` clipped
+   at 0.0 dB. Use `loudnorm`.
 
 ```
 ffmpeg -i rec.webm -i nseg1.mp3 ... -i nseg5.mp3 -filter_complex \
@@ -131,20 +129,19 @@ ffmpeg -i rec.webm -i nseg1.mp3 ... -i nseg5.mp3 -filter_complex \
   -map "[v]" -map "[a]" -c:v libx264 -pix_fmt yuv420p -c:a aac out.mp4
 ```
 
-- `adelay` values are the `offsets.json` marks (ms), adjusted for any
-  overflow shifts from Step 2.
-- Verify loudness with `-af volumedetect`: target mean around -17 dB and
-  max at or below -1.0 dB. If the max still reads ~0 dB after `loudnorm`,
-  append `alimiter=limit=0.84:level=0`. The `level=0` is mandatory, since
-  alimiter's default auto-level boosts output right back to full scale.
-  A residual few tenths of a dB above the ceiling is AAC encoder
-  overshoot and acceptable.
-- A segment that outruns the video: extend the tail instead of trimming
-  the script, via `tpad=stop_mode=clone:stop_duration=<s>` after
-  `setpts` (freezes the last frame as an outro).
+- `adelay` values are the `offsets.json` marks (ms), adjusted for any overflow
+  shifts from Step 2.
+- Verify loudness with `-af volumedetect`: target mean around -17 dB and max at
+  or below -1.0 dB. If the max still reads ~0 dB after `loudnorm`, append
+  `alimiter=limit=0.84:level=0`. The `level=0` is mandatory, since alimiter's
+  default auto-level boosts output right back to full scale. A residual few
+  tenths of a dB above the ceiling is AAC encoder overshoot and acceptable.
+- A segment that outruns the video: extend the tail instead of trimming the
+  script, via `tpad=stop_mode=clone:stop_duration=<s>` after `setpts` (freezes
+  the last frame as an outro).
 - Verify sync by extracting frames at 2-3 narration boundaries
-  (`ffmpeg -ss <t> -frames:v 1`) and checking the screen matches the
-  narration beat.
+  (`ffmpeg -ss <t> -frames:v 1`) and checking the screen matches the narration
+  beat.
 
 ## GIF Variant (Silent, for PRs)
 
@@ -161,6 +158,6 @@ ffmpeg -i rec.webm -filter_complex \
 
 ## Cleanup
 
-Delete `record.tmp.mjs` from the worktree and confirm intermediates
-(webm, mp3, txt, offsets.json) stayed in the scratchpad. Deliver the
-final MP4/GIF to `~/Downloads` and send it with SendUserFile.
+Delete `record.tmp.mjs` from the worktree and confirm intermediates (webm, mp3,
+txt, offsets.json) stayed in the scratchpad. Deliver the final MP4/GIF to
+`~/Downloads` and send it with SendUserFile.

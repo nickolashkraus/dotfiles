@@ -15,13 +15,13 @@ argument-hint: "[--re-review [all | unresolved]] [pr-ref]"
 > `fix-bot-reviews`. Everything below describes the retired flow.
 
 You are fixing CI failures on a release PR (triage to Linear, do not commit).
-Release branches only accept cherry-picked merge commits, so never commit
-fixes directly. Instead, triage findings and create a Linear issue. Follow
-every step in order.
+Release branches only accept cherry-picked merge commits, so never commit fixes
+directly. Instead, triage findings and create a Linear issue. Follow every step
+in order.
 
 Shared procedures (PR resolution, check waiting, retry handling, bot comment
-fetch and filter, reply format, durable link format, summary tables) are
-loaded from:
+fetch and filter, reply format, durable link format, summary tables) are loaded
+from:
 
 @~/.claude/skills/fix-ci-core/PROCEDURES.md
 
@@ -55,13 +55,13 @@ Follow "Diagnose CI failures" in PROCEDURES.md to fetch logs.
 **Do not fix failures on this branch.** Instead, record each failure for the
 Linear issue in Step 6.
 
-If the failure is caused by code in the release (not transient), classify
-its severity:
+If the failure is caused by code in the release (not transient), classify its
+severity:
 
-- **Critical/High**: The release may be broken. Present the failure to the
-  user and ask: "This looks like it could affect the release. Should we fix
-  it and cherry-pick into the release, or track it for post-release?" If the
-  user approves, follow the cherry-pick fix flow in Step 4a.
+- **Critical/High**: The release may be broken. Present the failure to the user
+  and ask: "This looks like it could affect the release. Should we fix it and
+  cherry-pick into the release, or track it for post-release?" If the user
+  approves, follow the cherry-pick fix flow in Step 4a.
 - **Medium/Low**: Record for the Linear issue. The release can proceed.
 
 ### Step 4a: Cherry-pick fix flow
@@ -93,8 +93,8 @@ When the user approves a critical/high fix for the release:
 
 ## Step 5: Assess review bot comments
 
-Follow "Collect bot comments" and "Filter bot comments by resolution status"
-in PROCEDURES.md.
+Follow "Collect bot comments" and "Filter bot comments by resolution status" in
+PROCEDURES.md.
 
 If no actionable comments and all checks pass, go to Step 7.
 
@@ -108,9 +108,8 @@ For each bot comment, assess legitimacy and severity.
   Ask: "This is a high-severity finding. Should we fix it and cherry-pick
   into the release, or track it for post-release?" If the user approves,
   follow Step 4a (cherry-pick fix flow).
-- **Legitimate, Medium/Low**: Record for the Linear issue. Reply
-  acknowledging the finding and linking the Linear issue (once created in
-  Step 6).
+- **Legitimate, Medium/Low**: Record for the Linear issue. Reply acknowledging
+  the finding and linking the Linear issue (once created in Step 6).
 
 ## Step 6: Create Linear issue
 
@@ -148,8 +147,8 @@ addressed on `dev`.
 - [PR #XXXX](<pr-url>): Release PR.
 ```
 
-After creating the issue, go back and reply to each bot comment with a link
-to the Linear issue (follow "Reply to a bot comment" in PROCEDURES.md):
+After creating the issue, go back and reply to each bot comment with a link to
+the Linear issue (follow "Reply to a bot comment" in PROCEDURES.md):
 
 ```
 Tracked in [<linear-issue-slug>](<linear-issue-url>).
@@ -158,8 +157,8 @@ Tracked in [<linear-issue-slug>](<linear-issue-url>).
 ## Step 7: Summarize
 
 Post a summary comment on the release PR. Follow "Findings summary" and
-"Durable comment link format" in PROCEDURES.md. Use these table headers
-(note the additional Severity and Linear columns for the Tracked section):
+"Durable comment link format" in PROCEDURES.md. Use these table headers (note
+the additional Severity and Linear columns for the Tracked section):
 
 ```
 gh pr comment <pr-number> --body "$(cat <<'EOF'

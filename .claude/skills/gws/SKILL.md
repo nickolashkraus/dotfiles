@@ -29,8 +29,8 @@ allowed-tools: Bash, Read
   `--params` is only for URL/query parameters like `userId` and `id`.
 - The personal profile prints `Using keyring backend: file` to stderr, so the
   JSON body on stdout pipes straight into `python3 -c "json.load"` or `jq`.
-  A decode error at char 0 means the two streams were merged (`2>&1`). Drop
-  the merge, or strip the line first
+  A decode error at char 0 means the two streams were merged (`2>&1`). Drop the
+  merge, or strip the line first
   (`gws ... 2>&1 | grep -v keyring | python3 ...`). The failure looks like
   a broken command, but the API call already succeeded.
 

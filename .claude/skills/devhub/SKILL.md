@@ -22,8 +22,8 @@ One key, two endpoints, two headers, and getting this wrong wastes a cycle:
 - **MCP** (`/api/mcp`): `Authorization: Bearer $KEY`. The REST path above is
   preferred, because the MCP server exposes reads only: `start_deploy` and the
   rest of the write catalog are implemented but disabled behind its
-  `EXPOSED_TOOLS` allowlist. The key itself carries `read` and `mutate`, so REST
-  can write what MCP will not.
+  `EXPOSED_TOOLS` allowlist. The key itself carries `read` and `mutate`, so
+  REST can write what MCP will not.
 
 Dev is `https://devhub.svc.dev.functionhealth.com`, and a key is minted per
 environment. RBAC is server-side: Prod actions need the `dev-hub-prod-writer`
@@ -85,8 +85,8 @@ curl -s -X POST -H "x-api-key: $KEY" -H 'Content-Type: application/json' \
   -d '{"env":"<env>","...":"..."}' "$BASE/services/<name>/deploys"
 ```
 
-Confirm the request body against the live API before sending it; this skill does
-not pin a schema it has not verified. Related endpoints:
+Confirm the request body against the live API before sending it; this skill
+does not pin a schema it has not verified. Related endpoints:
 `deploys/<id>/confirm` (only engages when a manual deploy's post-promotion
 health check returns `unhealthy` or `error`), and `redeploy-previous`.
 
@@ -124,10 +124,10 @@ When the environment is Prod, say these before asking:
 ## Terraform is not always EasyDeploy's lane
 
 `terraform_enabled` on a service does not mean EasyDeploy applies its
-Terraform. Some services apply Prod Terraform from a tagged release in their own
-repo, and EasyDeploy owns only the image after the service exists. Check which
-lane the service uses before reaching for a Terraform action, and never assume
-the tab's existence implies ownership.
+Terraform. Some services apply Prod Terraform from a tagged release in their
+own repo, and EasyDeploy owns only the image after the service exists. Check
+which lane the service uses before reaching for a Terraform action, and never
+assume the tab's existence implies ownership.
 
 ## Auto-release
 

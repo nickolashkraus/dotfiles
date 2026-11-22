@@ -10,37 +10,36 @@ allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
 argument-hint: "[--re-review [all | unresolved]] [pr-ref]"
 ---
 
-You are fixing bot review comments on a pull request as a stacked worktree
-PR. Fixes are applied in a new worktree and shipped as a stacked PR based on
-the original branch. Follow every step in order.
+You are fixing bot review comments on a pull request as a stacked worktree PR.
+Fixes are applied in a new worktree and shipped as a stacked PR based on the
+original branch. Follow every step in order.
 
 Shared procedures (PR resolution, bot comment fetch and filter, dismissal
-criteria, reply format, durable link format, summary tables) are loaded
-from:
+criteria, reply format, durable link format, summary tables) are loaded from:
 
 @~/.claude/skills/fix-ci-core/PROCEDURES.md
 
 ## Step 1: Parse arguments and resolve the PR
 
-Parse `$ARGUMENTS` for the `--re-review [all | unresolved]` flag (see
-"Filter bot comments by resolution status" in PROCEDURES.md). Remove the
-flag and its value before continuing.
+Parse `$ARGUMENTS` for the `--re-review [all | unresolved]` flag (see "Filter
+bot comments by resolution status" in PROCEDURES.md). Remove the flag and its
+value before continuing.
 
 Then follow "Resolve the pull request" in PROCEDURES.md. Save the PR number,
-head branch name, base branch name, title, and extracted issue slug for
-later steps. The slug is used in Step 7 for the fix PR title.
+head branch name, base branch name, title, and extracted issue slug for later
+steps. The slug is used in Step 7 for the fix PR title.
 
 ## Step 2: Fetch bot comments
 
-Follow "Collect bot comments" and "Filter bot comments by resolution status"
-in PROCEDURES.md.
+Follow "Collect bot comments" and "Filter bot comments by resolution status" in
+PROCEDURES.md.
 
 If no actionable bot comments remain, stop and tell the user.
 
 ## Step 3: Create the worktree
 
-Create a new worktree from the PR's head branch as a peer directory with
-a new fix branch:
+Create a new worktree from the PR's head branch as a peer directory with a new
+fix branch:
 
 ```
 git worktree add -b <head-branch>-fixes-<number> \
@@ -52,10 +51,9 @@ directory (`../<head-branch>-fixes-<number>`).
 
 ## Step 4: Fix bot comments
 
-First apply "Count the rounds per file, and stop at three" in
-PROCEDURES.md. If it prints anything, stop and ask before fixing: a file
-that review has already sent back three times needs a redesign, not a
-fourth stacked fix PR.
+First apply "Count the rounds per file, and stop at three" in PROCEDURES.md. If
+it prints anything, stop and ask before fixing: a file that review has already
+sent back three times needs a redesign, not a fourth stacked fix PR.
 
 Then, for each unresolved bot comment, apply "Bias toward fixing" in
 PROCEDURES.md.
@@ -67,17 +65,16 @@ For dismissals: Follow "Reply to a bot comment" in PROCEDURES.md.
 
 ## Step 5: Run CI locally
 
-Run the project's test/lint/build commands in the worktree to verify the
-fixes. Use the project configuration (e.g., `Makefile`, `package.json`,
+Run the project's test/lint/build commands in the worktree to verify the fixes.
+Use the project configuration (e.g., `Makefile`, `package.json`,
 `pyproject.toml`) to identify the correct commands.
 
-If any command fails, fix the issue and re-run until all checks pass
-locally.
+If any command fails, fix the issue and re-run until all checks pass locally.
 
 ## Step 6: Commit and push
 
-Commit all fixes in the worktree per @~/.claude/rules/git.md. The body
-should explain which bot comments were addressed and why.
+Commit all fixes in the worktree per @~/.claude/rules/git.md. The body should
+explain which bot comments were addressed and why.
 
 Push the fix branch:
 
@@ -100,19 +97,18 @@ findings`, where `<issue-slug>` is extracted from the parent PR's title
 is `BYB-1120`). If the parent PR title has no issue slug prefix, use
 `Address bot review findings` as the full title.
 
-Write the PR description following @~/.claude/rules/git.md. Include a
-summary of which bot comments were fixed and which were dismissed (with
-reasons).
+Write the PR description following @~/.claude/rules/git.md. Include a summary
+of which bot comments were fixed and which were dismissed (with reasons).
 
 Print the fix PR URL.
 
 ## Step 8: Hand off to `fix-ci`
 
-Invoke `Skill(skill: "fix-ci", args: "--in-place <new-pr-ref>")` on the fix
-PR (pass the URL returned by `gh pr create` or the new PR number) to handle
-any CI failures and new bot comments that appear. The `--in-place` flag
-ensures `fix-ci` fixes bot comments directly on the fix branch instead of
-recursing back into `fix-bot-reviews`.
+Invoke `Skill(skill: "fix-ci", args: "--in-place <new-pr-ref>")` on the fix PR
+(pass the URL returned by `gh pr create` or the new PR number) to handle any CI
+failures and new bot comments that appear. The `--in-place` flag ensures
+`fix-ci` fixes bot comments directly on the fix branch instead of recursing
+back into `fix-bot-reviews`.
 
 ## Step 9: Summarize
 

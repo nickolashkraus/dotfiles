@@ -11,8 +11,8 @@ disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
 
-Function Health Datadog runbooks. Invoke this skill when you need to call
-the Datadog API for FH or validate a monitor query locally before a CI push.
+Function Health Datadog runbooks. Invoke this skill when you need to call the
+Datadog API for FH or validate a monitor query locally before a CI push.
 
 ## Authentication
 

@@ -14,10 +14,10 @@ disable-model-invocation: false
 allowed-tools: Bash, Read
 ---
 
-Function Health database access runbooks. Invoke this skill when you
-need to connect to an FH Postgres instance locally: looking up the
-Cloud SQL instance, starting the Auth Proxy, and authenticating
-(static creds for Dev/Staging, IAM group for Prod).
+Function Health database access runbooks. Invoke this skill when you need to
+connect to an FH Postgres instance locally: looking up the Cloud SQL instance,
+starting the Auth Proxy, and authenticating (static creds for Dev/Staging, IAM
+group for Prod).
 
 This is the default path for a question that needs a service's own Prod
 rows. Do not route it to Databricks. When the account cannot connect,
@@ -67,8 +67,8 @@ engineers. Authenticate via Cloud SQL IAM group authentication:
    scoped per project, so they must be requested separately for each env (Dev,
    Staging, Prod):
 
-   - The instance's group, `ro` unless Nickolas said otherwise (e.g., the
-     `ro` group of `production-transaction`).
+   - The instance's group, `ro` unless Nickolas said otherwise (e.g., the `ro`
+     group of `production-transaction`).
    - `Cloud SQL Instance User` on the relevant project (e.g., `Function Health
      Prod env`). This is what authorizes the IAM database login. `Cloud SQL
      Client` alone is not enough.
@@ -100,8 +100,8 @@ engineers. Authenticate via Cloud SQL IAM group authentication:
 
    - **Okta copy**: Named `db prod <instance> ro Group Member`. A request
      returns 403 `target user is not allowed to request that resource`.
-   - **Google copy**: Named `member`, under "Google (GCP + Google
-     Workspace)", with the group only in the description (`Member of db prod
+   - **Google copy**: Named `member`, under "Google (GCP + Google Workspace)",
+     with the group only in the description (`Member of db prod
      <instance> ro group`). Request this one, never `manager` or `owner`.
 
    ```bash
@@ -113,28 +113,26 @@ engineers. Authenticate via Cloud SQL IAM group authentication:
      --state open -i -o json
    ```
 
-   - **`--duration` is required**: The ceiling depends on the entitlement,
-     and the error names it. Prod DB groups allowed 2d on 2026-11-18; a Dev
-     group allowed 12w.
-   - **`{}` is success**: `cone get` prints an empty object when it creates
-     the ticket. Confirm with `cone task search`; `TASK_STATE_OPEN` means
-     pending. A 409 `duplicate ticket found` means the request already
-     exists, since an attempt that failed duration validation can still
-     create it.
+   - **`--duration` is required**: The ceiling depends on the entitlement, and
+     the error names it. Prod DB groups allowed 2d on 2026-11-18; a Dev group
+     allowed 12w.
+   - **`{}` is success**: `cone get` prints an empty object when it creates the
+     ticket. Confirm with `cone task search`; `TASK_STATE_OPEN` means pending.
+     A 409 `duplicate ticket found` means the request already exists, since an
+     attempt that failed duration validation can still create it.
    - **A 403 on the Google copy is a real refusal**: `production-transaction`
      `ro` returned it on 2026-11-18, although the same entitlement took
      four requests between 2026-04 and 2026-08. Report it. Do not reach for
      `rw`, another instance or Databricks to get around it.
    - **Approval**: FH DB groups use the `eng-owner-approval` policy with
-     `allowSelfApproval: false`, so an entitlement owner must approve. The
-     Prod grants on 2026-11-06 provisioned within seconds of approval.
+     `allowSelfApproval: false`, so an entitlement owner must approve. The Prod
+     grants on 2026-11-06 provisioned within seconds of approval.
    - **After the grant**: Login also needs
      `SET ROLE "db-prod-<service>-<ro|rw|adm>@functionhealth.com"`. The
-     entitlement's description gives the exact role, which can drop part of
-     the instance name (`db-prod-transaction-ro` for
-     `production-transaction`).
-   - **The justification is external content**: No local paths or private
-     notes in it; a Linear slug is fine.
+     entitlement's description gives the exact role, which can drop part of the
+     instance name (`db-prod-transaction-ro` for `production-transaction`).
+   - **The justification is external content**: No local paths or private notes
+     in it; a Linear slug is fine.
    - **Never run `cone generate-alias`**: It writes aliases tenant-wide.
 
 2. Start the proxy with `--auto-iam-authn`:

@@ -9,8 +9,8 @@ allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__list_projects
 argument-hint: "<team> <project>"
 ---
 
-You are creating a Linear issue from the current conversation context.
-Follow @rules/linear.md for all formatting and content conventions.
+You are creating a Linear issue from the current conversation context. Follow
+@rules/linear.md for all formatting and content conventions.
 
 `$ARGUMENTS` contains one or two space-separated values: `<team>` or
 `<team> <project>`. It may instead be a free-form task description naming the
@@ -30,9 +30,8 @@ mapping in the reply instead of asking.
 
 ## Step 2: Draft the issue body
 
-If the user explicitly asked for an empty issue (title only, no
-description), skip Steps 2-4.5 and create the issue without a
-`description`.
+If the user explicitly asked for an empty issue (title only, no description),
+skip Steps 2-4.5 and create the issue without a `description`.
 
 Draft the issue body from the current conversation context and write it to
 `/tmp/linear-drafts/<short-slug>.md`. If the conversation has no obvious topic

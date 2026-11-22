@@ -10,8 +10,8 @@ allowed-tools: Bash, Skill
 argument-hint: "[--no-pr] [--no-pulse] [--worktree] [linear-issue]"
 ---
 
-You are reviewing, committing, and shipping a set of changes. Follow every
-step in order.
+You are reviewing, committing, and shipping a set of changes. Follow every step
+in order.
 
 Parse `$ARGUMENTS` for flags and a Linear issue slug:
 
@@ -28,8 +28,8 @@ Parse `$ARGUMENTS` for flags and a Linear issue slug:
 
 Skip if `--worktree` was not passed.
 
-Move the uncommitted changes into a new worktree so the review, commit, and
-PR phases all happen there:
+Move the uncommitted changes into a new worktree so the review, commit, and PR
+phases all happen there:
 
 1. Stash all changes including untracked:
    `git stash push --include-untracked`
@@ -47,8 +47,8 @@ All subsequent steps run in the worktree.
 
 Invoke `Skill(skill: "review-diff")` to review and fix issues in the diff. If
 `--no-pr` was passed, pass `--staged` so only the staged subset is reviewed
-(the unstaged tail will not ship in this push). If nothing is staged, the
-whole working tree is the ship set: review and commit all of it.
+(the unstaged tail will not ship in this push). If nothing is staged, the whole
+working tree is the ship set: review and commit all of it.
 
 ## Step 3: Commit
 
