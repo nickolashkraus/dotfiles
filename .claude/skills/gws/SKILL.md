@@ -27,11 +27,12 @@ allowed-tools: Bash, Read
 - For methods with a request body (e.g., `gmail messages modify`, `gmail
   messages send`), pass body fields via `--json`, not `--params`. `--params` is
   only for URL/query parameters like `userId` and `id`.
-- The personal profile prints `Using keyring backend: file` to stdout ahead of
-  the JSON body, so piping `gws` output straight into `python3 -c "json.load"`
-  or `jq` fails with a decode error at char 0. Always strip it first
-  (`gws ... | grep -v keyring | python3 ...`). The failure looks like a broken
-  command, but the API call already succeeded.
+- The personal profile prints `Using keyring backend: file` to stderr, so the
+  JSON body on stdout pipes straight into `python3 -c "json.load"` or `jq`.
+  A decode error at char 0 means the two streams were merged (`2>&1`). Drop
+  the merge, or strip the line first
+  (`gws ... 2>&1 | grep -v keyring | python3 ...`). The failure looks like
+  a broken command, but the API call already succeeded.
 
 ## Account Switching
 
