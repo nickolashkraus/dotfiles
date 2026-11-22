@@ -47,9 +47,7 @@ def section(title: str) -> None:
 def build_padded_table(rows: list[list[str] | None]) -> str:
     """Pad a two-column table to equal SOURCE width, the way an editor
     (and rules/typography.md) aligns it."""
-    widths = [
-        max(len(r[i]) for r in rows if r is not None) for i in range(2)
-    ]
+    widths = [max(len(r[i]) for r in rows if r is not None) for i in range(2)]
     lines = []
     for r in rows:
         if r is None:
@@ -98,13 +96,50 @@ def test_table_padding_source_width() -> None:
         lo.detect_table_padding(prose) == [],
         f"got {lo.detect_table_padding(prose)!r}",
     )
+    aligned = "| Col A | Col B |\n| :--- | ---: |\n| x | y |\n"
+    check(
+        "alignment colons still mark the separator row",
+        len(lo.detect_table_padding(aligned)) > 0,
+        "not flagged",
+    )
+    aligned_ok = "| Col A | Col B |\n| :---- | ----: |\n| x     | y     |\n"
+    check(
+        "padded table with alignment colons passes",
+        lo.detect_table_padding(aligned_ok) == [],
+        f"got {lo.detect_table_padding(aligned_ok)!r}",
+    )
+    no_separator = "| a | b |\n| long cell | x |\n"
+    check(
+        "pipe rows without a separator row are not a table",
+        lo.detect_table_padding(no_separator) == [],
+        f"got {lo.detect_table_padding(no_separator)!r}",
+    )
+    tilde = f"~~~\n{bad}~~~\n"
+    check(
+        "table inside tilde fence ignored",
+        lo.detect_table_padding(tilde) == [],
+        f"got {lo.detect_table_padding(tilde)!r}",
+    )
+    for row, cells in [
+        ("| x \\| y | z |", [" x \\| y ", " z "]),
+        ("| a | b \\|", [" a ", " b \\|"]),
+    ]:
+        check(
+            f"escaped pipe stays in its cell: {row}",
+            lo.split_table_row(row) == cells,
+            f"got {lo.split_table_row(row)!r}",
+        )
+    check(
+        "lint_text reports the padding",
+        any("padded" in v for v in lo.lint_text(bad, "f", check_local_paths=False)),
+        "not reported",
+    )
 
 
 def test_commit_subject_exemptions() -> None:
     section("lint_commit_message: subject-length rule and exemptions")
     slug = (
-        "BYB-1345: Membership Upgrade Creates Duplicate Active "
-        "Subscriptions in Stripe"
+        "BYB-1345: Membership Upgrade Creates Duplicate Active Subscriptions in Stripe"
     )
     check(
         "Linear-slug subject (78 chars) exempt",
@@ -129,6 +164,21 @@ def test_commit_subject_exemptions() -> None:
         lo.lint_commit_message(merge, "f") == [],
         f"got {lo.lint_commit_message(merge, 'f')!r}",
     )
+    for label, subject, expected in [
+        ("50-char subject passes", "A" * 50, 0),
+        ("51-char subject flagged", "A" * 51, 1),
+        ("trailing spaces not counted", "A" * 50 + "  ", 0),
+        ("Revert subject exempt", f'Revert "{plain}"', 0),
+        (
+            "breaking-change subject exempt",
+            "feat!: drop the legacy flag from the outbound linter",
+            0,
+        ),
+        ("Conventional subject of exactly 72 exempt", conv + " too", 0),
+        ("Conventional subject past 72 flagged", conv + " also", 1),
+    ]:
+        got = lo.lint_commit_message(subject, "f")
+        check(label, len(got) == expected, f"got {got!r}")
 
 
 def test_commit_body_rules() -> None:
@@ -159,6 +209,30 @@ def test_commit_body_rules() -> None:
         any("blank line" in v for v in lo.lint_commit_message(no_blank, "f")),
         f"got {lo.lint_commit_message(no_blank, 'f')!r}",
     )
+    code = (
+        "result = compute(alpha, beta, gamma, delta, epsilon, zeta, eta, theta, iota)"
+    )
+    for fence in ("```", "~~~"):
+        msg = f"Short subject\n\n{fence}\n{code}\n{fence}\n"
+        check(
+            f"long code line with spaces inside {fence} fence exempt",
+            lo.lint_commit_message(msg, "f") == [],
+            f"got {lo.lint_commit_message(msg, 'f')!r}",
+        )
+    token = "Short subject\n\n" + "a" * 80 + "\n"
+    check(
+        "long single token exempt",
+        lo.lint_commit_message(token, "f") == [],
+        f"got {lo.lint_commit_message(token, 'f')!r}",
+    )
+    for width, expected in [(72, 0), (73, 1)]:
+        msg = "Short subject\n\n" + ("word " * 15)[:width] + "\n"
+        check(
+            f"{width}-char body line: {expected} violation(s)",
+            len(lo.lint_commit_message(msg, "f")) == expected,
+            f"got {lo.lint_commit_message(msg, 'f')!r}",
+        )
+    check("empty message passes", lo.lint_commit_message("", "f") == [])
 
 
 def test_interpreter_heredoc_skipped() -> None:
@@ -185,6 +259,81 @@ def test_interpreter_heredoc_skipped() -> None:
         "commit-only heredoc marked full commit message",
         any("heredoc" in f[0] and f[4] for f in fields),
         f"got {fields!r}",
+    )
+
+    def heredocs(cmd: str) -> list[str]:
+        return [f[0] for f in lo.extract_bash_content(cmd) if "heredoc" in f[0]]
+
+    owners = [
+        "python",
+        "python3",
+        "node",
+        "ruby",
+        "perl",
+        "php",
+        "osascript",
+        "psql",
+        "sqlite3",
+        "jq",
+        "awk",
+        "done",
+        "while",
+        "read",
+        "xargs",
+        "sort",
+        "uniq",
+        "grep",
+        "sed",
+        "tr",
+        "wc",
+        "head",
+        "tail",
+        "cut",
+        "column",
+        "comm",
+        "diff",
+    ]
+    extracted = [
+        name
+        for name in owners
+        if heredocs(f"gh api repos/o/r && {name} <<'EOF'\nnot prose\nEOF")
+    ]
+    check("code and data heredocs not extracted", extracted == [], f"got {extracted!r}")
+    for name in ("python3", "sort"):
+        for label, cmd in [
+            ("after a pipe", f"gh api repos/o/r | {name} <<'EOF'\nx\nEOF"),
+            ("after a semicolon", f"gh api repos/o/r; {name} <<'EOF'\nx\nEOF"),
+            ("on the next line", f"gh api repos/o/r\n{name} <<'EOF'\nx\nEOF"),
+            (
+                "in a substitution",
+                f"gh api repos/o/r && x=\"$({name} <<'EOF'\nx\nEOF\n)\"",
+            ),
+            ("by full path", f"gh api repos/o/r && /usr/bin/{name} <<'EOF'\nx\nEOF"),
+        ]:
+            check(
+                f"{name} {label} not extracted",
+                heredocs(cmd) == [],
+                f"got {heredocs(cmd)!r}",
+            )
+    for marker in ("-EOF", '"EOF"'):
+        cmd = (
+            f"gh pr create --title T --body-file - <<{marker}\n"
+            "Adds a gate \u2014 finally.\nEOF"
+        )
+        violations = lo.collect_violations("Bash", {"command": cmd})
+        check(
+            f"<<{marker} heredoc still linted",
+            any("em dash" in v for v in violations),
+            f"got {violations!r}",
+        )
+    flag_text = (
+        "gh pr create --title T --body-file - <<'EOF'\n"
+        'Scripts pass --body "$BODY" to gh.\nEOF'
+    )
+    check(
+        "flag text inside a heredoc body is not a flag",
+        lo.collect_violations("Bash", {"command": flag_text}) == [],
+        f"got {lo.collect_violations('Bash', {'command': flag_text})!r}",
     )
 
 
@@ -249,8 +398,10 @@ def test_file_heredoc_is_not_the_message() -> None:
     for name, cmd in (
         (
             "variable target read back with braces",
-            "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
-            "git commit -F ${f}",
+            (
+                "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
+                "git commit -F ${f}"
+            ),
         ),
         (
             "variable target, another file read back",
@@ -262,8 +413,10 @@ def test_file_heredoc_is_not_the_message() -> None:
         ),
         (
             "named target, a command's output read back",
-            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
-            "git commit -F `ls -t | head -1`",
+            (
+                "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
+                "git commit -F `ls -t | head -1`"
+            ),
         ),
     ):
         check(
@@ -294,6 +447,9 @@ def test_markdown_heredoc_writes() -> None:
         "redirect after marker": f"cat <<'EOF' >> notes/2026-10-15.md\n{bad}EOF",
         "tee -a": f"tee -a /tmp/pr-body.md <<EOF >/dev/null\n{bad}EOF",
         "after a cd": f"cd ~/x && cat > 'a b/n.md' <<EOF\n{bad}EOF",
+        "double-quoted target": f'cat > "a b/n.md" <<EOF\n{bad}EOF',
+        ".markdown target": f"cat > notes/n.markdown <<'EOF'\n{bad}EOF",
+        "tee without -a": f"tee /tmp/pr-body.md <<'EOF' >/dev/null\n{bad}EOF",
     }
     for name, cmd in flagged.items():
         violations = lo.collect_violations("Bash", {"command": cmd})
@@ -307,6 +463,11 @@ def test_markdown_heredoc_writes() -> None:
         "interpreter heredoc": f"python3 - <<'PY' > out.md\n{bad}PY",
         "variable target": f'cat >> "$f" <<EOF\n{bad}EOF',
         "no redirect": f"cat <<'EOF'\n{bad}EOF",
+        "variable in a bare target": f"cat >> $dir/n.md <<EOF\n{bad}EOF",
+        "Markdown backup target": f"cat > n.md.bak <<'EOF'\n{bad}EOF",
+        "earlier command after ;": f"echo x > 'a.md'; cat <<'EOF'\n{bad}EOF",
+        "earlier command after &&": f"echo x > a.md && cat <<'EOF'\n{bad}EOF",
+        "earlier command on its own line": f"echo x > a.md\ncat <<'EOF'\n{bad}EOF",
     }
     for name, cmd in skipped.items():
         violations = lo.collect_violations("Bash", {"command": cmd})
@@ -324,14 +485,28 @@ def test_markdown_heredoc_writes() -> None:
         [f[1] for f in fields] == ["new line only"],
         f"got {fields!r}",
     )
+    note = "See ~/.claude/rules/git.md for the rule.\n"
+    in_repo = f"cat >> ~/nickolashkraus/notes/n.md <<'EOF'\n{note}EOF"
+    check(
+        "in-repo target may name local paths",
+        not lo.collect_violations("Bash", {"command": in_repo}),
+        f"got {lo.collect_violations('Bash', {'command': in_repo})!r}",
+    )
+    external = f"cat >> /tmp/pr-body.md <<'EOF'\n{note}EOF"
+    check(
+        "external target may not name local paths",
+        any(
+            "local-only path" in v
+            for v in lo.collect_violations("Bash", {"command": external})
+        ),
+        "not flagged",
+    )
 
 
 def test_cat_heredoc_subst_wrapper_redacted() -> None:
-    section(
-        "extract_bash_content: $(cat <<'EOF') wrapper leaves no -m residue"
-    )
+    section("extract_bash_content: $(cat <<'EOF') wrapper leaves no -m residue")
     cmd = (
-        'git commit -m "$(cat <<\'EOF\'\n'
+        "git commit -m \"$(cat <<'EOF'\n"
         "Subject line\n"
         "\n"
         "Body wrapped well under seventy-two characters.\n"
@@ -378,6 +553,42 @@ def test_compound_command_flag_ownership() -> None:
             f"got {title_field!r}",
         )
 
+    def violations(cmd: str) -> list[str]:
+        return lo.collect_violations("Bash", {"command": cmd})
+
+    trailer = "Co-" + "Authored-By: Claude <noreply@anthropic.com>"
+    long_form = f"git commit --message 'Short subject' --message '{trailer}'"
+    check(
+        "--message is commit-owned",
+        any("Co-Authored-By" in v for v in violations(long_form)),
+        f"got {violations(long_form)!r}",
+    )
+    paragraphs = (
+        "git commit -m 'Short subject' "
+        "-m 'A body paragraph that runs well past the fifty-character limit.'"
+    )
+    check(
+        "a second -m is a body paragraph, not a subject",
+        not any("subject" in v for v in violations(paragraphs)),
+        f"got {violations(paragraphs)!r}",
+    )
+    dash = "Adds a gate \u2014 finally."
+    for label, cmd in [
+        ("double-quoted --body", f'gh pr create --title "T" --body "{dash}"'),
+        ("gh issue create", f"gh issue create --title T --body '{dash}'"),
+    ]:
+        check(
+            f"{label}: em dash flagged",
+            any("em dash" in v for v in violations(cmd)),
+            f"got {violations(cmd)!r}",
+        )
+    edit = "gh pr edit 12 --body 'Fixes #12'"
+    check(
+        "gh pr edit --body is a PR body",
+        any("Closes:" in v for v in violations(edit)),
+        f"got {violations(edit)!r}",
+    )
+
 
 def test_gh_api_at_file_read_not_blocked() -> None:
     section("extract_bash_content: gh api -F body=@file reads file content")
@@ -403,6 +614,72 @@ def test_gh_api_at_file_read_not_blocked() -> None:
         lo.is_bypass_value("$BODY") is not None,
         "not blocked",
     )
+    check(
+        "text that starts with a $var is not a bypass",
+        lo.is_bypass_value("$PATH is unchanged") is None,
+        "blocked",
+    )
+
+    def violations(cmd: str) -> list[str]:
+        return lo.collect_violations("Bash", {"command": cmd})
+
+    for label, cmd in [
+        ("bare $var", 'gh pr create --title T --body "$BODY"'),
+        ("braced ${var}", 'gh pr create --title T --body "${BODY}"'),
+    ]:
+        check(
+            f"{label} body blocked",
+            any("bare shell-variable" in v for v in violations(cmd)),
+            f"got {violations(cmd)!r}",
+        )
+
+    dash = "Adds a gate \u2014 finally."
+    for flag in ("-f", "-F", "--field", "--raw-field"):
+        for name in ("body", "title"):
+            cmd = f"gh api repos/x/y/issues {flag} {name}='{dash}'"
+            check(
+                f"gh api {flag} {name}= linted",
+                any("em dash" in v for v in violations(cmd)),
+                f"got {violations(cmd)!r}",
+            )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        body = Path(tmp) / "body.md"
+        body.write_text("Adds the gate.\n\nCloses: BYB-1\n")
+        dashed = Path(tmp) / "dashed.md"
+        dashed.write_text(dash + "\n")
+        msg = Path(tmp) / "msg.txt"
+        msg.write_text(
+            "Add a really long subject line that keeps going well past fifty\n"
+        )
+        signed = Path(tmp) / "signed.txt"
+        signed.write_text(
+            "Short subject\n\nCo-" + "Authored-By: Claude <noreply@anthropic.com>\n"
+        )
+        for label, cmd, needle in [
+            ("--body-file", f"gh pr create --title T --body-file {body}", "Closes:"),
+            (
+                "quoted --body-file",
+                f"gh pr create --title T --body-file '{body}'",
+                "Closes:",
+            ),
+            ("quoted @file", f"gh api repos/x/y/issues -F body=@'{dashed}'", "em dash"),
+            ("git commit -F", f"git commit -F {msg}", "commit subject"),
+            ("git commit --file=", f"git commit --file={msg}", "commit subject"),
+            ("quoted git commit -F", f"git commit -F '{msg}'", "commit subject"),
+            ("git commit -F trailer", f"git commit -F {signed}", "Co-Authored-By"),
+        ]:
+            check(
+                f"{label}: file read and linted",
+                any(needle in v for v in violations(cmd)),
+                f"got {violations(cmd)!r}",
+            )
+        gh_short = f"gh pr create --title T -F {msg}"
+        check(
+            "gh -F is not read as a commit message",
+            not any("commit subject" in v for v in violations(gh_short)),
+            f"got {violations(gh_short)!r}",
+        )
 
 
 def test_hard_wrap_detector() -> None:
@@ -443,6 +720,43 @@ def test_hard_wrap_detector() -> None:
         len(lo.detect_hard_wraps(real)) == 1,
         f"got {lo.detect_hard_wraps(real)!r}",
     )
+    long = "A" * 64
+    cases = [
+        ("64-char line then a wrap", f"{long}\nmore\n", [2]),
+        ("63-char line then a short line", f"{long[:-1]}\nmore\n", []),
+        ("only the line after the long one", f"{long}\nshort\nthird\n", [2]),
+        ("list item after a wrapped line", f"{long}\n{long}\n- item\n", [2]),
+        ("header after a long line", f"{long}\n## Header\n", []),
+        ("blank line after a long line", f"{long}\n\nNext paragraph.\n", []),
+        ("fence after a long line", f"{long}\n```\ncode\n```\nNext\n", []),
+        ("reference definition", f"{long}\n[a]: https://example.com/a\n", []),
+        ("Notion XML line", f"{long}\n<callout>\n", []),
+        ("table rows", f"| {long} |\n| --- |\n", []),
+        ("blockquote", f"> {long}\n> more\n", []),
+        ("backtick fence", f"```\n{long}\nmore\n```\n", []),
+        ("tilde fence", f"~~~\n{long}\nmore\n~~~\n", []),
+    ]
+    for marker in ("-", "*", "+", "1.", "2)"):
+        cases.append((f"`{marker}` list item", f"{long}\n{marker} item\n", []))
+    for label, text, expected in cases:
+        got = lo.detect_hard_wraps(text)
+        check(label, got == expected, f"got {got!r}")
+
+    wrapped = f"{long}\nmore\n"
+    with tempfile.TemporaryDirectory() as tmp:
+        draft = {"file_path": f"{tmp}/pr-body.md", "content": wrapped}
+        check(
+            "external Markdown draft: hard wrap flagged",
+            any("hard-wrapped" in v for v in lo.collect_violations("Write", draft)),
+            f"got {lo.collect_violations('Write', draft)!r}",
+        )
+    doc = f"{Path.home()}/nickolashkraus/lint-outbound-test/README.md"
+    in_repo = {"file_path": doc, "content": wrapped}
+    check(
+        "in-repo Markdown: hard wrap allowed",
+        lo.collect_violations("Write", in_repo) == [],
+        f"got {lo.collect_violations('Write', in_repo)!r}",
+    )
 
 
 def test_label_colon_rules() -> None:
@@ -482,6 +796,46 @@ def test_label_colon_rules() -> None:
         lint("- **Element**: Description here\n") == [],
         f"got {lint('- **Element**: Description here')!r}",
     )
+    for line in (
+        "* **Element**: description\n",
+        "+ **Element**: description\n",
+        "1. **Element**: description\n",
+        "1) **Element**: description\n",
+        "- [Docs](https://x): description\n",
+    ):
+        check(
+            f"flagged: {line.strip()}",
+            any("colon" in v for v in lint(line)),
+            "not flagged",
+        )
+    for line in (
+        "- **Element** - description\n",
+        "* **Element** - description\n",
+        "1. **Element** - description\n",
+    ):
+        check(
+            f"dash lead-in flagged: {line.strip()}",
+            any("`**X** -`" in v for v in lint(line)),
+            f"got {lint(line)!r}",
+        )
+    later = "- **Element**: Description - with a dash\n"
+    check("dash later in the item is legal", lint(later) == [], f"got {lint(later)!r}")
+    check(
+        "reference shorthand flagged",
+        any("shorthand" in v for v in lint("See [docs][] here.\n")),
+        "not flagged",
+    )
+    for text in ("See [docs][ref] here.\n", "Avoid `[docs][]` here.\n"):
+        check(f"legal: {text.strip()}", lint(text) == [], f"got {lint(text)!r}")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "note.md"
+        path.write_text("[Docs](https://x): lowercase title\n- Overview: the summary\n")
+        kept = {"file_path": str(path), "content": path.read_text()}
+        check(
+            "existing link and plain label lines keep their wording",
+            lo.collect_violations("Write", kept) == [],
+            f"got {lo.collect_violations('Write', kept)!r}",
+        )
 
 
 def test_plain_label_colon_detector() -> None:
@@ -492,10 +846,14 @@ def test_plain_label_colon_detector() -> None:
 
     # Title-Case / acronym plain-text labels with a lowercase word after the
     # colon are flagged.
-    check("multiword Title-Case label", flagged("- Conventional Commits: the carve-out\n"))
+    check(
+        "multiword Title-Case label", flagged("- Conventional Commits: the carve-out\n")
+    )
     check("single-word label", flagged("- Overview: the summary here\n"))
     check("acronym + connector label", flagged("- Terms of Service: some text\n"))
-    check("numbered Title-Case label", flagged("1. Rollback Plan: revert the migration\n"))
+    check(
+        "numbered Title-Case label", flagged("1. Rollback Plan: revert the migration\n")
+    )
 
     # Not flagged: lowercase word after a capitalized label IS correct.
     check("capitalized value passes", not flagged("- Overview: The summary here\n"))
@@ -504,16 +862,295 @@ def test_plain_label_colon_detector() -> None:
         "imperative instruction not flagged",
         not flagged("2. Trace the data lifecycle: creation and updates\n"),
     )
-    check("imperative check not flagged", not flagged("- Check edge cases: empty inputs\n"))
+    check(
+        "imperative check not flagged",
+        not flagged("- Check edge cases: empty inputs\n"),
+    )
     # Not flagged: lowercase-tail label is indistinguishable from a clause here
     # and is deferred to the semantic check.
-    check("lowercase-tail label deferred", not flagged("- PR titles: when a PR resolves\n"))
+    check(
+        "lowercase-tail label deferred",
+        not flagged("- PR titles: when a PR resolves\n"),
+    )
     # Not flagged: bold/link/code labels are handled by the dedicated regexes.
-    check("bold label deferred to bold regex", not flagged("- **Element**: description\n"))
+    check(
+        "bold label deferred to bold regex", not flagged("- **Element**: description\n")
+    )
     # Not flagged: clause colon in flowing prose.
     check(
         "clause colon not flagged",
         not flagged("- Note the entry was stale: it declared a field\n"),
+    )
+    for word in ("and", "to", "for", "the", "a", "an", "in", "on", "with", "or"):
+        check(
+            f"connector {word!r} inside a label",
+            flagged(f"- Alpha {word} Beta: some text\n"),
+        )
+    check("four-word label", flagged("- One Two Three Four: some text\n"))
+    check(
+        "five-word label not flagged",
+        not flagged("- One Two Three Four Five: some text\n"),
+    )
+    check(
+        "lowercase connector cannot start a label",
+        not flagged("- the Plan: some text\n"),
+    )
+    check("empty label not flagged", not flagged("-  : some text\n"))
+    check("star bullet label", flagged("* Overview: the summary here\n"))
+
+
+def test_punctuation_outside_code() -> None:
+    section("lint_text: smart quotes and dashes flagged outside code")
+
+    def lint(text: str) -> list[str]:
+        return lo.lint_text(text, "f", check_local_paths=False)
+
+    for ch in ("\u201c", "\u201d", "\u2018", "\u2019"):
+        check(
+            f"smart quote U+{ord(ch):04X} flagged",
+            any("quote" in v for v in lint(f"Say {ch}hi now.\n")),
+            "not flagged",
+        )
+    pair = lint("Say \u201chi\u201d now.\n")
+    check("one smart-quote report per line", len(pair) == 1, f"got {pair!r}")
+    check(
+        "en dash flagged",
+        any("en dash" in v for v in lint("Pages 1\u20132.\n")),
+        "not flagged",
+    )
+    span = "Run `a \u2014 b` now.\n"
+    check("em dash in a code span is legal", lint(span) == [], f"got {lint(span)!r}")
+    for fence in ("```", "~~~"):
+        text = f"{fence}\na \u2014 b \u201cc\u201d\n{fence}\n"
+        check(
+            f"dashes and quotes in a {fence} fence are legal",
+            lint(text) == [],
+            f"got {lint(text)!r}",
+        )
+
+
+def test_british_spellings() -> None:
+    section("lint_text: British spellings flagged, American ones left alone")
+
+    def british(text: str) -> list[str]:
+        return [
+            v
+            for v in lo.lint_text(text, "f", check_local_paths=False)
+            if "British" in v
+        ]
+
+    words = [
+        "amongst",
+        "behaviour",
+        "behavioural",
+        "behaviours",
+        "cancelled",
+        "cancelling",
+        "canonicalise",
+        "canonicalised",
+        "canonicalises",
+        "canonicalising",
+        "centre",
+        "centred",
+        "centres",
+        "centring",
+        "colour",
+        "coloured",
+        "colourful",
+        "colours",
+        "defence",
+        "defences",
+        "fulfil",
+        "fulfils",
+        "initialise",
+        "initialised",
+        "initialises",
+        "initialising",
+        "labelled",
+        "labelling",
+        "learnt",
+        "licence",
+        "licences",
+        "modelled",
+        "modelling",
+        "normalise",
+        "normalised",
+        "normalises",
+        "normalising",
+        "optimise",
+        "optimised",
+        "optimises",
+        "optimising",
+        "organisation",
+        "organisations",
+        "organise",
+        "organised",
+        "organises",
+        "organising",
+        "prioritise",
+        "prioritised",
+        "prioritises",
+        "prioritising",
+        "recognisable",
+        "recognise",
+        "recognised",
+        "recognises",
+        "recognising",
+        "serialise",
+        "serialised",
+        "serialises",
+        "serialising",
+        "summarise",
+        "summarised",
+        "summarises",
+        "summarising",
+        "travelled",
+        "travelling",
+        "whilst",
+    ]
+    missed = [w for w in words if len(british(f"The {w} here.\n")) != 1]
+    check("every British form flagged", missed == [], f"missed {missed!r}")
+    wrong = [w for w in lo.BRITISH_SPELLINGS.values() if british(f"The {w} here.\n")]
+    check("every American replacement legal", wrong == [], f"flagged {wrong!r}")
+    found = british("Behaviour changed.\n")
+    check(
+        "capitalized form flagged with a capitalized fix",
+        len(found) == 1 and '"Behavior"' in found[0],
+        f"got {found!r}",
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "note.md"
+        path.write_text("The colour stays.\n")
+        kept = {"file_path": str(path), "content": path.read_text()}
+        check(
+            "existing line keeps its spelling",
+            lo.collect_violations("Write", kept) == [],
+            f"got {lo.collect_violations('Write', kept)!r}",
+        )
+
+
+def test_ai_slop_catalog() -> None:
+    section("lint_text: every AI-slop phrase and context noun is caught")
+
+    def slop(text: str) -> list[str]:
+        return [
+            v
+            for v in lo.lint_text(text, "f", check_local_paths=False)
+            if "AI slop" in v
+        ]
+
+    phrases = [
+        "It's not just a cache.",
+        "That's not merely cosmetic.",
+        "The fix is not only faster.",
+        "They are not just labels.",
+        "Not only faster but also safer.",
+        "Great question!",
+        "You're absolutely right.",
+        "Good catch!",
+        "Let me help you with that.",
+        "I'd be happy to.",
+        "As an AI, I can.",
+        "Based on my analysis, yes.",
+        "It's worth noting that.",
+        "It seems like a bug.",
+        "In my opinion, yes.",
+        "In summary, yes.",
+        "To wrap up, yes.",
+        "Let me know if you have any questions.",
+        "Feel free to ping me.",
+        "We delved into it.",
+        "We are leveraging it.",
+        "We utilized it.",
+        "A robust fix.",
+        "A seamless move.",
+        "A comprehensive list.",
+        "A crucial step.",
+        "A load-bearing check.",
+        "A load bearing check.",
+        "There are pros and cons.",
+        "The data lands in BigQuery.",
+        "The ID rides along.",
+        "The ID is riding along.",
+        "It stamps the UUID.",
+        "It rides along in `meta`.",
+    ]
+    missed = [p for p in phrases if len(slop(p + "\n")) != 1]
+    check("every phrase flagged once", missed == [], f"missed {missed!r}")
+    found = slop("Not only faster but also safer.\n")
+    check(
+        "antithesis report quotes the whole phrase",
+        len(found) == 1 and "`Not only faster but also`" in found[0],
+        f"got {found!r}",
+    )
+    nouns = [
+        "data",
+        "event",
+        "commit",
+        "PR",
+        "request",
+        "response",
+        "message",
+        "metadata",
+        "identifier",
+        "ID",
+        "UUID",
+        "field",
+        "payload",
+        "change",
+        "deploy",
+        "release",
+        "branch",
+        "master",
+        "main",
+        "queue",
+        "log",
+        "record",
+        "row",
+        "column",
+        "token",
+        "header",
+        "ticket",
+        "issue",
+        "merge",
+        "migration",
+        "fix",
+        "patch",
+        "build",
+        "pipeline",
+        "job",
+        "webhook",
+        "API",
+        "endpoint",
+        "service",
+        "stack",
+        "database",
+        "table",
+        "object",
+        "file",
+        "bucket",
+        "version",
+        "tag",
+        "SHA",
+        "hash",
+        "worker",
+        "subscriber",
+        "topic",
+        "callback",
+        "parameter",
+        "argument",
+        "variable",
+        "config",
+        "cache",
+        "CI",
+        "Prod",
+        "Staging",
+    ]
+    missed = [n for n in nouns if not slop(f"The {n} lands today.\n")]
+    check(
+        "every context noun makes the verb figurative",
+        missed == [],
+        f"missed {missed!r}",
     )
 
 
@@ -534,7 +1171,11 @@ def test_autofix_resolves_detected() -> None:
     for line in flagged:
         fixed = lo.autofix_label_colons(line)
         check(f"changed: {line.strip()[:32]}", fixed != line, f"unchanged: {fixed!r}")
-        check(f"resolves: {line.strip()[:32]}", lint(fixed) == [], f"still: {lint(fixed)!r}")
+        check(
+            f"resolves: {line.strip()[:32]}",
+            lint(fixed) == [],
+            f"still: {lint(fixed)!r}",
+        )
 
     # Leaves correct lines and non-label cases untouched.
     for line in [
@@ -548,6 +1189,12 @@ def test_autofix_resolves_detected() -> None:
     # Never touches a colon inside a fenced code block.
     fenced = "```\n- foo: bar baz\n```\n"
     check("fenced code untouched", lo.autofix_label_colons(fenced) == fenced)
+    for fence in ("```", "~~~"):
+        block = f"{fence}\n- **Element**: description\n{fence}\n"
+        check(
+            f"label inside {fence} fence untouched",
+            lo.autofix_label_colons(block) == block,
+        )
 
 
 def test_try_autofix_input_scope() -> None:
@@ -557,27 +1204,70 @@ def test_try_autofix_input_scope() -> None:
     # Pure label-colon Edit is fixed and re-lints clean.
     ti = {"file_path": md, "new_string": "- **Element**: description\n"}
     fixed = lo.try_autofix_input("Edit", ti)
-    check("edit returns modified input", fixed is not None and fixed["new_string"].startswith("- **Element**: D"))
+    check(
+        "edit returns modified input",
+        fixed is not None and fixed["new_string"].startswith("- **Element**: D"),
+    )
     check("fixed edit re-lints clean", lo.collect_violations("Edit", fixed) == [])
 
     # Mixed violation: label-colon fix applied but an em dash remains, so main
     # must still block (collect_violations on the fix is non-empty).
     ti2 = {"file_path": md, "new_string": "- **Element**: description — x\n"}
     fixed2 = lo.try_autofix_input("Edit", ti2)
-    check("mixed still has violations", fixed2 is not None and lo.collect_violations("Edit", fixed2) != [])
+    check(
+        "mixed still has violations",
+        fixed2 is not None and lo.collect_violations("Edit", fixed2) != [],
+    )
 
     # Non-label content: nothing to fix.
     ti3 = {"file_path": md, "new_string": "- **Element**: Description\n"}
     check("clean content -> None", lo.try_autofix_input("Edit", ti3) is None)
 
     # Bash commit/PR bodies are never auto-fixed.
-    check("bash -> None", lo.try_autofix_input("Bash", {"command": "git commit -m 'x'"}) is None)
+    check(
+        "bash -> None",
+        lo.try_autofix_input("Bash", {"command": "git commit -m 'x'"}) is None,
+    )
+
+    # MCP payloads are never auto-fixed.
+    notion = {"content": "- **Element**: description\n"}
+    check(
+        "MCP -> None",
+        lo.try_autofix_input("mcp__notion__notion-update-page", notion) is None,
+    )
+
+    # Lines already in the file keep their wording; only new ones are fixed.
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "note.md"
+        path.write_text("- **Name**: lowercase reply\n")
+        ti4 = {
+            "file_path": str(path),
+            "content": path.read_text() + "- **New**: description\n",
+        }
+        fixed4 = lo.try_autofix_input("Write", ti4)
+        check(
+            "existing line kept, new line fixed",
+            fixed4 is not None
+            and fixed4["content"]
+            == "- **Name**: lowercase reply\n- **New**: Description\n",
+            f"got {fixed4!r}",
+        )
 
 
 def test_autofix_identifier_and_heredoc() -> None:
     section("autofix: skips identifiers, rewrites Markdown heredoc bodies")
-    for line in ("- **Repo**: ppp-service is live", "- **SHA**: a1b2c3d", "- **CLI**: v2.1"):
-        check(f"identifier left unfixed: {line}", lo.autofix_label_colon_line(line) is None)
+    for line in (
+        "- **Repo**: ppp-service is live",
+        "- **SHA**: a1b2c3d",
+        "- **CLI**: v2.1",
+        "- **Column**: user_id is unique",
+        "- **Path**: src/app is new",
+        "- **Site**: example.com is live",
+    ):
+        check(
+            f"identifier left unfixed: {line}",
+            lo.autofix_label_colon_line(line) is None,
+        )
         violations = lo.lint_text(line + "\n", "f", check_local_paths=False)
         check(
             f"identifier still blocked with backtick hint: {line}",
@@ -588,11 +1278,16 @@ def test_autofix_identifier_and_heredoc() -> None:
         "plain word with trailing period still fixed",
         lo.autofix_label_colon_line("- **Status**: done.") == "- **Status**: Done.",
     )
+    check(
+        "identifier after a plain label left unfixed",
+        lo.autofix_label_colon_line("- Repo Name: ppp-service is live") is None,
+    )
     cmd = "cat >> notes/a.md <<'EOF'\n- **Email**: inbox zero\nEOF\necho ok"
     fixed = lo.try_autofix_input("Bash", {"command": cmd, "description": "d"})
     check(
         "heredoc body capitalized, rest of command intact",
-        fixed == {
+        fixed
+        == {
             "command": "cat >> notes/a.md <<'EOF'\n- **Email**: Inbox zero\nEOF\necho ok",
             "description": "d",
         },
@@ -601,7 +1296,9 @@ def test_autofix_identifier_and_heredoc() -> None:
     check("fixed command lints clean", not lo.collect_violations("Bash", fixed or {}))
     check(
         "non-Markdown heredoc not rewritten",
-        lo.try_autofix_input("Bash", {"command": "cat > a.txt <<'EOF'\n- **E**: x\nEOF"})
+        lo.try_autofix_input(
+            "Bash", {"command": "cat > a.txt <<'EOF'\n- **E**: x\nEOF"}
+        )
         is None,
     )
 
@@ -617,34 +1314,79 @@ def test_main_autofix_end_to_end() -> None:
             input=_json.dumps(payload),
             capture_output=True,
             text=True,
+            check=False,
         )
         return p.returncode, p.stdout, p.stderr
 
     md = "/Users/x/repo/doc.md"
-    rc, out, _ = run({"tool_name": "Edit", "tool_input": {"file_path": md, "new_string": "- **Element**: description\n"}})
+    rc, out, _ = run(
+        {
+            "tool_name": "Edit",
+            "tool_input": {
+                "file_path": md,
+                "new_string": "- **Element**: description\n",
+            },
+        }
+    )
     ok = rc == 0 and out.strip() != ""
     parsed = _json.loads(out) if ok else {}
     hso = parsed.get("hookSpecificOutput", {})
     check("exit 0 with JSON", ok, f"rc={rc} out={out!r}")
-    check("permissionDecision allow", hso.get("permissionDecision") == "allow", f"{hso!r}")
+    check(
+        "permissionDecision allow", hso.get("permissionDecision") == "allow", f"{hso!r}"
+    )
     check(
         "updatedInput capitalized",
-        hso.get("updatedInput", {}).get("new_string", "").startswith("- **Element**: D"),
+        hso.get("updatedInput", {})
+        .get("new_string", "")
+        .startswith("- **Element**: D"),
         f"{hso.get('updatedInput')!r}",
     )
 
-    rc2, _, err2 = run({"tool_name": "Edit", "tool_input": {"file_path": md, "new_string": "- **Element**: description — x\n"}})
+    rc2, _, err2 = run(
+        {
+            "tool_name": "Edit",
+            "tool_input": {
+                "file_path": md,
+                "new_string": "- **Element**: description — x\n",
+            },
+        }
+    )
     check("mixed blocks (exit 2)", rc2 == 2, f"rc={rc2}")
     check("mixed reports em dash", "em dash" in err2, err2)
 
     cmd = "cat >> notes/a.md <<'EOF'\n- **Email**: inbox zero\nEOF"
     rc3, out3, _ = run({"tool_name": "Bash", "tool_input": {"command": cmd}})
-    hso3 = _json.loads(out3).get("hookSpecificOutput", {}) if rc3 == 0 and out3.strip() else {}
+    hso3 = (
+        _json.loads(out3).get("hookSpecificOutput", {})
+        if rc3 == 0 and out3.strip()
+        else {}
+    )
     check(
         "bash heredoc: updatedInput capitalized",
         "**Email**: Inbox zero" in hso3.get("updatedInput", {}).get("command", ""),
         f"rc={rc3} out={out3!r}",
     )
+
+
+def test_main_fails_open() -> None:
+    section("main: unreadable or unexpected payloads are allowed")
+    import json as _json
+    import subprocess as _sub
+
+    def run(stdin: str) -> int:
+        p = _sub.run(
+            [sys.executable, str(HOOK_PATH)],
+            input=stdin,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return p.returncode
+
+    check("invalid JSON allowed", run("not json") == 0)
+    payload = {"tool_name": "mcp__x__y", "tool_input": ["Adds a gate \u2014 finally."]}
+    check("non-dict tool_input allowed", run(_json.dumps(payload)) == 0)
 
 
 def test_tool_attribution_footer() -> None:
@@ -662,7 +1404,10 @@ def test_tool_attribution_footer() -> None:
     for label, text in [
         ("emoji + Markdown link", f"{robot} {footer}\n"),
         ("no emoji", f"{footer}\n"),
-        ("claude.ai link", f"{robot} Generated with [Claude Code](https://claude.ai/code)\n"),
+        (
+            "claude.ai link",
+            f"{robot} Generated with [Claude Code](https://claude.ai/code)\n",
+        ),
         ("bare text, lowercase", "generated with claude code\n"),
         ("co-generated variant", "Co-Generated with Claude Code\n"),
         ("generated by variant", "Generated by Claude Code\n"),
@@ -679,6 +1424,151 @@ def test_tool_attribution_footer() -> None:
         ("other tool", "Generated with Terraform.\n"),
     ]:
         check(f"allowed: {label}", not flagged(text), f"got {lint(text)!r}")
+
+
+def test_commit_trailer_and_autoclose() -> None:
+    section("lint_text: Co-Authored-By in commits, Closes: in PR bodies")
+    trailer = "Co-" + "Authored-By: Claude <noreply@anthropic.com>\n"
+
+    def coauthor(text: str, allow_coauthor: bool) -> bool:
+        violations = lo.lint_text(
+            text, "f", allow_coauthor=allow_coauthor, check_local_paths=False
+        )
+        return any("Co-Authored-By" in v for v in violations)
+
+    check("commit trailer blocked", coauthor(trailer, False))
+    check("lowercase commit trailer blocked", coauthor(trailer.lower(), False))
+    check(
+        "trailer named mid-line is legal", not coauthor("Never add a " + trailer, False)
+    )
+    check("trailer outside a commit is legal", not coauthor(trailer, True))
+    mcp = lo.collect_violations("mcp__linear__save_comment", {"body": trailer})
+    check(
+        "trailer in a Linear comment is legal",
+        not any("Co-Authored-By" in v for v in mcp),
+        f"got {mcp!r}",
+    )
+
+    def autoclose(text: str, is_pr_body: bool = True) -> bool:
+        violations = lo.lint_text(
+            text, "f", is_pr_body=is_pr_body, check_local_paths=False
+        )
+        return any("Closes:" in v for v in violations)
+
+    for text in (
+        "Closes: BYB-1\n",
+        "Fixes #12\n",
+        "Resolves: BYB-1\n",
+        "closes: BYB-1\n",
+        "Adds the gate.\n\nCloses: BYB-1\n",
+    ):
+        check(f"PR body blocked: {text.splitlines()[-1]}", autoclose(text))
+    check(
+        "clause colon after resolves is legal",
+        not autoclose("The query never resolves: it times out.\n"),
+    )
+    check("keyword outside a PR body is legal", not autoclose("Closes: BYB-1\n", False))
+    mcp = lo.collect_violations("mcp__linear__save_comment", {"body": "Closes: BYB-1"})
+    check(
+        "keyword in a Linear comment is legal",
+        not any("Closes:" in v for v in mcp),
+        f"got {mcp!r}",
+    )
+
+
+def test_local_paths_in_external_content() -> None:
+    section("lint_text: local-only paths are blocked in external content")
+
+    def local(text: str, external: bool = True) -> bool:
+        violations = lo.lint_text(text, "f", check_local_paths=external)
+        return any("local-only path" in v for v in violations)
+
+    for path in (
+        "agent-os/master/notes/x.md",
+        "~/nickolashkraus/agent-os",
+        "~/.claude/rules/git.md",
+        "~/dotfiles/README.md",
+        "/Users/x/notes.md",
+    ):
+        text = f"See {path} for details.\n"
+        check(f"blocked: {path}", local(text))
+        check(f"allowed in-repo: {path}", not local(text, external=False))
+    note = "See ~/.claude/rules/git.md for details."
+    for tool, tool_input in [
+        ("Bash", {"command": f"gh pr create --title T --body '{note}'"}),
+        ("mcp__linear__save_comment", {"body": note}),
+    ]:
+        violations = lo.collect_violations(tool, tool_input)
+        check(
+            f"blocked in a {tool} payload",
+            any("local-only path" in v for v in violations),
+            f"got {violations!r}",
+        )
+
+
+def test_pr_body_copied_from_linear() -> None:
+    section("lint_text: a PR body may not repeat its Linear issue")
+    copied = "The checkout monitor pages on every client error, so on-call ignores it."
+    twelve = "The retry budget resets every hour, so a burst cannot page twice."
+    eleven = "The alert fires only when five requests fail in a row."
+    third = "The new threshold counts only server errors, so a client bug stays quiet."
+    fourth = "The runbook now names the dashboard that shows which status codes fired."
+    hidden = "The frontmatter summary repeats a sentence that the body happens to use."
+    sibling = (
+        "The sibling issue explains the paging policy that this change keeps as is."
+    )
+    issue = (
+        f"---\nsummary: Short. {hidden}\n---\n\n## Overview\n\n"
+        f"{copied} {twelve} {eleven} {third} {fourth}\n"
+    )
+
+    def copies(text: str, is_pr_body: bool = True) -> list[str]:
+        violations = lo.lint_text(
+            text, "f", is_pr_body=is_pr_body, check_local_paths=False
+        )
+        return [v for v in violations if "copied verbatim" in v]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for project, name, text in [
+            ("a", "BYB-9-retune-the-monitor.md", issue),
+            ("a", "BYB-12-paging-policy.md", f"{sibling}\n"),
+            ("b", "BYB-9-copy.md", issue),
+        ]:
+            issues = root / project / "linear" / "issues"
+            issues.mkdir(parents=True, exist_ok=True)
+            (issues / name).write_text(text)
+        saved = lo.LINEAR_ISSUE_ROOT
+        lo.LINEAR_ISSUE_ROOT = root
+        try:
+            for label, body, expected in [
+                ("copied sentence", f"BYB-9\n\n{copied}\n", 1),
+                ("12-word sentence", f"BYB-9\n\n{twelve}\n", 1),
+                ("11-word sentence", f"BYB-9\n\n{eleven}\n", 0),
+                ("after an exclamation", f"BYB-9 matters! {copied}\n", 1),
+                ("under a heading", f"## Context\n\n{copied}\n\nSee BYB-9.\n", 1),
+                ("frontmatter only", f"BYB-9\n\n{hidden}\n", 0),
+                ("another issue's file", f"BYB-1\n\n{sibling}\n", 0),
+                ("slug named twice", f"BYB-9 and BYB-9 again.\n\n{copied}\n", 1),
+            ]:
+                got = copies(body)
+                check(
+                    f"{label}: {expected} report(s)",
+                    len(got) == expected,
+                    f"got {got!r}",
+                )
+            check(
+                "only PR bodies are compared",
+                copies(f"BYB-9\n\n{copied}\n", is_pr_body=False) == [],
+            )
+            four = copies(f"BYB-9\n\n{copied} {twelve} {third} {fourth}\n")
+            check(
+                "report shows three sentences and counts the rest",
+                len(four) == 1 and "(and 1 more)" in four[0],
+                f"got {four!r}",
+            )
+        finally:
+            lo.LINEAR_ISSUE_ROOT = saved
 
 
 def test_git_global_flags_before_commit() -> None:
@@ -760,6 +1650,16 @@ def test_git_global_flags_before_commit() -> None:
             not lo.GIT_COMMIT_RE.search(cmd),
             f"matched {cmd!r}",
         )
+    for opt in (
+        "--git-dir /srv/repo",
+        "--namespace ns",
+        "--exec-path /x",
+        "--config-env k=ENV",
+        "--super-prefix sub/",
+        "-p",
+    ):
+        cmd = f"git {opt} commit -m 'Subject'"
+        check(f"commit after `{opt}`", lo.GIT_COMMIT_RE.search(cmd) is not None)
 
     # A `gh pr create` payload is untouched by the change: the body is
     # still extracted as a PR body, never as a commit field.
@@ -786,12 +1686,72 @@ def test_in_repo_path_prefixes() -> None:
         ("real repo path", f"{home}/nickolashkraus/dotfiles/README.md", True),
         ("/tmp PR body draft", "/tmp/pr-1-body.md", False),
         ("~/wiki is not ~/w", f"{home}/wiki/page.md", False),
+        ("Claude state", f"{home}/.claude/projects/p/memory/x.md", True),
+        ("second Claude config", f"{home}/.claude-fh/projects/p/x.md", True),
+        ("Function-Health repo", f"{home}/Function-Health/svc/README.md", True),
+        ("modules repo", f"{home}/Function-Health-Terraform-Modules/m/README.md", True),
+        ("infrable-io repo", f"{home}/infrable-io/x/README.md", True),
+        ("grind-rip repo", f"{home}/grind-rip/x/README.md", True),
     ]:
         check(
             f"{label}: in_repo={expected}",
             lo.is_in_repo_path(path) is expected,
             f"got {lo.is_in_repo_path(path)!r} for {path}",
         )
+
+
+def test_extract_fields_scope() -> None:
+    section("extract_fields: which tools, files and values are linted")
+    dash = "Adds a gate \u2014 finally."
+
+    def flagged(tool: str, tool_input: dict) -> bool:
+        return any("em dash" in v for v in lo.collect_violations(tool, tool_input))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        check(
+            "Edit on a .py file not linted",
+            not flagged("Edit", {"file_path": f"{tmp}/x.py", "new_string": dash}),
+        )
+        check(
+            "Write to a .markdown file linted",
+            flagged("Write", {"file_path": f"{tmp}/x.markdown", "content": dash}),
+        )
+        binary = Path(tmp) / "binary.md"
+        binary.write_bytes(b"\xff\xfe not utf-8\n")
+        check(
+            "undecodable target file still linted",
+            flagged("Write", {"file_path": str(binary), "content": dash}),
+        )
+        note = Path(tmp) / "note.md"
+        note.write_text("  - We leverage the cache.\nWe leverage the cache.\n")
+        kept = {"file_path": str(note), "content": note.read_text()}
+        check(
+            "indented existing line keeps its wording",
+            lo.collect_violations("Write", kept) == [],
+            f"got {lo.collect_violations('Write', kept)!r}",
+        )
+        mcp = {"file_path": str(note), "text": "We leverage the cache."}
+        check(
+            "existing lines exempt only Edit and Write",
+            any("AI slop" in v for v in lo.collect_violations("mcp__x__y", mcp)),
+        )
+    check(
+        "non-string file_path ignored",
+        lo.collect_violations("Edit", {"file_path": None, "new_string": dash}) == [],
+    )
+    check(
+        "non-string command ignored",
+        lo.collect_violations("Bash", {"command": ["git", "commit"]}) == [],
+    )
+    nested = {"pages": [{"properties": {"title": "T"}, "content": dash}]}
+    violations = lo.collect_violations("mcp__notion__notion-create-pages", nested)
+    check(
+        "nested MCP payload linted with its path",
+        any(v.startswith("pages[0].content") and "em dash" in v for v in violations),
+        f"got {violations!r}",
+    )
+    check("one-character MCP value skipped", not flagged("mcp__x__y", {"v": "\u2014"}))
+    check("two-character MCP value linted", flagged("mcp__x__y", {"v": "\u2014."}))
 
 
 def test_linear_mirror_paths_skip_lint() -> None:
@@ -817,47 +1777,94 @@ def test_archive_cleanup_false_positives() -> None:
     section("archive cleanup false positives stay quiet; the rules still fire")
 
     def slop(text: str) -> bool:
-        return any("AI slop" in v for v in lo.lint_text(text, "t", check_local_paths=False))
+        return any(
+            "AI slop" in v for v in lo.lint_text(text, "t", check_local_paths=False)
+        )
 
     check("literal bike ride is legal", not slop("- **Bike**: 40 mile ride at Z2.\n"))
     check("land as a noun is legal", not slop("Arable land value rose 7%.\n"))
     check("figurative land still flagged", slop("The fix lands in the next release.\n"))
-    check("figurative ride with code span flagged", slop("The ID rides along in `meta`.\n"))
+    check(
+        "figurative ride with code span flagged",
+        slop("The ID rides along in `meta`.\n"),
+    )
 
     check("blockquote slop is legal", not slop("> We leverage robust tooling.\n"))
-    check("double-quoted slop is legal", not slop('The epic is "Utilize GitHub secrets".\n'))
+    check(
+        "double-quoted slop is legal",
+        not slop('The epic is "Utilize GitHub secrets".\n'),
+    )
     check("plain slop still flagged", slop("We leverage the cache.\n"))
 
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "note.md"
-        path.write_text("We leverage the cache.\n- **Name (9:58 AM)**: lowercase reply\n")
+        path.write_text(
+            "We leverage the cache.\n- **Name (9:58 AM)**: lowercase reply\n"
+        )
         kept = {"file_path": str(path), "content": path.read_text()}
-        check("existing lines keep their wording", lo.collect_violations("Write", kept) == [])
-        added = {"file_path": str(path), "content": path.read_text() + "We also leverage it.\n"}
-        check("new slop line still flagged", any("AI slop" in v for v in lo.collect_violations("Write", added)))
+        check(
+            "existing lines keep their wording",
+            lo.collect_violations("Write", kept) == [],
+        )
+        added = {
+            "file_path": str(path),
+            "content": path.read_text() + "We also leverage it.\n",
+        }
+        check(
+            "new slop line still flagged",
+            any("AI slop" in v for v in lo.collect_violations("Write", added)),
+        )
         path.write_text("Old line — with a dash.\n")
         dash = {"file_path": str(path), "content": path.read_text()}
-        check("existing em dash still flagged", any("em dash" in v for v in lo.collect_violations("Write", dash)))
-        edit = {"file_path": str(path), "new_string": "Old line, no dash.\n- **Name**: lowercase\n"}
-        check("edit with a new lowercase label still flagged", any("colon" in v for v in lo.collect_violations("Edit", edit)))
+        check(
+            "existing em dash still flagged",
+            any("em dash" in v for v in lo.collect_violations("Write", dash)),
+        )
+        edit = {
+            "file_path": str(path),
+            "new_string": "Old line, no dash.\n- **Name**: lowercase\n",
+        }
+        check(
+            "edit with a new lowercase label still flagged",
+            any("colon" in v for v in lo.collect_violations("Edit", edit)),
+        )
 
     def colon(text: str) -> bool:
-        return any("colon" in v for v in lo.lint_text(text, "t", check_local_paths=False))
+        return any(
+            "colon" in v for v in lo.lint_text(text, "t", check_local_paths=False)
+        )
 
-    check("URL after a bold label is legal", not colon("- **Docs**: https://example.com/x\n"))
-    check("URL after a link label is legal", not colon("[Docs](https://x): https://example.com\n"))
-    check("URL after a plain label is legal", not colon("- Docs: https://example.com/x\n"))
-    check("lowercase word after a plain label still flagged", colon("- Docs: example text\n"))
-    check("lowercase word after a label still flagged", colon("- **Docs**: example text\n"))
+    check(
+        "URL after a bold label is legal",
+        not colon("- **Docs**: https://example.com/x\n"),
+    )
+    check(
+        "URL after a link label is legal",
+        not colon("[Docs](https://x): https://example.com\n"),
+    )
+    check(
+        "URL after a plain label is legal", not colon("- Docs: https://example.com/x\n")
+    )
+    check(
+        "lowercase word after a plain label still flagged",
+        colon("- Docs: example text\n"),
+    )
+    check(
+        "lowercase word after a label still flagged",
+        colon("- **Docs**: example text\n"),
+    )
 
     loop = (
         "while IFS='|' read -r old new; do git mv \"$old\" \"$new\"; done <<'EOF'\n"
         "A very long data line that is not a commit subject at all, by any measure|x\n"
         "EOF\n"
-        "git commit -m \"Rename the notes\"\n"
+        'git commit -m "Rename the notes"\n'
     )
     fields = lo.extract_bash_content(loop)
-    check("data heredoc is not linted as a commit", all(not f[0].startswith("heredoc") for f in fields))
+    check(
+        "data heredoc is not linted as a commit",
+        all(not f[0].startswith("heredoc") for f in fields),
+    )
     commit = "git commit -F - <<'EOF'\n" + "S" * 71 + "\nEOF\n"
     check(
         "commit heredoc subject length still checked",
@@ -876,9 +1883,15 @@ def test_wrapped_code_span() -> None:
         ]
 
     inside = "Run the check with `tool --colour\nred --all` before the push.\n"
-    check("word inside a wrapped span is legal", british(inside) == [], f"{british(inside)!r}")
+    check(
+        "word inside a wrapped span is legal",
+        british(inside) == [],
+        f"{british(inside)!r}",
+    )
     after = "See `git commit\n-F file` and the colour of `behaviour` here.\n"
-    found = [v for v in lo.lint_text(after, "t", check_local_paths=False) if "British" in v]
+    found = [
+        v for v in lo.lint_text(after, "t", check_local_paths=False) if "British" in v
+    ]
     check(
         "prose after the wrapped span is checked on its own line",
         len(found) == 1 and found[0].startswith("t line 2:") and '"colour"' in found[0],
@@ -945,24 +1958,49 @@ def test_short_combined_and_owned_flags() -> None:
             ("git commit -F, quoted path", f"git commit -F '{dashed}'"),
             ("git commit -aF", f"git commit -aF '{dashed}'"),
             ("git commit --file", f"git commit --file '{dashed}'"),
-            ("--body-file, quoted path", f'gh pr create --title T --body-file "{dashed}"'),
+            (
+                "--body-file, quoted path",
+                f'gh pr create --title T --body-file "{dashed}"',
+            ),
             ("gh pr comment -b", f'gh pr comment 1 -b "Fixed {EM} it."'),
             ("gh pr edit -b", f'gh pr edit 1 -b "Adds {EM} it."'),
             ("gh pr merge -t", f'gh pr merge 1 -t "Merge {EM} it"'),
             ("gh pr review -b", f'gh pr review 1 -b "Looks {EM} good."'),
-            ("-b after a single-quoted `;`", f"gh pr create --title 'a; b' -b \"Adds {EM} it.\""),
-            ("-b after an escaped quote", f'gh pr create --title "a \\" ; b" -b "Adds {EM} it."'),
-            ("gh -R before pr", f'gh -R o/r pr create --title T --body "Adds {EM} it."'),
+            (
+                "-b after a single-quoted `;`",
+                f"gh pr create --title 'a; b' -b \"Adds {EM} it.\"",
+            ),
+            (
+                "-b after an escaped quote",
+                f'gh pr create --title "a \\" ; b" -b "Adds {EM} it."',
+            ),
+            (
+                "gh -R before pr",
+                f'gh -R o/r pr create --title T --body "Adds {EM} it."',
+            ),
             ("gh --repo= before pr", f'gh --repo=o/r pr create --body "Adds {EM} it."'),
-            ("gh pr -R before comment", f'gh pr -R o/r comment 12 --body "Fixed {EM} it."'),
-            ("-b after a continuation", f'gh pr create --title T \\\n  -b "Adds {EM} it."'),
-            ("-b after a quoted `;`", f'gh pr create --title "a; b" -b "Adds {EM} it."'),
+            (
+                "gh pr -R before comment",
+                f'gh pr -R o/r comment 12 --body "Fixed {EM} it."',
+            ),
+            (
+                "-b after a continuation",
+                f'gh pr create --title T \\\n  -b "Adds {EM} it."',
+            ),
+            (
+                "-b after a quoted `;`",
+                f'gh pr create --title "a; b" -b "Adds {EM} it."',
+            ),
             ("-b after 2>&1", f'gh pr create --title T 2>&1 -b "Adds {EM} it."'),
             ("-m $(cat file)", f"git commit -m \"$(cat '{dashed}')\""),
             ("--body $(< file)", f"gh pr comment 1 --body \"$(< '{dashed}')\""),
             ("unowned -F in a commit command", f"git commit -q; tool -F '{dashed}'"),
         ):
-            check(f"{name}: em dash flagged", em_dash_flagged(cmd), f"got {bash_violations(cmd)!r}")
+            check(
+                f"{name}: em dash flagged",
+                em_dash_flagged(cmd),
+                f"got {bash_violations(cmd)!r}",
+            )
         for name, cmd in (
             ("git commit -Sm (a signing key)", f'git commit -Sm "Fix {EM} it"'),
             ("git commit -t (a template)", f'git commit -t "t{EM}.txt" -m "Fix"'),
@@ -975,11 +2013,18 @@ def test_short_combined_and_owned_flags() -> None:
             ("-b on the next line", f'gh pr create --body B\ntool -b "x {EM}"'),
             ("unowned -F, no commit", f"gh pr view 1; tool -F '{dashed}'"),
             ("-am outside a commit", f'gh pr view 1 && tool -am "x {EM}"'),
-            ("gh api -F (a field)", f"git commit -m Fix && gh api graphql -F '{dashed}'"),
+            (
+                "gh api -F (a field)",
+                f"git commit -m Fix && gh api graphql -F '{dashed}'",
+            ),
             ("gh pr view -F", f"git commit -m Fix && gh pr view 1 -F '{dashed}'"),
             ("-F - (stdin)", "git commit -F - && echo"),
         ):
-            check(f"{name}: not read", not em_dash_flagged(cmd), f"got {bash_violations(cmd)!r}")
+            check(
+                f"{name}: not read",
+                not em_dash_flagged(cmd),
+                f"got {bash_violations(cmd)!r}",
+            )
 
         fields = lo.extract_bash_content('git commit -am "Fix the lock"')
         check(
@@ -993,7 +2038,10 @@ def test_short_combined_and_owned_flags() -> None:
         check(
             "-F is the commit message under git, the PR body under gh",
             [(f[0], *f[2:]) for f in both if f[0].startswith("arg -F")]
-            == [(f"arg -F {clean}", True, False, True), (f"arg -F {dashed}", False, True, False)],
+            == [
+                (f"arg -F {clean}", True, False, True),
+                (f"arg -F {dashed}", False, True, False),
+            ],
             f"got {both!r}",
         )
         fields = lo.extract_bash_content(f"gh issue comment 3 -F '{clean}'")
@@ -1027,9 +2075,15 @@ def test_short_combined_and_owned_flags() -> None:
     for cmd, expected in (
         ("gh pr create --title T -m 'Q4'", ("arg -m", "Q4", False, False, False)),
         ("gh pr create -b 'Adds it.'", ("arg -b", "Adds it.", False, True, False)),
-        ("gh pr comment 1 --body 'Fixed.'", ("arg --body", "Fixed.", False, False, False)),
+        (
+            "gh pr comment 1 --body 'Fixed.'",
+            ("arg --body", "Fixed.", False, False, False),
+        ),
         ("gh pr create --title 'Gate'", ("arg --title", "Gate", False, False, False)),
-        ("git commit -m 'Fix' --body 'Note'", ("arg --body", "Note", False, False, False)),
+        (
+            "git commit -m 'Fix' --body 'Note'",
+            ("arg --body", "Note", False, False, False),
+        ),
     ):
         fields = lo.extract_bash_content(cmd)
         check(f"`{cmd}` field", expected in fields, f"got {fields!r}")
@@ -1047,7 +2101,11 @@ def test_short_combined_and_owned_flags() -> None:
     subject = "S" * 60
     signed = f"git commit -F - <<'EOF'\n{subject}\nEOF\ngh -R o/r pr create --title T --body B"
     found = bash_violations(signed)
-    check("gh -R in the command keeps the heredoc length checks off", found == [], f"got {found!r}")
+    check(
+        "gh -R in the command keeps the heredoc length checks off",
+        found == [],
+        f"got {found!r}",
+    )
 
 
 def test_code_and_data_heredocs() -> None:
@@ -1080,7 +2138,11 @@ def test_code_and_data_heredocs() -> None:
         ("bash with a redirect", "bash > out.log"),
     ):
         cmd = f"{owner} <<'EOF'\n{script}EOF"
-        check(f"{name}: script not linted", bash_violations(cmd) == [], f"got {bash_violations(cmd)!r}")
+        check(
+            f"{name}: script not linted",
+            bash_violations(cmd) == [],
+            f"got {bash_violations(cmd)!r}",
+        )
         fields = lo.extract_bash_content(cmd)
         check(
             f"{name}: the commit in the script is read",
@@ -1088,16 +2150,28 @@ def test_code_and_data_heredocs() -> None:
             f"got {fields!r}",
         )
     bad = f"bash <<'EOF'\ngit commit -m 'Fix the lock {EM} again'\nEOF"
-    check("bash: a message in the script is still linted", em_dash_flagged(bad), "not flagged")
+    check(
+        "bash: a message in the script is still linted",
+        em_dash_flagged(bad),
+        "not flagged",
+    )
     data = f"bash run.sh <<'EOF'\nstep {EM} one\nEOF\ngit commit -m 'Run it'"
-    check("bash run.sh: the script's input stays a payload", em_dash_flagged(data), "not flagged")
+    check(
+        "bash run.sh: the script's input stays a payload",
+        em_dash_flagged(data),
+        "not flagged",
+    )
 
     query = (
         '{"query": "query { repository(owner: \\"o\\", name: \\"r\\") { id } }",\n'
         ' "variables": {"first": 100, "after": null, "states": ["OPEN"]}}\n'
     )
     gql = f"gh api graphql --input - <<'EOF'\n{query}EOF"
-    check("gh api --input - JSON: no hard wrap", bash_violations(gql) == [], f"got {bash_violations(gql)!r}")
+    check(
+        "gh api --input - JSON: no hard wrap",
+        bash_violations(gql) == [],
+        f"got {bash_violations(gql)!r}",
+    )
     comment = (
         "gh api repos/o/r/issues/1/comments --input - <<'EOF'\n"
         f'{{"body": "Fixed {EM} thanks."}}\nEOF'
@@ -1109,16 +2183,27 @@ def test_code_and_data_heredocs() -> None:
         f"got {found!r}",
     )
     one_char = f"gh api graphql --input - <<'EOF'\n[\"{EM}\"]\nEOF"
-    check("gh api --input - JSON: a one-character string is linted", em_dash_flagged(one_char), "not flagged")
+    check(
+        "gh api --input - JSON: a one-character string is linted",
+        em_dash_flagged(one_char),
+        "not flagged",
+    )
     numbers = (
         "gh api graphql --input - <<'EOF'\n"
         '{"first": 100, "last": 100, "after": null, "before": null, "count": 12345,\n'
         ' "depth": 1}\nEOF'
     )
-    check("gh api --input - JSON without strings: no hard wrap", bash_violations(numbers) == [], f"got {bash_violations(numbers)!r}")
+    check(
+        "gh api --input - JSON without strings: no hard wrap",
+        bash_violations(numbers) == [],
+        f"got {bash_violations(numbers)!r}",
+    )
     for name, cmd in (
         ("not JSON", f"gh api graphql --input - <<'EOF'\n[{query}EOF"),
-        ("another program's --input -", f"gh pr view 1; curl --input - <<'EOF'\n{query}EOF"),
+        (
+            "another program's --input -",
+            f"gh pr view 1; curl --input - <<'EOF'\n{query}EOF",
+        ),
         ("gh api without --input -", f"gh api graphql -F query=@- <<'EOF'\n{query}EOF"),
         ("gh api --input file", f"gh api graphql --input q.json <<'EOF'\n{query}EOF"),
     ):
@@ -1132,20 +2217,43 @@ def test_code_and_data_heredocs() -> None:
     def heredocs(cmd: str) -> list[str]:
         return [f[1] for f in lo.extract_bash_content(cmd) if "heredoc" in f[0]]
 
-    notes = "- Rebased the branch onto main and reran the full suite after the conflict\n"
+    notes = (
+        "- Rebased the branch onto main and reran the full suite after the conflict\n"
+    )
     tee = f"tee -a notes/x.md >/dev/null <<'EOF'\n{notes}EOF\ngit commit -m 'Update notes'"
-    check("tee into a file: not the message", heredocs(tee) == [], f"got {heredocs(tee)!r}")
+    check(
+        "tee into a file: not the message",
+        heredocs(tee) == [],
+        f"got {heredocs(tee)!r}",
+    )
     bare = f"tee -a notes/x.md <<'EOF'\n{notes}EOF\ngit commit -m 'Update notes'"
-    check("tee into a file, no redirect: not the message", heredocs(bare) == [], f"got {heredocs(bare)!r}")
+    check(
+        "tee into a file, no redirect: not the message",
+        heredocs(bare) == [],
+        f"got {heredocs(bare)!r}",
+    )
     msg = "<<'MSG'\nAdd the lint workflow\nMSG\n"
     for name, cmd in (
-        ("its file read back", f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt"),
-        ("one of two files read back", f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
-        ("its stdout file read back", f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        (
+            "its file read back",
+            f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt",
+        ),
+        (
+            "one of two files read back",
+            f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt",
+        ),
+        (
+            "its stdout file read back",
+            f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt",
+        ),
         ("variable target, a file read back", f"tee $f {msg}git commit -F m.txt"),
         ("no file", f"tee {msg}git commit -m x"),
     ):
-        check(f"tee, {name}: stays a payload", heredocs(cmd) == ["Add the lint workflow"], f"got {heredocs(cmd)!r}")
+        check(
+            f"tee, {name}: stays a payload",
+            heredocs(cmd) == ["Add the lint workflow"],
+            f"got {heredocs(cmd)!r}",
+        )
 
 
 def test_multiple_m_flags() -> None:
@@ -1165,14 +2273,20 @@ def test_multiple_m_flags() -> None:
         f"got {found!r}",
     )
     clean = 'git commit -m "Short subject" --message "Body paragraph."'
-    check("a clean message passes", bash_violations(clean) == [], f"got {bash_violations(clean)!r}")
+    check(
+        "a clean message passes",
+        bash_violations(clean) == [],
+        f"got {bash_violations(clean)!r}",
+    )
     fields = lo.extract_bash_content(clean)
     check(
         "one field, joined the way git joins it",
         fields == [("arg -m", "Short subject\n\nBody paragraph.", True, False, True)],
         f"got {fields!r}",
     )
-    two = lo.extract_bash_content('git commit -m "First" && git commit --amend -m "Second"')
+    two = lo.extract_bash_content(
+        'git commit -m "First" && git commit --amend -m "Second"'
+    )
     check(
         "each commit is its own message",
         [(f[1], f[4]) for f in two] == [("First", True), ("Second", True)],
@@ -1200,9 +2314,13 @@ def test_multiple_m_flags() -> None:
 def test_body_file_path_is_not_the_body() -> None:
     section("extract_bash_content: a --body-file path is not the body")
     for quote in ('"', "'", ""):
-        cmd = f"gh pr create --title T --body-file {quote}/Users/nobody/w/pr-1.md{quote}"
+        cmd = (
+            f"gh pr create --title T --body-file {quote}/Users/nobody/w/pr-1.md{quote}"
+        )
         found = bash_violations(cmd)
-        check(f"quote {quote or 'none'}: path not linted", found == [], f"got {found!r}")
+        check(
+            f"quote {quote or 'none'}: path not linted", found == [], f"got {found!r}"
+        )
     found = bash_violations('gh pr create --title T --body-file "$f"')
     check(
         "a quoted variable is still blocked as a bypass",
@@ -1226,13 +2344,21 @@ TESTS = [
     test_cat_heredoc_subst_wrapper_redacted,
     test_label_colon_rules,
     test_plain_label_colon_detector,
+    test_punctuation_outside_code,
+    test_british_spellings,
+    test_ai_slop_catalog,
     test_autofix_resolves_detected,
     test_try_autofix_input_scope,
     test_autofix_identifier_and_heredoc,
     test_main_autofix_end_to_end,
+    test_main_fails_open,
     test_tool_attribution_footer,
+    test_commit_trailer_and_autoclose,
+    test_local_paths_in_external_content,
+    test_pr_body_copied_from_linear,
     test_git_global_flags_before_commit,
     test_in_repo_path_prefixes,
+    test_extract_fields_scope,
     test_linear_mirror_paths_skip_lint,
     test_archive_cleanup_false_positives,
     test_wrapped_code_span,
@@ -1248,7 +2374,7 @@ def main() -> int:
     for test in TESTS:
         try:
             test()
-        except Exception:
+        except Exception:  # noqa: BLE001
             _failures.append(f"{test.__name__} raised: {traceback.format_exc()}")
             print(f"  [FAIL] {test.__name__}  RAISED")
             print(traceback.format_exc())

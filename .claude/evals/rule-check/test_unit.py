@@ -14,10 +14,16 @@ The end-to-end Opus eval lives in eval.py and is not run from here.
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import importlib.util
+import io
 import json
+import os
+import subprocess
 import sys
 import tempfile
+import time
 import traceback
 from pathlib import Path
 
@@ -44,6 +50,73 @@ def section(title: str) -> None:
     print(f"\n--- {title} ---")
 
 
+def verdict_json(verdict: str, violations: list[dict]) -> str:
+    return json.dumps(
+        {"structured_output": {"verdict": verdict, "violations": violations}}
+    )
+
+
+class FakeSubprocess:
+    """Stands in for the hook's `subprocess` module so no test reaches the
+    `claude` CLI. Records each call and answers with `stdout`."""
+
+    TimeoutExpired = subprocess.TimeoutExpired
+
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+        self.returncode = 0
+        self.stdout = verdict_json("pass", [])
+        self.timeout = False
+
+    def run(self, args: list[str], **kwargs) -> subprocess.CompletedProcess:
+        self.calls.append({"args": args, **kwargs})
+        if self.timeout:
+            raise subprocess.TimeoutExpired(args, kwargs.get("timeout", 0))
+        return subprocess.CompletedProcess(args, self.returncode, self.stdout, "")
+
+
+@contextlib.contextmanager
+def sandbox(rules: str = "Never use em dashes.\n"):
+    """Point the hook's rule, log and cache paths at a temp dir and swap in
+    FakeSubprocess, so a test never touches ~/.claude or calls a model."""
+    names = ("RULES_DIR", "CLAUDE_MD", "LOG_FILE", "CACHE_FILE", "subprocess")
+    saved = {name: getattr(rc, name) for name in names}
+    env_names = ("CLAUDE_RULE_CHECK_DISABLE", "CLAUDE_RULE_CHECK_NO_CACHE")
+    saved_env = {name: os.environ.pop(name, None) for name in env_names}
+    fake = FakeSubprocess()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        rc.RULES_DIR = root / "rules"
+        rc.RULES_DIR.mkdir()
+        if rules:
+            (rc.RULES_DIR / "general.md").write_text(rules)
+        rc.CLAUDE_MD = root / "CLAUDE.md"
+        rc.LOG_FILE = root / "rule-check.log"
+        rc.CACHE_FILE = root / "rule-check-cache.json"
+        rc.subprocess = fake
+        try:
+            yield fake
+        finally:
+            for name, value in saved.items():
+                setattr(rc, name, value)
+            for name, value in saved_env.items():
+                os.environ.pop(name, None)
+                if value is not None:
+                    os.environ[name] = value
+
+
+def run_main(payload: dict | str) -> tuple[int, str]:
+    """Run the hook's main() with `payload` on stdin; return the exit code
+    and stderr."""
+    stdin = payload if isinstance(payload, str) else json.dumps(payload)
+    saved = sys.stdin, sys.stderr
+    sys.stdin, sys.stderr = io.StringIO(stdin), io.StringIO()
+    try:
+        return rc.main(), sys.stderr.getvalue()
+    finally:
+        sys.stdin, sys.stderr = saved
+
+
 def test_extract_bash_payloads_heredoc_commit() -> None:
     section("extract_bash_payloads: heredoc commit body")
     cmd = (
@@ -51,7 +124,7 @@ def test_extract_bash_payloads_heredoc_commit() -> None:
         "Add upgrade gate\n\n"
         "Introduces upgrade_eligible column on members.\n"
         "EOF\n"
-        ")\""
+        ')"'
     )
     out = rc.extract_bash_payloads(cmd)
     check("returns one heredoc payload", len(out) == 1, f"got {out!r}")
@@ -69,6 +142,39 @@ def test_extract_bash_payloads_heredoc_commit() -> None:
         )
 
 
+def test_extract_bash_payloads_heredoc_forms() -> None:
+    section("extract_bash_payloads: <<- heredocs and several heredocs per command")
+    out = rc.extract_bash_payloads(
+        "git commit -F- <<-EOF\n\tAdd the retry guard\n\tEOF"
+    )
+    check(
+        "<<- heredoc with an indented terminator extracted",
+        [t.strip() for _, t in out] == ["Add the retry guard"],
+        f"got {out!r}",
+    )
+    cmd = (
+        "git commit -F- <<'EOF'\nAdd the retry guard\nEOF\n"
+        "gh pr comment 12 --body-file - <<'EOF'\nAdds the retry guard.\nEOF"
+    )
+    texts = [t for lbl, t in rc.extract_bash_payloads(cmd) if "heredoc" in lbl]
+    check(
+        "each heredoc is its own payload",
+        texts == ["Add the retry guard", "Adds the retry guard."],
+        f"got {texts!r}",
+    )
+    cmd = (
+        "gh pr create --title 'Add the retry guard' --body-file - <<'EOF'\n"
+        "Rerun with `gh pr comment 12 --body 'Retried after the fix.'`.\n"
+        "EOF"
+    )
+    texts = [t for _, t in rc.extract_bash_payloads(cmd)]
+    check(
+        "a flag quoted inside a heredoc body is not its own payload",
+        "Retried after the fix." not in texts,
+        f"got {texts!r}",
+    )
+
+
 def test_extract_bash_payloads_inline_m_flag() -> None:
     section("extract_bash_payloads: inline -m flag")
     cmd = "git commit -m 'BYB-1234: Add Upgrade Gate Column'"
@@ -81,6 +187,30 @@ def test_extract_bash_payloads_inline_m_flag() -> None:
             text == "BYB-1234: Add Upgrade Gate Column",
             f"text={text!r}",
         )
+
+
+def test_extract_bash_payloads_flag_spellings() -> None:
+    section("extract_bash_payloads: --message, --flag=value, quoting and wrappers")
+    cases = [
+        ("git commit --message 'Add the retry guard'", ["Add the retry guard"]),
+        (
+            "gh pr create --title='Add the retry guard' --body='Adds the guard.'",
+            ["Add the retry guard", "Adds the guard."],
+        ),
+        ('git commit -m "Add the \\"retry\\" guard"', ['Add the \\"retry\\" guard']),
+        (
+            "git mv draft-title \"Final Title.md\" && git commit -m 'Rename the draft'",
+            ["Rename the draft"],
+        ),
+        ('git commit -m "${COMMIT_MESSAGE}"', []),
+        (
+            "gh pr create --title 'Add the retry guard' --body \" $(cat body.md)\"",
+            ["Add the retry guard"],
+        ),
+    ]
+    for cmd, expected in cases:
+        texts = [t for _, t in rc.extract_bash_payloads(cmd)]
+        check(f"{cmd!r} -> {expected!r}", texts == expected, f"got {texts!r}")
 
 
 def test_extract_bash_payloads_subject_vs_body_m_flags() -> None:
@@ -160,11 +290,37 @@ def test_extract_bash_payloads_gh_api() -> None:
         )
 
 
+def test_extract_bash_payloads_gh_api_field_spellings() -> None:
+    section("extract_bash_payloads: gh api --raw-field, --field and double quotes")
+    cmd = (
+        "gh api repos/org/repo/issues --raw-field title='Track the retry guard' "
+        '--field body="Adds the \\"retry\\" guard."'
+    )
+    out = rc.extract_bash_payloads(cmd)
+    check(
+        "both fields extracted under the GitHub API surface",
+        out
+        == [
+            ("GitHub API -f title", "Track the retry guard"),
+            ("GitHub API -f body", 'Adds the \\"retry\\" guard.'),
+        ],
+        f"got {out!r}",
+    )
+    cmd = (
+        "gh api repos/org/repo/issues/1/comments "
+        "-f body=\"$(cat <<'EOF'\nAdds the retry guard.\nEOF\n)\""
+    )
+    out = rc.extract_bash_payloads(cmd)
+    check(
+        "heredoc wrapper residue is not a second payload",
+        [t for _, t in out] == ["Adds the retry guard."],
+        f"got {out!r}",
+    )
+
+
 def test_extract_bash_payloads_commit_F_flag() -> None:
     section("extract_bash_payloads: git commit -F reads file content")
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".txt", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write("Add upgrade gate\n\nIntroduces the membership upgrade flag.\n")
         path = f.name
     try:
@@ -188,9 +344,7 @@ def test_extract_bash_payloads_commit_F_flag() -> None:
 
 def test_extract_bash_payloads_commit_long_file_flag() -> None:
     section("extract_bash_payloads: git commit --file reads file content")
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".txt", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write("Fix race in upgrade flag\n\nReorders the locking.")
         path = f.name
     try:
@@ -228,9 +382,7 @@ def test_extract_bash_payloads_gh_api_minus_F_not_treated_as_commit_file() -> No
 
 def test_extract_bash_payloads_body_file() -> None:
     section("extract_bash_payloads: --body-file reads file content")
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".md", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write("Body content from disk for the test fixture.")
         path = f.name
     try:
@@ -252,10 +404,49 @@ def test_extract_bash_payloads_body_file() -> None:
         Path(path).unlink()
 
 
+def test_extract_bash_payloads_file_path_spellings() -> None:
+    section("extract_bash_payloads: quoted, `=` and `~` paths to message files")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = Path(tmpdir) / "msg.md"
+        path.write_text("Adds the retry guard from a file.")
+        saved_home, saved_cwd = os.environ.get("HOME"), os.getcwd()
+        os.environ["HOME"] = tmpdir
+        try:
+            for cmd in (
+                f"gh pr create --title 'Add guard' --body-file='{path}'",
+                "gh pr create --title 'Add guard' --body-file ~/msg.md",
+                f"gh api repos/org/repo/issues --field title=@'{path}'",
+                "gh api repos/org/repo/issues -F body=@~/msg.md",
+                f"git commit --file='{path}'",
+                "git commit -F ~/msg.md",
+            ):
+                texts = [t for _, t in rc.extract_bash_payloads(cmd)]
+                check(
+                    f"{cmd.replace(tmpdir, '<tmp>')!r} reads the file",
+                    "Adds the retry guard from a file." in texts,
+                    f"got {texts!r}",
+                )
+            os.chdir(tmpdir)
+            Path("-").write_text("Contents of a file literally named dash.")
+            out = rc.extract_bash_payloads(
+                "gh api repos/o/r/issues -F body=@- < msg.md"
+            )
+            check("@- reads stdin, never a file named -", out == [], f"got {out!r}")
+        finally:
+            os.chdir(saved_cwd)
+            os.environ.pop("HOME", None)
+            if saved_home is not None:
+                os.environ["HOME"] = saved_home
+
+
 def test_extract_bash_payloads_unrelated_command() -> None:
     section("extract_bash_payloads: unrelated command short-circuits")
     out = rc.extract_bash_payloads("ls -la /tmp")
     check("returns empty list", out == [], f"got {out!r}")
+    out = rc.extract_bash_payloads("python3 report.py --title 'Weekly retry report'")
+    check(
+        "ungated command with a --title flag returns empty", out == [], f"got {out!r}"
+    )
 
 
 def test_extract_mcp_payloads_linear() -> None:
@@ -317,6 +508,18 @@ def test_extract_mcp_payloads_short_values_filtered() -> None:
     check("short values filtered out", out == [], f"got {out!r}")
 
 
+def test_extract_mcp_payloads_length_boundary() -> None:
+    section("extract_mcp_payloads: 20 chars is the shortest value checked")
+    out = rc.extract_mcp_payloads("mcp__linear__save_comment", {"body": "a" * 19})
+    check("19 chars filtered", out == [], f"got {out!r}")
+    out = rc.extract_mcp_payloads("mcp__linear__save_comment", {"body": "a" * 20})
+    check(
+        "20 chars extracted, labeled with the bare tool name",
+        out == [("save_comment body", "a" * 20)],
+        f"got {out!r}",
+    )
+
+
 def test_extract_mcp_payloads_non_prose_fields_filtered() -> None:
     section("extract_mcp_payloads: filters non-prose identifier fields")
     out = rc.extract_mcp_payloads(
@@ -355,6 +558,46 @@ def test_extract_mcp_payloads_non_prose_fields_filtered() -> None:
     )
 
 
+def test_extract_mcp_payloads_every_identifier_field() -> None:
+    section("extract_mcp_payloads: every identifier field, as the tools spell it")
+    fields = (
+        "addReleases",
+        "assignee",
+        "blockedBy",
+        "blocks",
+        "channel",
+        "channelId",
+        "cursor",
+        "cycle",
+        "delegate",
+        "dueDate",
+        "duplicateOf",
+        "estimate",
+        "id",
+        "labels",
+        "milestone",
+        "pageId",
+        "parent",
+        "parentId",
+        "priority",
+        "project",
+        "query",
+        "relatedTo",
+        "removeBlockedBy",
+        "removeBlocks",
+        "removeReleases",
+        "removeRelatedTo",
+        "setReleases",
+        "state",
+        "team",
+        "url",
+    )
+    for name in fields:
+        value = "0b7f9c2e-5d4a-4c1e-9f3a-2b6d8e1a7c55"
+        out = rc.extract_mcp_payloads("mcp__linear__save_issue", {name: value})
+        check(f"{name} filtered", out == [], f"got {out!r}")
+
+
 def test_field_name_paths() -> None:
     section("field_name: bare field name from a walk_strings path")
     cases = [
@@ -386,7 +629,7 @@ def test_skip_sentinel_html_comment() -> None:
 
 def test_skip_sentinel_hash_comment() -> None:
     section("SKIP_RE: hash comment")
-    m = rc.SKIP_RE.search("# rule-check: skip reason=\"intentional\"")
+    m = rc.SKIP_RE.search('# rule-check: skip reason="intentional"')
     check("matches", m is not None, "no match")
 
 
@@ -394,6 +637,12 @@ def test_skip_sentinel_slash_comment() -> None:
     section("SKIP_RE: // comment")
     m = rc.SKIP_RE.search("// rule-check: skip")
     check("matches without reason", m is not None, "no match")
+
+
+def test_skip_sentinel_case_insensitive() -> None:
+    section("SKIP_RE: matches in any case")
+    m = rc.SKIP_RE.search("<!-- RULE-CHECK: SKIP -->")
+    check("matches uppercase", m is not None, "no match")
 
 
 def test_skip_sentinel_no_match() -> None:
@@ -413,9 +662,12 @@ def test_gated_mcp_matches() -> None:
         ("mcp__claude_ai_Slack__slack_send_message_draft", True),
         ("mcp__claude_ai_Slack__slack_send_message", True),
         ("mcp__claude_ai_Slack__slack_create_canvas", True),
+        ("mcp__claude_ai_Slack__slack_update_canvas", True),
+        ("mcp__claude_ai_Slack__slack_schedule_message", True),
         ("mcp__claude_ai_Gmail__create_draft", True),
         ("mcp__linear__list_issues", False),
         ("mcp__notion__notion-fetch", False),
+        ("mcp__notion__notion-update-page-favorites", False),
         ("mcp__claude_ai_Slack__slack_read_channel", False),
         ("Bash", False),
         ("Edit", False),
@@ -446,6 +698,22 @@ def test_extract_payloads_dispatch() -> None:
     skip_out = rc.extract_payloads("Read", {"file_path": "/etc/hosts"})
     check("non-gated tool returns empty", skip_out == [], f"got {skip_out!r}")
 
+    edit_out = rc.extract_payloads(
+        "Edit",
+        {
+            "file_path": "/repo/README.md",
+            "new_string": "A long paragraph of new prose.",
+        },
+    )
+    check(
+        "non-gated tool with long prose returns empty",
+        edit_out == [],
+        f"got {edit_out!r}",
+    )
+
+    none_out = rc.extract_payloads("Bash", {"command": None})
+    check("non-string Bash command returns empty", none_out == [], f"got {none_out!r}")
+
 
 def test_load_rules_smoke() -> None:
     section("load_rules: returns non-empty concatenation when rules exist")
@@ -455,6 +723,27 @@ def test_load_rules_smoke() -> None:
         check("non-trivial length", len(text) > 1000, f"len={len(text)}")
     else:
         check("returns empty when no rules dir", text == "", f"got {len(text)} chars")
+
+
+def test_load_rules_order_and_sources() -> None:
+    section("load_rules: CLAUDE.md first, then rules/*.md in name order")
+    with sandbox(rules=""):
+        text = rc.load_rules()
+        check("no CLAUDE.md and no rule files gives ''", text == "", f"got {text!r}")
+        rc.CLAUDE_MD.write_text("global rules")
+        for name in ("zeta", "beta", "alpha", "mid"):
+            (rc.RULES_DIR / f"{name}.md").write_text(f"{name} rules")
+        (rc.RULES_DIR / "notes.txt").write_text("not a rule file")
+        text = rc.load_rules()
+    headers = [line for line in text.splitlines() if line.startswith("===")]
+    expected = [
+        "=== CLAUDE.md ===",
+        "=== rules/alpha.md ===",
+        "=== rules/beta.md ===",
+        "=== rules/mid.md ===",
+        "=== rules/zeta.md ===",
+    ]
+    check("CLAUDE.md, then sorted *.md only", headers == expected, f"got {headers!r}")
 
 
 def test_prompt_quotes_rules_verbatim() -> None:
@@ -488,6 +777,40 @@ def test_interpreter_heredoc_skipped() -> None:
         "git-owned heredoc still extracted",
         any("heredoc" in lbl for lbl, _ in out),
         f"got {out!r}",
+    )
+
+    def heredocs(cmd: str) -> list[str]:
+        return [t for lbl, t in rc.extract_bash_payloads(cmd) if "heredoc" in lbl]
+
+    interpreters = (
+        "python",
+        "python3",
+        "/usr/bin/python3",
+        "node",
+        "ruby",
+        "perl",
+        "php",
+        "osascript",
+        "psql",
+        "sqlite3",
+        "jq",
+        "awk",
+    )
+    for interp in interpreters:
+        cmd = f"gh api graphql -f query='x' && {interp} <<'EOF'\nsource code\nEOF"
+        check(f"{interp} heredoc not extracted", heredocs(cmd) == [], f"got {cmd!r}")
+    comment = "gh pr comment 1 --body 'Posted the retry report.'"
+    script = "python3 - <<'PY'\nprint('report')\nPY"
+    for sep in ("; ", " | ", "\n"):
+        cmd = comment + sep + script
+        check(f"interpreter after {sep!r} not extracted", heredocs(cmd) == [], cmd)
+    cmd = 'gh pr comment 1 --body "$(' + script + '\n)"'
+    check("interpreter inside $( not extracted", heredocs(cmd) == [], cmd)
+    cmd = "git commit -F- \\\n<<'EOF'\nAdd the retry guard\nEOF"
+    check(
+        "heredoc after a line continuation extracted",
+        heredocs(cmd) == ["Add the retry guard"],
+        f"got {heredocs(cmd)!r}",
     )
 
 
@@ -552,8 +875,10 @@ def test_file_heredoc_is_not_the_message() -> None:
     for name, cmd in (
         (
             "variable target read back with braces",
-            "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
-            "git commit -F ${f}",
+            (
+                "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
+                "git commit -F ${f}"
+            ),
         ),
         (
             "variable target, another file read back",
@@ -565,8 +890,10 @@ def test_file_heredoc_is_not_the_message() -> None:
         ),
         (
             "named target, a command's output read back",
-            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
-            "git commit -F `ls -t | head -1`",
+            (
+                "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
+                "git commit -F `ls -t | head -1`"
+            ),
         ),
     ):
         check(
@@ -587,6 +914,34 @@ def test_file_heredoc_is_not_the_message() -> None:
         heredocs(stdin) == ["Subject line here"],
         f"got {heredocs(stdin)!r}",
     )
+
+
+def test_file_heredoc_separators_and_quoting() -> None:
+    section("extract_bash_payloads: file heredocs after separators and quoted paths")
+
+    def heredocs(cmd: str) -> list[str]:
+        return [t for lbl, t in rc.extract_bash_payloads(cmd) if "heredoc" in lbl]
+
+    commit = "git commit -m 'Add the retry notes'"
+    notes = "cat > notes.md <<'EOF'\nRetry notes.\nEOF"
+    for sep in ("; ", " | ", "\n"):
+        cmd = commit + sep + notes
+        check(f"file heredoc after {sep!r} not extracted", heredocs(cmd) == [], cmd)
+    cmd = commit + ' && x="$(' + notes + '\n)"'
+    check("file heredoc inside $( not extracted", heredocs(cmd) == [], cmd)
+    cmd = commit + " && cat >notes.md <<'EOF'\nRetry notes.\nEOF"
+    check("`cat >file` without a space not extracted", heredocs(cmd) == [], cmd)
+
+    for message, reader in (
+        ("cat > '/tmp/unit-msg.txt'", "git commit -F /tmp/unit-msg.txt"),
+        ("cat > /tmp/unit-msg.txt", "git commit -F '/tmp/unit-msg.txt'"),
+    ):
+        cmd = f"{message} <<'MSG'\nAdd the lint workflow\nMSG\n{reader}"
+        check(
+            f"quoted path read back by {reader!r} extracted",
+            heredocs(cmd) == ["Add the lint workflow"],
+            f"got {heredocs(cmd)!r}",
+        )
 
 
 def test_git_global_options_before_commit() -> None:
@@ -627,6 +982,22 @@ def test_git_global_options_before_commit() -> None:
         )
 
 
+def test_git_global_options_with_values() -> None:
+    section("extract_bash_payloads: git global options that take a value")
+    for prefix in (
+        "git --git-dir /srv/app/gitdir commit",
+        "git --namespace staging commit",
+        "git --config-env user.name=GIT_NAME commit",
+        "git --attr-source=HEAD commit",
+    ):
+        out = rc.extract_bash_payloads(f"{prefix} -m 'Add the upgrade gate'")
+        check(
+            f"`{prefix}` message extracted as a commit message",
+            out == [("git commit message arg -m", "Add the upgrade gate")],
+            f"got {out!r}",
+        )
+
+
 def test_compound_command_per_flag_surfaces() -> None:
     section(
         "extract_bash_payloads: compound `git commit && gh pr create` labels "
@@ -652,6 +1023,16 @@ def test_compound_command_per_flag_surfaces() -> None:
     check(
         "--body labeled GitHub PR",
         any(lbl.startswith("GitHub PR") and "--body" in lbl for lbl in labels),
+        f"labels={labels!r}",
+    )
+    cmd = (
+        "git commit -m 'Add upgrade gate' && "
+        "gh issue create --title 'Track the upgrade gate rollout'"
+    )
+    labels = [lbl for lbl, _ in rc.extract_bash_payloads(cmd)]
+    check(
+        "--title of gh issue labeled GitHub issue",
+        "GitHub issue arg --title" in labels,
         f"labels={labels!r}",
     )
 
@@ -717,6 +1098,194 @@ def test_width_arithmetic_filter() -> None:
     )
 
 
+def test_width_arithmetic_phrases() -> None:
+    section("_is_width_arithmetic_violation: each counting phrase, in either field")
+    cases = [
+        ("suggested_fix", "Fix the separator row."),
+        ("suggested_fix", "Remove the extra dash."),
+        ("suggested_fix", "Use three dashes."),
+        ("suggested_fix", "The column width is uneven."),
+        ("suggested_fix", "The width of the second column is off."),
+        ("rule_quote", "Cells must be padded"),
+        ("rule_quote", "Keep the padding even"),
+        ("suggested_fix", "Make it 3 chars wide."),
+        ("suggested_fix", "It is 80 characters wide."),
+        ("suggested_fix", "The line is 81 vs 79."),
+        ("suggested_fix", "The line is 81 versus 79."),
+        ("rule_quote", "50 characters or less"),
+        ("rule_quote", "Wrap lines at 72 characters"),
+        ("suggested_fix", "This line exceeds 100 chars."),
+        ("suggested_fix", "The subject is 51 chars."),
+        ("suggested_fix", "Fix the PADDING."),
+    ]
+    for field, text in cases:
+        finding = {"rule_quote": "Follow the rule.", "suggested_fix": "Fix it."}
+        finding[field] = text
+        check(
+            f"{field} {text!r} dropped",
+            rc._is_width_arithmetic_violation(finding),
+            "not dropped",
+        )
+    excerpt_only = {
+        "rule_quote": "Always render Linear issue references as Markdown links",
+        "payload_excerpt": "| retry padding | 72 characters | BYB-3384 |",
+        "suggested_fix": "Link BYB-3384.",
+    }
+    check(
+        "counting words only in payload_excerpt kept",
+        not rc._is_width_arithmetic_violation(excerpt_only),
+        "wrongly dropped",
+    )
+
+
+def test_phantom_char_filter() -> None:
+    section("_is_phantom_char_violation: a char finding needs the char in the payload")
+    clean = "Use straight quotes and commas here."
+
+    def finding(**fields: str) -> dict:
+        return {
+            "rule_quote": "Follow the rule.",
+            "payload_excerpt": "here",
+            "suggested_fix": "Fix it.",
+            **fields,
+        }
+
+    for v in (
+        finding(rule_quote="Never use smart quotes."),
+        finding(payload_excerpt="curly quotes here"),
+        finding(suggested_fix="Replace the quotation marks."),
+        finding(rule_quote="Never use em dashes."),
+        finding(suggested_fix="Remove the em-dash."),
+        finding(rule_quote="Never use an Em Dash."),
+        finding(payload_excerpt="\u201chere\u201d"),
+    ):
+        check(
+            f"phantom dropped: {v!r}",
+            rc._is_phantom_char_violation(v, clean),
+            "kept",
+        )
+    for c in "\u2018\u2019\u201c\u201d":
+        v = finding(rule_quote="Never use smart quotes.", payload_excerpt=c)
+        check(
+            f"real U+{ord(c):04X} kept",
+            not rc._is_phantom_char_violation(v, f"Say {c}here."),
+            "dropped",
+        )
+    v = finding(rule_quote="Never use em dashes.", payload_excerpt="\u2014")
+    check(
+        "real em dash kept",
+        not rc._is_phantom_char_violation(v, "Say \u2014 here."),
+        "dropped",
+    )
+    v = finding(rule_quote="Always render Linear issue references as Markdown links")
+    check(
+        "finding about something else kept",
+        not rc._is_phantom_char_violation(v, clean),
+        "dropped",
+    )
+
+
+def test_run_check_invocation() -> None:
+    section("run_check: the prompt and the claude CLI arguments")
+    with sandbox() as fake:
+        result = rc.run_check("RULE TEXT", "SURFACE NAME", "PAYLOAD TEXT")
+    check("pass verdict returned", result == ("pass", []), f"got {result!r}")
+    call = fake.calls[0]
+    args = call["args"]
+    check(
+        "prompt holds rules, surface and payload",
+        all(s in call["input"] for s in ("RULE TEXT", "SURFACE NAME", "PAYLOAD TEXT")),
+        call["input"][-300:],
+    )
+    check("print mode", "--print" in args, f"args={args!r}")
+    check(
+        "no tools, so the subprocess fires no hooks",
+        "--allowed-tools" in args and args[args.index("--allowed-tools") + 1] == "",
+        f"args={args!r}",
+    )
+    check(
+        "model is opus",
+        "--model" in args and args[args.index("--model") + 1] == "opus",
+        f"args={args!r}",
+    )
+    check("session not persisted", "--no-session-persistence" in args, f"args={args!r}")
+    check(
+        "verdict schema passed",
+        "--json-schema" in args
+        and json.loads(args[args.index("--json-schema") + 1]) == rc.VERDICT_SCHEMA,
+        f"args={args!r}",
+    )
+    check(
+        "timeout set",
+        call.get("timeout") == rc.SUBPROCESS_TIMEOUT_SEC,
+        f"call={call!r}",
+    )
+
+
+def test_run_check_truncates_long_payloads() -> None:
+    section("run_check: payloads over MAX_PAYLOAD_CHARS are truncated")
+    limit = rc.MAX_PAYLOAD_CHARS
+    with sandbox() as fake:
+        rc.run_check("rules", "surface", "x" * limit)
+        rc.run_check("rules", "surface", "x" * (limit + 1))
+    at_limit, over = (c["input"] for c in fake.calls)
+    check(
+        "payload at the limit kept whole",
+        "x" * limit in at_limit and "[... truncated ...]" not in at_limit,
+        "truncated",
+    )
+    check(
+        "payload over the limit cut, with a marker",
+        "x" * (limit + 1) not in over and "[... truncated ...]" in over,
+        "not truncated",
+    )
+
+
+def test_run_check_verdict_parsing() -> None:
+    section("run_check: verdict parsing fails open on anything unexpected")
+    finding = {
+        "rule_file": "rules/git.md",
+        "rule_quote": "Always render Linear issue references as Markdown links",
+        "payload_excerpt": "BYB-1234",
+        "suggested_fix": "Link BYB-1234.",
+    }
+    fail = {"verdict": "fail", "violations": [finding]}
+    fenced = "```json\n" + json.dumps(fail) + "\n```"
+    cases = [
+        (
+            "structured_output used",
+            0,
+            verdict_json("fail", [finding]),
+            ("fail", [finding]),
+        ),
+        ("fenced result text", 0, json.dumps({"result": fenced}), ("fail", [finding])),
+        (
+            "missing verdict is pass",
+            0,
+            json.dumps({"structured_output": {}}),
+            ("pass", []),
+        ),
+        (
+            "null violations become []",
+            0,
+            json.dumps({"structured_output": {"verdict": "fail", "violations": None}}),
+            ("fail", []),
+        ),
+        ("nonzero exit", 1, verdict_json("fail", [finding]), ("soft-pass", [])),
+        ("envelope not JSON", 0, "not json", ("soft-pass", [])),
+        ("result not JSON", 0, json.dumps({"result": "not json"}), ("soft-pass", [])),
+    ]
+    for name, returncode, stdout, expected in cases:
+        with sandbox() as fake:
+            fake.returncode, fake.stdout = returncode, stdout
+            got = rc.run_check("rules", "surface", "payload")
+        check(name, got == expected, f"got {got!r}")
+    with sandbox() as fake:
+        fake.timeout = True
+        got = rc.run_check("rules", "surface", "payload")
+    check("timeout", got == ("soft-pass", []), f"got {got!r}")
+
+
 def test_verdict_cache_roundtrip() -> None:
     section("cache: key determinism and save/load roundtrip")
     k1 = rc.cache_key("digest", "surface", "payload")
@@ -749,6 +1318,185 @@ def test_verdict_cache_roundtrip() -> None:
             )
         finally:
             rc.CACHE_FILE = original
+
+
+def test_cache_edge_cases() -> None:
+    section("cache: key inputs, corrupt files, bad entries, size cap, write failure")
+    key = rc.cache_key("digest", "surface", "payload")
+    check(
+        "digest change gives new key",
+        key != rc.cache_key("digest2", "surface", "payload"),
+        "collision",
+    )
+    check(
+        "surface change gives new key",
+        key != rc.cache_key("digest", "surface2", "payload"),
+        "collision",
+    )
+    with sandbox():
+        for raw in ("not json", "[1, 2]"):
+            rc.CACHE_FILE.write_text(raw)
+            loaded = rc.load_cache()
+            check(f"cache file {raw!r} loads empty", loaded == {}, f"got {loaded!r}")
+        now = time.time()
+        original_max = rc.CACHE_MAX_ENTRIES
+        rc.CACHE_MAX_ENTRIES = 2
+        try:
+            rc.save_cache(
+                {
+                    "bad": "not a dict",
+                    "old": {"verdict": "pass", "ts": now - 3},
+                    "mid": {"verdict": "pass", "ts": now - 2},
+                    "new": {"verdict": "pass", "ts": now - 1},
+                }
+            )
+        finally:
+            rc.CACHE_MAX_ENTRIES = original_max
+        loaded = rc.load_cache()
+        check(
+            "non-dict entry dropped, newest entries kept",
+            sorted(loaded) == ["mid", "new"],
+            f"got {sorted(loaded)!r}",
+        )
+        rc.CACHE_FILE = rc.CACHE_FILE.parent / "missing" / "cache.json"
+        rc.save_cache({"new": {"verdict": "pass", "ts": now}})
+        check("unwritable cache path does not raise", not rc.CACHE_FILE.exists(), "")
+
+
+def test_log_creates_directory_and_never_raises() -> None:
+    section("log: creates its directory and swallows write errors")
+    original = rc.LOG_FILE
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            rc.LOG_FILE = Path(tmpdir) / "new" / "rule-check.log"
+            rc.log("first entry")
+            check(
+                "missing directory created",
+                rc.LOG_FILE.exists() and "first entry" in rc.LOG_FILE.read_text(),
+                "no log written",
+            )
+            blocker = Path(tmpdir) / "file"
+            blocker.write_text("")
+            rc.LOG_FILE = blocker / "rule-check.log"
+            rc.log("second entry")
+            check("unwritable log path does not raise", not rc.LOG_FILE.exists(), "")
+        finally:
+            rc.LOG_FILE = original
+
+
+FINDING = {
+    "rule_file": "rules/git.md",
+    "rule_quote": "Always render Linear issue references as Markdown links",
+    "payload_excerpt": "See BYB-1234",
+    "suggested_fix": "Link BYB-1234 to its Linear issue.",
+}
+
+
+def comment(body: str) -> dict:
+    return {"tool_name": "mcp__linear__save_comment", "tool_input": {"body": body}}
+
+
+def test_main_verdicts() -> None:
+    section("main: exit 2 only for a fail verdict with a real finding")
+    smart = dict(FINDING, rule_quote="Never use smart quotes.")
+    width = dict(FINDING, suggested_fix="Pad the table to equal column width.")
+    cases = [
+        ("fail with a finding blocks", "fail", [FINDING], 2),
+        ("pass allowed", "pass", [], 0),
+        ("pass with stray findings allowed", "pass", [FINDING], 0),
+        ("phantom smart-quote finding dropped", "fail", [smart], 0),
+        ("width-counting finding dropped", "fail", [width], 0),
+    ]
+    for name, verdict, violations, expected in cases:
+        with sandbox() as fake:
+            fake.stdout = verdict_json(verdict, violations)
+            code, err = run_main(comment("See BYB-1234 for the retry guard."))
+        check(name, code == expected, f"code={code} stderr={err!r}")
+        if expected == 2:
+            check(
+                "stderr names the rule file and the excerpt",
+                "rules/git.md" in err and "payload: See BYB-1234" in err,
+                err,
+            )
+
+
+def test_main_fails_open() -> None:
+    section("main: allow without a model call when there is nothing to judge")
+    body = comment("See BYB-1234 for the retry guard.")
+    short = "git commit -F- <<'EOF'\n  Fix.  \nEOF"
+    skip = 'See BYB-1234. <!-- rule-check: skip reason="linked below" -->'
+    cases = [
+        ("bad JSON on stdin", "not json", {}),
+        ("tool_input not a dict", {"tool_name": "Bash", "tool_input": ["git"]}, {}),
+        ("disabled by env", body, {"CLAUDE_RULE_CHECK_DISABLE": "1"}),
+        (
+            "payload under 5 chars once stripped",
+            {"tool_name": "Bash", "tool_input": {"command": short}},
+            {},
+        ),
+        ("skip marker", comment(skip), {}),
+    ]
+    for name, payload, env in cases:
+        with sandbox() as fake:
+            fake.stdout = verdict_json("fail", [FINDING])
+            os.environ.update(env)
+            code, _ = run_main(payload)
+            logged = rc.LOG_FILE.read_text() if rc.LOG_FILE.exists() else ""
+        check(name, code == 0 and not fake.calls, f"code={code} calls={fake.calls!r}")
+    check("skip logged with its reason", "reason=linked below" in logged, logged)
+    with sandbox(rules="") as fake:
+        fake.stdout = verdict_json("fail", [FINDING])
+        code, _ = run_main(body)
+    check("no rule files", code == 0 and not fake.calls, f"code={code}")
+
+
+def test_main_verdict_cache() -> None:
+    section("main: verdict cache reuse, invalidation and NO_CACHE")
+    text = "See BYB-1234 for the retry guard."
+    with sandbox() as fake:
+        run_main(comment(text))
+        check("pass verdict cached", len(rc.load_cache()) == 1, f"{rc.load_cache()!r}")
+        fake.stdout = verdict_json("fail", [FINDING])
+        code, _ = run_main(comment(text))
+        check(
+            "identical payload served from the cache",
+            code == 0 and len(fake.calls) == 1,
+            f"code={code} calls={len(fake.calls)}",
+        )
+        os.environ["CLAUDE_RULE_CHECK_NO_CACHE"] = "1"
+        code, _ = run_main(comment(text))
+        check(
+            "NO_CACHE forces a live check",
+            code == 2 and len(fake.calls) == 2,
+            f"code={code} calls={len(fake.calls)}",
+        )
+        verdicts = [entry["verdict"] for entry in rc.load_cache().values()]
+        check("NO_CACHE leaves the cache alone", verdicts == ["pass"], f"{verdicts!r}")
+        del os.environ["CLAUDE_RULE_CHECK_NO_CACHE"]
+        (rc.RULES_DIR / "general.md").write_text("Link every Linear slug.\n")
+        code, _ = run_main(comment(text))
+        check(
+            "a rule edit invalidates the cached verdict",
+            code == 2 and len(fake.calls) == 3,
+            f"code={code} calls={len(fake.calls)}",
+        )
+    with sandbox() as fake:
+        rules_only = hashlib.sha256(rc.load_rules().encode()).hexdigest()[:16]
+        key = rc.cache_key(rules_only, "save_comment body", text)
+        rc.save_cache({key: {"verdict": "pass", "violations": [], "ts": time.time()}})
+        fake.stdout = verdict_json("fail", [FINDING])
+        code, _ = run_main(comment(text))
+    check(
+        "a verdict keyed without the hook source is not reused",
+        code == 2 and len(fake.calls) == 1,
+        f"code={code} calls={len(fake.calls)}",
+    )
+    with sandbox() as fake:
+        fake.timeout = True
+        code, _ = run_main(comment(text))
+        cached = rc.load_cache()
+    check("timeout allows", code == 0, f"code={code}")
+    check("soft-pass verdict not cached", cached == {}, f"got {cached!r}")
 
 
 def test_walk_strings_nested() -> None:
@@ -786,8 +1534,14 @@ def test_short_combined_and_owned_flags() -> None:
         clean.write_text("Add the upgrade gate\n")
         text = "Adds the gate for members.\n"
         for cmd, expected in (
-            ('git commit -am "Fix the lock"', [("git commit message arg -am", "Fix the lock")]),
-            ('git commit -qm "Fix the lock"', [("git commit message arg -qm", "Fix the lock")]),
+            (
+                'git commit -am "Fix the lock"',
+                [("git commit message arg -am", "Fix the lock")],
+            ),
+            (
+                'git commit -qm "Fix the lock"',
+                [("git commit message arg -qm", "Fix the lock")],
+            ),
             (
                 'git commit -m "Fix the lock" --message "Body paragraph."',
                 [
@@ -804,10 +1558,16 @@ def test_short_combined_and_owned_flags() -> None:
             ),
             (
                 'gh pr create -t "BYB-1: Gate" -b "Adds the gate."',
-                [("GitHub PR arg -t", "BYB-1: Gate"), ("GitHub PR arg -b", "Adds the gate.")],
+                [
+                    ("GitHub PR arg -t", "BYB-1: Gate"),
+                    ("GitHub PR arg -b", "Adds the gate."),
+                ],
             ),
             (f"gh pr create -F '{body}'", [(f"GitHub PR -F {body}", text)]),
-            (f'gh pr create --body-file "{body}"', [(f"GitHub PR --body-file {body}", text)]),
+            (
+                f'gh pr create --body-file "{body}"',
+                [(f"GitHub PR --body-file {body}", text)],
+            ),
             (f"git commit -F '{body}'", [(f"git commit message -F {body}", text)]),
             (f"git commit -aF '{body}'", [(f"git commit message -F {body}", text)]),
             (
@@ -817,40 +1577,109 @@ def test_short_combined_and_owned_flags() -> None:
                     (f"GitHub PR -F {body}", text),
                 ],
             ),
-            ('gh -R o/r pr create --body "Adds the gate."', [("GitHub PR arg --body", "Adds the gate.")]),
-            ('gh pr -R o/r comment 1 --body "Fixed, thanks."', [("GitHub PR arg --body", "Fixed, thanks.")]),
-            (f"git commit -m \"$(cat '{body}')\"", [("git commit message arg -m", text.strip())]),
-            (f"gh pr comment 1 --body \"$(< '{body}')\"", [("GitHub PR arg --body", text.strip())]),
+            (
+                'gh -R o/r pr create --body "Adds the gate."',
+                [("GitHub PR arg --body", "Adds the gate.")],
+            ),
+            (
+                'gh pr -R o/r comment 1 --body "Fixed, thanks."',
+                [("GitHub PR arg --body", "Fixed, thanks.")],
+            ),
+            (
+                f"git commit -m \"$(cat '{body}')\"",
+                [("git commit message arg -m", text.strip())],
+            ),
+            (
+                f"gh pr comment 1 --body \"$(< '{body}')\"",
+                [("GitHub PR arg --body", text.strip())],
+            ),
             (f"git commit --file '{body}'", [(f"git commit message -F {body}", text)]),
-            ('gh --repo=o/r pr create --body "Adds the gate."', [("GitHub PR arg --body", "Adds the gate.")]),
-            ('gh -R o/r issue create --body "Adds the gate."', [("GitHub issue arg --body", "Adds the gate.")]),
-            ('gh pr comment 1 -b "Fixed, thanks."', [("GitHub PR arg -b", "Fixed, thanks.")]),
-            ('gh pr edit 1 -b "Adds the gate."', [("GitHub PR arg -b", "Adds the gate.")]),
-            ('gh pr merge 1 -t "Merge the gate"', [("GitHub PR arg -t", "Merge the gate")]),
+            (
+                'gh --repo=o/r pr create --body "Adds the gate."',
+                [("GitHub PR arg --body", "Adds the gate.")],
+            ),
+            (
+                'gh -R o/r issue create --body "Adds the gate."',
+                [("GitHub issue arg --body", "Adds the gate.")],
+            ),
+            (
+                'gh pr comment 1 -b "Fixed, thanks."',
+                [("GitHub PR arg -b", "Fixed, thanks.")],
+            ),
+            (
+                'gh pr edit 1 -b "Adds the gate."',
+                [("GitHub PR arg -b", "Adds the gate.")],
+            ),
+            (
+                'gh pr merge 1 -t "Merge the gate"',
+                [("GitHub PR arg -t", "Merge the gate")],
+            ),
             ('gh pr review 1 -b "Looks good."', [("GitHub PR arg -b", "Looks good.")]),
             (
                 "gh pr create --title 'Gate; two' -b \"Adds the gate.\"",
-                [("GitHub PR arg --title", "Gate; two"), ("GitHub PR arg -b", "Adds the gate.")],
+                [
+                    ("GitHub PR arg --title", "Gate; two"),
+                    ("GitHub PR arg -b", "Adds the gate."),
+                ],
             ),
             (
                 'gh pr create --title "a \\" ; b" -b "Adds the gate."',
-                [("GitHub PR arg --title", 'a \\" ; b'), ("GitHub PR arg -b", "Adds the gate.")],
+                [
+                    ("GitHub PR arg --title", 'a \\" ; b'),
+                    ("GitHub PR arg -b", "Adds the gate."),
+                ],
             ),
-            ('gh pr create --title "Gate; two" \\\n  -b "Adds the gate."', [("GitHub PR arg --title", "Gate; two"), ("GitHub PR arg -b", "Adds the gate.")]),
-            ('gh pr create -b "Adds the gate." 2>&1', [("GitHub PR arg -b", "Adds the gate.")]),
-            ('gh pr create --title T 2>&1 -b "Adds the gate."', [("GitHub PR arg -b", "Adds the gate.")]),
+            (
+                'gh pr create --title "Gate; two" \\\n  -b "Adds the gate."',
+                [
+                    ("GitHub PR arg --title", "Gate; two"),
+                    ("GitHub PR arg -b", "Adds the gate."),
+                ],
+            ),
+            (
+                'gh pr create -b "Adds the gate." 2>&1',
+                [("GitHub PR arg -b", "Adds the gate.")],
+            ),
+            (
+                'gh pr create --title T 2>&1 -b "Adds the gate."',
+                [("GitHub PR arg -b", "Adds the gate.")],
+            ),
             ('git commit -Sm "Fix the lock"', []),
-            ('gh pr create --body "Adds it." | tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
-            ('gh pr create --body "Adds it." & tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
-            ('gh pr create --body "Adds it."; tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
-            ('gh pr create --body "Adds it."\ntool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            (
+                'gh pr create --body "Adds it." | tool -b "not a body"',
+                [("GitHub PR arg --body", "Adds it.")],
+            ),
+            (
+                'gh pr create --body "Adds it." & tool -b "not a body"',
+                [("GitHub PR arg --body", "Adds it.")],
+            ),
+            (
+                'gh pr create --body "Adds it."; tool -b "not a body"',
+                [("GitHub PR arg --body", "Adds it.")],
+            ),
+            (
+                'gh pr create --body "Adds it."\ntool -b "not a body"',
+                [("GitHub PR arg --body", "Adds it.")],
+            ),
             (f"gh pr view 1; tool -F '{body}'", []),
-            (f"git commit -q; tool -F '{body}'", [(f"git commit message -F {body}", text)]),
-            ('git commit -t "template.txt" -m "Fix the lock"', [("git commit message arg -m", "Fix the lock")]),
+            (
+                f"git commit -q; tool -F '{body}'",
+                [(f"git commit message -F {body}", text)],
+            ),
+            (
+                'git commit -t "template.txt" -m "Fix the lock"',
+                [("git commit message arg -m", "Fix the lock")],
+            ),
             ('gh pr checkout 12 -b "fix-the-lock"', []),
             ('gh api repos/o/r -t "{{.title}} here"', []),
-            (f"git commit -m 'Fix the lock' && gh api graphql -F '{body}'", [("git commit message arg -m", "Fix the lock")]),
-            ('gh pr create --body "Adds it." && tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            (
+                f"git commit -m 'Fix the lock' && gh api graphql -F '{body}'",
+                [("git commit message arg -m", "Fix the lock")],
+            ),
+            (
+                'gh pr create --body "Adds it." && tool -b "not a body"',
+                [("GitHub PR arg --body", "Adds it.")],
+            ),
             ('gh pr view 1 && tool -am "not a message"', []),
         ):
             out = rc.extract_bash_payloads(cmd)
@@ -886,13 +1715,17 @@ def test_code_and_data_heredocs() -> None:
         "PYTHONPATH=. python3 -",
         "A=1 B=2 python3 -",
     ):
-        out = rc.extract_bash_payloads(f"git commit -m 'Add the report' && {owner} <<'PY'\n{code}PY")
+        out = rc.extract_bash_payloads(
+            f"git commit -m 'Add the report' && {owner} <<'PY'\n{code}PY"
+        )
         check(
             f"`{owner}`: only the message is sent",
             out == [("git commit message arg -m", "Add the report")],
             f"got {out!r}",
         )
-    out = rc.extract_bash_payloads(f"git commit -m 'Add the report' && uv pip python3 <<'EOF'\n{code}EOF")
+    out = rc.extract_bash_payloads(
+        f"git commit -m 'Add the report' && uv pip python3 <<'EOF'\n{code}EOF"
+    )
     check("uv without run is not a wrapper", len(out) == 2, f"got {out!r}")
 
     script = "echo 'step one'\ngit commit -m 'Add the report'\n"
@@ -905,7 +1738,9 @@ def test_code_and_data_heredocs() -> None:
         )
     data = "bash run.sh <<'EOF'\nstep one of the run\nEOF\ngit commit -m 'Run it now'"
     out = rc.extract_bash_payloads(data)
-    check("bash run.sh: the script's input stays a payload", len(out) == 2, f"got {out!r}")
+    check(
+        "bash run.sh: the script's input stays a payload", len(out) == 2, f"got {out!r}"
+    )
 
     loop = (
         "while IFS='|' read -r old new; do git mv \"$old\" \"$new\"; done <<'EOF'\n"
@@ -924,29 +1759,54 @@ def test_code_and_data_heredocs() -> None:
         return [t for label, t in rc.extract_bash_payloads(cmd) if "heredoc" in label]
 
     tee = "tee -a notes/x.md >/dev/null <<'EOF'\n- Rebased the branch\nEOF\ngit commit -m 'Update notes'"
-    check("tee into a file: not the message", heredocs(tee) == [], f"got {heredocs(tee)!r}")
+    check(
+        "tee into a file: not the message",
+        heredocs(tee) == [],
+        f"got {heredocs(tee)!r}",
+    )
     bare = "tee -a notes/x.md <<'EOF'\n- Rebased the branch\nEOF\ngit commit -m 'Update notes'"
-    check("tee into a file, no redirect: not the message", heredocs(bare) == [], f"got {heredocs(bare)!r}")
+    check(
+        "tee into a file, no redirect: not the message",
+        heredocs(bare) == [],
+        f"got {heredocs(bare)!r}",
+    )
     msg = "<<'MSG'\nAdd the lint workflow\nMSG\n"
     for name, cmd in (
-        ("its file read back", f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt"),
-        ("one of two files read back", f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
-        ("its stdout file read back", f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        (
+            "its file read back",
+            f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt",
+        ),
+        (
+            "one of two files read back",
+            f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt",
+        ),
+        (
+            "its stdout file read back",
+            f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt",
+        ),
         ("variable target, a file read back", f"tee $f {msg}git commit -F m.txt"),
         ("no file", f"tee {msg}git commit -m 'Add the lint workflow'"),
     ):
-        check(f"tee, {name}: stays a payload", heredocs(cmd) == ["Add the lint workflow"], f"got {heredocs(cmd)!r}")
+        check(
+            f"tee, {name}: stays a payload",
+            heredocs(cmd) == ["Add the lint workflow"],
+            f"got {heredocs(cmd)!r}",
+        )
 
 
 TESTS = [
     test_extract_bash_payloads_heredoc_commit,
+    test_extract_bash_payloads_heredoc_forms,
     test_extract_bash_payloads_inline_m_flag,
+    test_extract_bash_payloads_flag_spellings,
     test_extract_bash_payloads_subject_vs_body_m_flags,
     test_extract_bash_payloads_gh_pr_create,
     test_extract_bash_payloads_gh_pr_comment,
     test_extract_bash_payloads_gh_issue_create,
     test_extract_bash_payloads_gh_api,
+    test_extract_bash_payloads_gh_api_field_spellings,
     test_extract_bash_payloads_body_file,
+    test_extract_bash_payloads_file_path_spellings,
     test_extract_bash_payloads_commit_F_flag,
     test_extract_bash_payloads_commit_long_file_flag,
     test_extract_bash_payloads_gh_api_minus_F_not_treated_as_commit_file,
@@ -954,23 +1814,39 @@ TESTS = [
     test_extract_mcp_payloads_linear,
     test_extract_mcp_payloads_nested_notion,
     test_extract_mcp_payloads_short_values_filtered,
+    test_extract_mcp_payloads_length_boundary,
     test_extract_mcp_payloads_non_prose_fields_filtered,
+    test_extract_mcp_payloads_every_identifier_field,
     test_field_name_paths,
     test_skip_sentinel_html_comment,
     test_skip_sentinel_hash_comment,
     test_skip_sentinel_slash_comment,
+    test_skip_sentinel_case_insensitive,
     test_skip_sentinel_no_match,
     test_gated_mcp_matches,
     test_extract_payloads_dispatch,
     test_load_rules_smoke,
+    test_load_rules_order_and_sources,
     test_prompt_quotes_rules_verbatim,
     test_interpreter_heredoc_skipped,
     test_file_heredoc_is_not_the_message,
+    test_file_heredoc_separators_and_quoting,
     test_git_global_options_before_commit,
+    test_git_global_options_with_values,
     test_compound_command_per_flag_surfaces,
     test_gh_api_at_file_read,
     test_width_arithmetic_filter,
+    test_width_arithmetic_phrases,
+    test_phantom_char_filter,
+    test_run_check_invocation,
+    test_run_check_truncates_long_payloads,
+    test_run_check_verdict_parsing,
     test_verdict_cache_roundtrip,
+    test_cache_edge_cases,
+    test_log_creates_directory_and_never_raises,
+    test_main_verdicts,
+    test_main_fails_open,
+    test_main_verdict_cache,
     test_walk_strings_nested,
     test_short_combined_and_owned_flags,
     test_code_and_data_heredocs,
@@ -982,7 +1858,7 @@ def main() -> int:
     for test in TESTS:
         try:
             test()
-        except Exception:
+        except Exception:  # noqa: BLE001
             _failures.append(f"{test.__name__} raised: {traceback.format_exc()}")
             print(f"  [FAIL] {test.__name__}  RAISED")
             print(traceback.format_exc())
