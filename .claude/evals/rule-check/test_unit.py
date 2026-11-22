@@ -777,6 +777,167 @@ def test_walk_strings_nested() -> None:
     )
 
 
+def test_short_combined_and_owned_flags() -> None:
+    section("extract_bash_payloads: short, combined and owned flags are read")
+    with tempfile.TemporaryDirectory() as tmp:
+        body = Path(tmp) / "my body.md"
+        body.write_text("Adds the gate for members.\n")
+        clean = Path(tmp) / "msg.txt"
+        clean.write_text("Add the upgrade gate\n")
+        text = "Adds the gate for members.\n"
+        for cmd, expected in (
+            ('git commit -am "Fix the lock"', [("git commit message arg -am", "Fix the lock")]),
+            ('git commit -qm "Fix the lock"', [("git commit message arg -qm", "Fix the lock")]),
+            (
+                'git commit -m "Fix the lock" --message "Body paragraph."',
+                [
+                    ("git commit message arg -m", "Fix the lock"),
+                    ("git commit message body arg --message", "Body paragraph."),
+                ],
+            ),
+            (
+                'git commit -am "Fix the lock" -m "Body paragraph."',
+                [
+                    ("git commit message arg -am", "Fix the lock"),
+                    ("git commit message body arg -m", "Body paragraph."),
+                ],
+            ),
+            (
+                'gh pr create -t "BYB-1: Gate" -b "Adds the gate."',
+                [("GitHub PR arg -t", "BYB-1: Gate"), ("GitHub PR arg -b", "Adds the gate.")],
+            ),
+            (f"gh pr create -F '{body}'", [(f"GitHub PR -F {body}", text)]),
+            (f'gh pr create --body-file "{body}"', [(f"GitHub PR --body-file {body}", text)]),
+            (f"git commit -F '{body}'", [(f"git commit message -F {body}", text)]),
+            (f"git commit -aF '{body}'", [(f"git commit message -F {body}", text)]),
+            (
+                f"git commit -F {clean} && gh pr create -F '{body}'",
+                [
+                    (f"git commit message -F {clean}", "Add the upgrade gate\n"),
+                    (f"GitHub PR -F {body}", text),
+                ],
+            ),
+            ('gh -R o/r pr create --body "Adds the gate."', [("GitHub PR arg --body", "Adds the gate.")]),
+            ('gh pr -R o/r comment 1 --body "Fixed, thanks."', [("GitHub PR arg --body", "Fixed, thanks.")]),
+            (f"git commit -m \"$(cat '{body}')\"", [("git commit message arg -m", text.strip())]),
+            (f"gh pr comment 1 --body \"$(< '{body}')\"", [("GitHub PR arg --body", text.strip())]),
+            (f"git commit --file '{body}'", [(f"git commit message -F {body}", text)]),
+            ('gh --repo=o/r pr create --body "Adds the gate."', [("GitHub PR arg --body", "Adds the gate.")]),
+            ('gh -R o/r issue create --body "Adds the gate."', [("GitHub issue arg --body", "Adds the gate.")]),
+            ('gh pr comment 1 -b "Fixed, thanks."', [("GitHub PR arg -b", "Fixed, thanks.")]),
+            ('gh pr edit 1 -b "Adds the gate."', [("GitHub PR arg -b", "Adds the gate.")]),
+            ('gh pr merge 1 -t "Merge the gate"', [("GitHub PR arg -t", "Merge the gate")]),
+            ('gh pr review 1 -b "Looks good."', [("GitHub PR arg -b", "Looks good.")]),
+            (
+                "gh pr create --title 'Gate; two' -b \"Adds the gate.\"",
+                [("GitHub PR arg --title", "Gate; two"), ("GitHub PR arg -b", "Adds the gate.")],
+            ),
+            (
+                'gh pr create --title "a \\" ; b" -b "Adds the gate."',
+                [("GitHub PR arg --title", 'a \\" ; b'), ("GitHub PR arg -b", "Adds the gate.")],
+            ),
+            ('gh pr create --title "Gate; two" \\\n  -b "Adds the gate."', [("GitHub PR arg --title", "Gate; two"), ("GitHub PR arg -b", "Adds the gate.")]),
+            ('gh pr create -b "Adds the gate." 2>&1', [("GitHub PR arg -b", "Adds the gate.")]),
+            ('gh pr create --title T 2>&1 -b "Adds the gate."', [("GitHub PR arg -b", "Adds the gate.")]),
+            ('git commit -Sm "Fix the lock"', []),
+            ('gh pr create --body "Adds it." | tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            ('gh pr create --body "Adds it." & tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            ('gh pr create --body "Adds it."; tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            ('gh pr create --body "Adds it."\ntool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            (f"gh pr view 1; tool -F '{body}'", []),
+            (f"git commit -q; tool -F '{body}'", [(f"git commit message -F {body}", text)]),
+            ('git commit -t "template.txt" -m "Fix the lock"', [("git commit message arg -m", "Fix the lock")]),
+            ('gh pr checkout 12 -b "fix-the-lock"', []),
+            ('gh api repos/o/r -t "{{.title}} here"', []),
+            (f"git commit -m 'Fix the lock' && gh api graphql -F '{body}'", [("git commit message arg -m", "Fix the lock")]),
+            ('gh pr create --body "Adds it." && tool -b "not a body"', [("GitHub PR arg --body", "Adds it.")]),
+            ('gh pr view 1 && tool -am "not a message"', []),
+        ):
+            out = rc.extract_bash_payloads(cmd)
+            check(f"`{cmd[:44]}`", out == expected, f"got {out!r}")
+        prefixed = f"See $(cat '{body}')"
+        check(
+            "$(cat file) inside a longer value stays as written",
+            rc.resolve_value(prefixed) == prefixed,
+            f"got {rc.resolve_value(prefixed)!r}",
+        )
+        binary = Path(tmp) / "bin.dat"
+        binary.write_bytes(b"\xff\xfe\x00body")
+        out = rc.extract_bash_payloads(f"gh pr create --body-file {binary}")
+        check("a binary body file is skipped", out == [], f"got {out!r}")
+    missing = "$(cat /nonexistent/unit-msg.txt)"
+    check(
+        "an unreadable $(cat file) stays as written",
+        rc.resolve_value(missing) == missing,
+        f"got {rc.resolve_value(missing)!r}",
+    )
+
+
+def test_code_and_data_heredocs() -> None:
+    section("extract_bash_payloads: code and data heredocs are not messages")
+    code = "import sys\nprint(sys.argv)\n"
+    for owner in (
+        "uv run python -",
+        "uv run --frozen python -",
+        "python3.12 -",
+        "/usr/bin/env python3",
+        "/usr/bin/python3 -",
+        "time -p python3 -",
+        "PYTHONPATH=. python3 -",
+        "A=1 B=2 python3 -",
+    ):
+        out = rc.extract_bash_payloads(f"git commit -m 'Add the report' && {owner} <<'PY'\n{code}PY")
+        check(
+            f"`{owner}`: only the message is sent",
+            out == [("git commit message arg -m", "Add the report")],
+            f"got {out!r}",
+        )
+    out = rc.extract_bash_payloads(f"git commit -m 'Add the report' && uv pip python3 <<'EOF'\n{code}EOF")
+    check("uv without run is not a wrapper", len(out) == 2, f"got {out!r}")
+
+    script = "echo 'step one'\ngit commit -m 'Add the report'\n"
+    for owner in ("bash", "sh -s x", "bash > out.log"):
+        out = rc.extract_bash_payloads(f"{owner} <<'EOF'\n{script}EOF")
+        check(
+            f"`{owner}`: the commit in the script is sent, not the script",
+            out == [("git commit message arg -m", "Add the report")],
+            f"got {out!r}",
+        )
+    data = "bash run.sh <<'EOF'\nstep one of the run\nEOF\ngit commit -m 'Run it now'"
+    out = rc.extract_bash_payloads(data)
+    check("bash run.sh: the script's input stays a payload", len(out) == 2, f"got {out!r}")
+
+    loop = (
+        "while IFS='|' read -r old new; do git mv \"$old\" \"$new\"; done <<'EOF'\n"
+        "notes/2026-11-01.md|notes/2026/11/2026-11-01.md\n"
+        "EOF\n"
+        'git commit -m "Move the notes into month directories"\n'
+    )
+    out = rc.extract_bash_payloads(loop)
+    check(
+        "loop data is not sent",
+        out == [("git commit message arg -m", "Move the notes into month directories")],
+        f"got {out!r}",
+    )
+
+    def heredocs(cmd: str) -> list[str]:
+        return [t for label, t in rc.extract_bash_payloads(cmd) if "heredoc" in label]
+
+    tee = "tee -a notes/x.md >/dev/null <<'EOF'\n- Rebased the branch\nEOF\ngit commit -m 'Update notes'"
+    check("tee into a file: not the message", heredocs(tee) == [], f"got {heredocs(tee)!r}")
+    bare = "tee -a notes/x.md <<'EOF'\n- Rebased the branch\nEOF\ngit commit -m 'Update notes'"
+    check("tee into a file, no redirect: not the message", heredocs(bare) == [], f"got {heredocs(bare)!r}")
+    msg = "<<'MSG'\nAdd the lint workflow\nMSG\n"
+    for name, cmd in (
+        ("its file read back", f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt"),
+        ("one of two files read back", f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        ("its stdout file read back", f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        ("variable target, a file read back", f"tee $f {msg}git commit -F m.txt"),
+        ("no file", f"tee {msg}git commit -m 'Add the lint workflow'"),
+    ):
+        check(f"tee, {name}: stays a payload", heredocs(cmd) == ["Add the lint workflow"], f"got {heredocs(cmd)!r}")
+
+
 TESTS = [
     test_extract_bash_payloads_heredoc_commit,
     test_extract_bash_payloads_inline_m_flag,
@@ -811,6 +972,8 @@ TESTS = [
     test_width_arithmetic_filter,
     test_verdict_cache_roundtrip,
     test_walk_strings_nested,
+    test_short_combined_and_owned_flags,
+    test_code_and_data_heredocs,
 ]
 
 

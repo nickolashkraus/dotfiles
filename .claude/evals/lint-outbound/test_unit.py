@@ -917,6 +917,302 @@ def test_wrapped_code_span() -> None:
         )
 
 
+EM = "—"
+
+
+def bash_violations(cmd: str) -> list[str]:
+    return lo.collect_violations("Bash", {"command": cmd})
+
+
+def em_dash_flagged(cmd: str) -> bool:
+    return any("em dash" in v for v in bash_violations(cmd))
+
+
+def test_short_combined_and_owned_flags() -> None:
+    section("extract_bash_content: short, combined and owned flags are read")
+    with tempfile.TemporaryDirectory() as tmp:
+        dashed = Path(tmp) / "my body.md"
+        dashed.write_text(f"Adds the gate {EM} finally.\n")
+        clean = Path(tmp) / "clean.md"
+        clean.write_text("Adds the gate.\n")
+        for name, cmd in (
+            ("git commit -am", f'git commit -am "Fix the lock {EM} again"'),
+            ("git commit -qm", f'git commit -qm "Fix the lock {EM} again"'),
+            ("gh pr create -b", f'gh pr create -t T -b "Adds the gate {EM} finally."'),
+            ("gh issue create -t", f'gh issue create -t "Gate {EM} two" -b "Adds it."'),
+            ("gh pr create -F", f"gh pr create --title T -F '{dashed}'"),
+            ("gh issue comment -F", f"gh issue comment 3 -F '{dashed}'"),
+            ("git commit -F, quoted path", f"git commit -F '{dashed}'"),
+            ("git commit -aF", f"git commit -aF '{dashed}'"),
+            ("git commit --file", f"git commit --file '{dashed}'"),
+            ("--body-file, quoted path", f'gh pr create --title T --body-file "{dashed}"'),
+            ("gh pr comment -b", f'gh pr comment 1 -b "Fixed {EM} it."'),
+            ("gh pr edit -b", f'gh pr edit 1 -b "Adds {EM} it."'),
+            ("gh pr merge -t", f'gh pr merge 1 -t "Merge {EM} it"'),
+            ("gh pr review -b", f'gh pr review 1 -b "Looks {EM} good."'),
+            ("-b after a single-quoted `;`", f"gh pr create --title 'a; b' -b \"Adds {EM} it.\""),
+            ("-b after an escaped quote", f'gh pr create --title "a \\" ; b" -b "Adds {EM} it."'),
+            ("gh -R before pr", f'gh -R o/r pr create --title T --body "Adds {EM} it."'),
+            ("gh --repo= before pr", f'gh --repo=o/r pr create --body "Adds {EM} it."'),
+            ("gh pr -R before comment", f'gh pr -R o/r comment 12 --body "Fixed {EM} it."'),
+            ("-b after a continuation", f'gh pr create --title T \\\n  -b "Adds {EM} it."'),
+            ("-b after a quoted `;`", f'gh pr create --title "a; b" -b "Adds {EM} it."'),
+            ("-b after 2>&1", f'gh pr create --title T 2>&1 -b "Adds {EM} it."'),
+            ("-m $(cat file)", f"git commit -m \"$(cat '{dashed}')\""),
+            ("--body $(< file)", f"gh pr comment 1 --body \"$(< '{dashed}')\""),
+            ("unowned -F in a commit command", f"git commit -q; tool -F '{dashed}'"),
+        ):
+            check(f"{name}: em dash flagged", em_dash_flagged(cmd), f"got {bash_violations(cmd)!r}")
+        for name, cmd in (
+            ("git commit -Sm (a signing key)", f'git commit -Sm "Fix {EM} it"'),
+            ("git commit -t (a template)", f'git commit -t "t{EM}.txt" -m "Fix"'),
+            ("gh pr checkout -b (a branch)", f'gh pr checkout 12 -b "fix{EM}it"'),
+            ("gh api -t (a template)", f"gh api repos/o/r -t '{{{{.x}}}} {EM}'"),
+            ("-t of a later command", f'gh pr create --body B && tool -t "x {EM}"'),
+            ("-b of a piped command", f'gh pr create --body B | tool -b "x {EM}"'),
+            ("-b of a background command", f'gh pr create --body B & tool -b "x {EM}"'),
+            ("-b after a `;`", f'gh pr create --body B; tool -b "x {EM}"'),
+            ("-b on the next line", f'gh pr create --body B\ntool -b "x {EM}"'),
+            ("unowned -F, no commit", f"gh pr view 1; tool -F '{dashed}'"),
+            ("-am outside a commit", f'gh pr view 1 && tool -am "x {EM}"'),
+            ("gh api -F (a field)", f"git commit -m Fix && gh api graphql -F '{dashed}'"),
+            ("gh pr view -F", f"git commit -m Fix && gh pr view 1 -F '{dashed}'"),
+            ("-F - (stdin)", "git commit -F - && echo"),
+        ):
+            check(f"{name}: not read", not em_dash_flagged(cmd), f"got {bash_violations(cmd)!r}")
+
+        fields = lo.extract_bash_content('git commit -am "Fix the lock"')
+        check(
+            "-am is the whole commit message",
+            fields == [("arg -am", "Fix the lock", True, False, True)],
+            f"got {fields!r}",
+        )
+        both = lo.extract_bash_content(
+            f"git commit -F {clean} && gh pr create --title T -F '{dashed}'"
+        )
+        check(
+            "-F is the commit message under git, the PR body under gh",
+            [(f[0], *f[2:]) for f in both if f[0].startswith("arg -F")]
+            == [(f"arg -F {clean}", True, False, True), (f"arg -F {dashed}", False, True, False)],
+            f"got {both!r}",
+        )
+        fields = lo.extract_bash_content(f"gh issue comment 3 -F '{clean}'")
+        check(
+            "-F under gh issue comment is a body, not a PR body",
+            [f[2:] for f in fields] == [(False, False, False)],
+            f"got {fields!r}",
+        )
+        fields = lo.extract_bash_content(f"git commit -m \"$(cat '{dashed}')\"")
+        check(
+            "$(cat file) is the file's text without the final newline",
+            fields == [("arg -m", f"Adds the gate {EM} finally.", True, False, True)],
+            f"got {fields!r}",
+        )
+        prefixed = f"See $(cat '{dashed}')"
+        check(
+            "$(cat file) inside a longer value stays as written",
+            lo.resolve_value(prefixed) == prefixed,
+            f"got {lo.resolve_value(prefixed)!r}",
+        )
+        binary = Path(tmp) / "bin.dat"
+        binary.write_bytes(b"\xff\xfe\x00body")
+        found = bash_violations(f"gh pr create --title T --body-file {binary}")
+        check("a binary body file is skipped", found == [], f"got {found!r}")
+    missing = "$(cat /nonexistent/unit-msg.txt)"
+    check(
+        "an unreadable $(cat file) stays as written",
+        lo.resolve_value(missing) == missing,
+        f"got {lo.resolve_value(missing)!r}",
+    )
+    for cmd, expected in (
+        ("gh pr create --title T -m 'Q4'", ("arg -m", "Q4", False, False, False)),
+        ("gh pr create -b 'Adds it.'", ("arg -b", "Adds it.", False, True, False)),
+        ("gh pr comment 1 --body 'Fixed.'", ("arg --body", "Fixed.", False, False, False)),
+        ("gh pr create --title 'Gate'", ("arg --title", "Gate", False, False, False)),
+        ("git commit -m 'Fix' --body 'Note'", ("arg --body", "Note", False, False, False)),
+    ):
+        fields = lo.extract_bash_content(cmd)
+        check(f"`{cmd}` field", expected in fields, f"got {fields!r}")
+    for cmd, closes in (
+        ("gh -R o/r pr create --title T --body 'Closes #12'", True),
+        ("gh issue create --title T --body 'Closes #12'", False),
+        ("gh pr comment 1 --body 'Closes #12'", False),
+    ):
+        found = bash_violations(cmd)
+        check(
+            f"`{cmd[:28]}`: autoclose check {'on' if closes else 'off'}",
+            any("Closes:" in v for v in found) is closes,
+            f"got {found!r}",
+        )
+    subject = "S" * 60
+    signed = f"git commit -F - <<'EOF'\n{subject}\nEOF\ngh -R o/r pr create --title T --body B"
+    found = bash_violations(signed)
+    check("gh -R in the command keeps the heredoc length checks off", found == [], f"got {found!r}")
+
+
+def test_code_and_data_heredocs() -> None:
+    section("extract_bash_content: code and data heredocs are not messages")
+    code = (
+        "import json, sys\n"
+        f"files = json.load(sys.stdin)  # every changed path {EM} sorted by name\n"
+        "print(files)\n"
+    )
+    for name, owner in (
+        ("uv run python -", "uv run python -"),
+        ("uv run with a flag", "uv run --frozen python -"),
+        ("python3.12 -", "python3.12 -"),
+        ("/usr/bin/env python3", "/usr/bin/env python3"),
+        ("/usr/bin/python3", "/usr/bin/python3 -"),
+        ("an assignment first", "PYTHONPATH=. python3 -"),
+        ("two assignments first", "A=1 B=2 python3 -"),
+        ("time with a flag", "time -p python3 -"),
+    ):
+        cmd = f"git commit -m 'Add the report' && {owner} <<'PY'\n{code}PY"
+        found = bash_violations(cmd)
+        check(f"{name}: code not linted", found == [], f"got {found!r}")
+    kept = f"git commit -m 'Add it' && uv pip python3 <<'EOF'\n{code}EOF"
+    check("uv without run is not a wrapper", em_dash_flagged(kept), "not flagged")
+
+    script = f"echo 'step {EM} one'\ngit commit -m 'Add the report'\n"
+    for name, owner in (
+        ("bash", "bash"),
+        ("sh -s with an argument", "sh -s x"),
+        ("bash with a redirect", "bash > out.log"),
+    ):
+        cmd = f"{owner} <<'EOF'\n{script}EOF"
+        check(f"{name}: script not linted", bash_violations(cmd) == [], f"got {bash_violations(cmd)!r}")
+        fields = lo.extract_bash_content(cmd)
+        check(
+            f"{name}: the commit in the script is read",
+            fields == [("arg -m", "Add the report", True, False, True)],
+            f"got {fields!r}",
+        )
+    bad = f"bash <<'EOF'\ngit commit -m 'Fix the lock {EM} again'\nEOF"
+    check("bash: a message in the script is still linted", em_dash_flagged(bad), "not flagged")
+    data = f"bash run.sh <<'EOF'\nstep {EM} one\nEOF\ngit commit -m 'Run it'"
+    check("bash run.sh: the script's input stays a payload", em_dash_flagged(data), "not flagged")
+
+    query = (
+        '{"query": "query { repository(owner: \\"o\\", name: \\"r\\") { id } }",\n'
+        ' "variables": {"first": 100, "after": null, "states": ["OPEN"]}}\n'
+    )
+    gql = f"gh api graphql --input - <<'EOF'\n{query}EOF"
+    check("gh api --input - JSON: no hard wrap", bash_violations(gql) == [], f"got {bash_violations(gql)!r}")
+    comment = (
+        "gh api repos/o/r/issues/1/comments --input - <<'EOF'\n"
+        f'{{"body": "Fixed {EM} thanks."}}\nEOF'
+    )
+    found = bash_violations(comment)
+    check(
+        "gh api --input - JSON: the body is still linted",
+        any("em dash" in v and "body" in v for v in found),
+        f"got {found!r}",
+    )
+    one_char = f"gh api graphql --input - <<'EOF'\n[\"{EM}\"]\nEOF"
+    check("gh api --input - JSON: a one-character string is linted", em_dash_flagged(one_char), "not flagged")
+    numbers = (
+        "gh api graphql --input - <<'EOF'\n"
+        '{"first": 100, "last": 100, "after": null, "before": null, "count": 12345,\n'
+        ' "depth": 1}\nEOF'
+    )
+    check("gh api --input - JSON without strings: no hard wrap", bash_violations(numbers) == [], f"got {bash_violations(numbers)!r}")
+    for name, cmd in (
+        ("not JSON", f"gh api graphql --input - <<'EOF'\n[{query}EOF"),
+        ("another program's --input -", f"gh pr view 1; curl --input - <<'EOF'\n{query}EOF"),
+        ("gh api without --input -", f"gh api graphql -F query=@- <<'EOF'\n{query}EOF"),
+        ("gh api --input file", f"gh api graphql --input q.json <<'EOF'\n{query}EOF"),
+    ):
+        found = bash_violations(cmd)
+        check(
+            f"{name}: linted as text as before",
+            any("hard-wrapped" in v for v in found),
+            f"got {found!r}",
+        )
+
+    def heredocs(cmd: str) -> list[str]:
+        return [f[1] for f in lo.extract_bash_content(cmd) if "heredoc" in f[0]]
+
+    notes = "- Rebased the branch onto main and reran the full suite after the conflict\n"
+    tee = f"tee -a notes/x.md >/dev/null <<'EOF'\n{notes}EOF\ngit commit -m 'Update notes'"
+    check("tee into a file: not the message", heredocs(tee) == [], f"got {heredocs(tee)!r}")
+    bare = f"tee -a notes/x.md <<'EOF'\n{notes}EOF\ngit commit -m 'Update notes'"
+    check("tee into a file, no redirect: not the message", heredocs(bare) == [], f"got {heredocs(bare)!r}")
+    msg = "<<'MSG'\nAdd the lint workflow\nMSG\n"
+    for name, cmd in (
+        ("its file read back", f"tee /tmp/unit-msg.txt {msg}git commit -F /tmp/unit-msg.txt"),
+        ("one of two files read back", f"tee -a a.md /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        ("its stdout file read back", f"tee a.md > /tmp/unit-msg.txt {msg}git commit -F unit-msg.txt"),
+        ("variable target, a file read back", f"tee $f {msg}git commit -F m.txt"),
+        ("no file", f"tee {msg}git commit -m x"),
+    ):
+        check(f"tee, {name}: stays a payload", heredocs(cmd) == ["Add the lint workflow"], f"got {heredocs(cmd)!r}")
+
+
+def test_multiple_m_flags() -> None:
+    section("extract_bash_content: the -m flags of a commit form one message")
+    subject = "Add a really long subject line that keeps going well past fifty"
+    found = bash_violations(f'git commit -m "{subject}" -m "Body."')
+    check(
+        "a long first -m is flagged as the subject",
+        any("commit subject is 63 chars" in v for v in found),
+        f"got {found!r}",
+    )
+    paragraph = ("word " * 40).strip()
+    found = bash_violations(f'git commit -m "Short subject" -m "{paragraph}"')
+    check(
+        "a long later -m is flagged as a body line",
+        any("commit body line is 199 chars" in v for v in found),
+        f"got {found!r}",
+    )
+    clean = 'git commit -m "Short subject" --message "Body paragraph."'
+    check("a clean message passes", bash_violations(clean) == [], f"got {bash_violations(clean)!r}")
+    fields = lo.extract_bash_content(clean)
+    check(
+        "one field, joined the way git joins it",
+        fields == [("arg -m", "Short subject\n\nBody paragraph.", True, False, True)],
+        f"got {fields!r}",
+    )
+    two = lo.extract_bash_content('git commit -m "First" && git commit --amend -m "Second"')
+    check(
+        "each commit is its own message",
+        [(f[1], f[4]) for f in two] == [("First", True), ("Second", True)],
+        f"got {two!r}",
+    )
+    mixed = lo.extract_bash_content(
+        'git commit -m "Fix the gate" && gh pr create --title T -m "Q4"'
+    )
+    check(
+        "gh's -m (a milestone) is not part of the commit message",
+        [(f[1], f[2], f[4]) for f in mixed if f[0] == "arg -m"]
+        == [("Fix the gate", True, True), ("Q4", True, False)],
+        f"got {mixed!r}",
+    )
+    found = bash_violations('git commit -m "$subject" -m "Body."')
+    check(
+        "a variable -m among several is still blocked",
+        any("bare shell-variable" in v for v in found),
+        f"got {found!r}",
+    )
+    found = bash_violations('git commit -m "$msg"')
+    check("a sole variable -m is blocked once", len(found) == 1, f"got {found!r}")
+
+
+def test_body_file_path_is_not_the_body() -> None:
+    section("extract_bash_content: a --body-file path is not the body")
+    for quote in ('"', "'", ""):
+        cmd = f"gh pr create --title T --body-file {quote}/Users/nobody/w/pr-1.md{quote}"
+        found = bash_violations(cmd)
+        check(f"quote {quote or 'none'}: path not linted", found == [], f"got {found!r}")
+    found = bash_violations('gh pr create --title T --body-file "$f"')
+    check(
+        "a quoted variable is still blocked as a bypass",
+        any("bare shell-variable" in v for v in found),
+        f"got {found!r}",
+    )
+    found = bash_violations("gh pr create --title T --body-file $f")
+    check("an unquoted variable passes as before", found == [], f"got {found!r}")
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -940,6 +1236,10 @@ TESTS = [
     test_linear_mirror_paths_skip_lint,
     test_archive_cleanup_false_positives,
     test_wrapped_code_span,
+    test_short_combined_and_owned_flags,
+    test_code_and_data_heredocs,
+    test_multiple_m_flags,
+    test_body_file_path_is_not_the_body,
 ]
 
 

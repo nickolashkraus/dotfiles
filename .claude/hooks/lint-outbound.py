@@ -862,8 +862,14 @@ CAT_HEREDOC_SUBST_RE = re.compile(
     r"\$\(\s*cat\s*<<[-]?\s*['\"]?(\w+)['\"]?\s*\n.*?\n\s*\1\b\s*\)",
     re.DOTALL,
 )
+# A quoted message, body or title. `-am` and `-qm` are `git commit` flags
+# combined with `-m`; only flags that take no value combine this way, so `-Sm`
+# (a signing key named `m`) is not a message. `-b` and `-t` are gh's short
+# `--body` and `--title`. Both short forms count only under the command that
+# gives them that meaning (see `flag_kind`). A `--body-file` value is a path
+# and is read separately.
 FLAG_VALUE_RE = re.compile(
-    r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
+    r"(?:^|\s)(--?(?:m|message|body|title)|-[apsneioqvz]+m|-[bt])[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
 # `gh api` uses `-f field=value` / `-F field=value` / `--field field=value`
@@ -900,6 +906,16 @@ CODE_INTERPRETERS = frozenset(
         "awk",
     }
 )
+# A heredoc fed to a shell (`bash <<'EOF'`) is a script: the messages in it
+# are found by reading it as a command of its own, not by linting it as prose.
+SHELLS = frozenset({"bash", "dash", "ksh", "sh", "zsh"})
+# Programs that run the command after them (`env FOO=1 python3`, `time -p
+# python3`, `uv run python`), skipped when finding what reads a heredoc.
+COMMAND_WRAPPERS = frozenset(
+    {"command", "env", "exec", "nice", "nohup", "sudo", "time"}
+)
+COMMAND_RUNNERS = frozenset({"hatch", "pdm", "pipenv", "poetry", "rye", "uv"})
+REDIRECT_RE = re.compile(r"\d*(?:<|>>?)&?\s*[^\s;|&<>()]*")
 
 
 # Heredocs that are stdin for a loop or a text filter (`done <<'EOF'`,
@@ -927,30 +943,71 @@ DATA_CONSUMERS = frozenset(
 )
 
 
-def heredoc_feeds_data_consumer(command: str, heredoc_start: int) -> bool:
-    """True when the command word owning the heredoc at `heredoc_start`
-    is a loop terminator or a text filter."""
-    prefix = command[:heredoc_start]
-    segment = re.split(r"[|;&\n]|\$\(", prefix)[-1].strip()
+def heredoc_command(command: str, heredoc_start: int) -> list[str]:
+    """Words of the simple command that reads the heredoc at `heredoc_start`,
+    from its program on. Leading variable assignments and wrappers such as
+    `env`, `time` or `uv run`, with their flags, are skipped."""
+    segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
     words = segment.split()
-    first = os.path.basename(words[0]) if words else ""
-    return first in DATA_CONSUMERS
+    while words:
+        if re.fullmatch(r"\w+=\S*", words[0]):
+            words = words[1:]
+            continue
+        if os.path.basename(words[0]) in COMMAND_WRAPPERS:
+            words = words[1:]
+        elif words[0] in COMMAND_RUNNERS and words[1:2] == ["run"]:
+            words = words[2:]
+        else:
+            break
+        while words and words[0].startswith("-"):
+            words = words[1:]
+    return words
+
+
+def heredoc_program(command: str, heredoc_start: int) -> str:
+    """Base name of the program that reads the heredoc at `heredoc_start`."""
+    words = heredoc_command(command, heredoc_start)
+    return os.path.basename(words[0]) if words else ""
+
+
+def heredoc_args(command: str, heredoc_start: int) -> list[str]:
+    """Arguments of the program that reads the heredoc at `heredoc_start`,
+    without redirections such as `>/dev/null`."""
+    words = heredoc_command(command, heredoc_start)[1:]
+    return REDIRECT_RE.sub(" ", " ".join(words)).split()
+
+
+def heredoc_feeds_data_consumer(command: str, heredoc_start: int) -> bool:
+    """True when the program reading the heredoc at `heredoc_start` is
+    a loop terminator or a text filter."""
+    return heredoc_program(command, heredoc_start) in DATA_CONSUMERS
 
 
 def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
-    """True when the command word owning the heredoc at `heredoc_start`
-    is a code interpreter."""
-    prefix = command[:heredoc_start]
-    segment = re.split(r"[|;&\n]|\$\(", prefix)[-1].strip()
-    words = segment.split()
-    first = os.path.basename(words[0]) if words else ""
-    return first in CODE_INTERPRETERS
+    """True when the program reading the heredoc at `heredoc_start` is
+    a code interpreter, versioned (`python3.12`) or not."""
+    program = heredoc_program(command, heredoc_start)
+    return (
+        program in CODE_INTERPRETERS
+        or program.rstrip("0123456789.") in CODE_INTERPRETERS
+    )
 
 
-# A `cat` heredoc redirected into a file (`cat > lint.yml <<'EOF'`) is that
-# file's content, not outbound prose, unless the same command reads the file
-# back as a message (`git commit -F`, `--body-file`, `--input`, `body=@file`,
-# `< file`, `$(cat file)`).
+def heredoc_feeds_shell(command: str, heredoc_start: int) -> bool:
+    """True when the heredoc at `heredoc_start` is the script a shell runs
+    (`bash <<'EOF'`, `sh -s x <<'EOF'`), not the input of a script named on
+    the command line (`bash run.sh <<'EOF'`)."""
+    if heredoc_program(command, heredoc_start) not in SHELLS:
+        return False
+    args = heredoc_args(command, heredoc_start)
+    return "-s" in args or all(arg.startswith("-") for arg in args)
+
+
+# A `cat` heredoc redirected into a file (`cat > lint.yml <<'EOF'`), or a
+# `tee` heredoc (`tee -a notes.md <<'EOF'`), is that file's content, not
+# outbound prose, unless the same command reads the file back as a message
+# (`git commit -F`, `--body-file`, `--input`, `body=@file`, `< file`,
+# `$(cat file)`).
 HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
 FILE_READER_RE = re.compile(
     r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file|--input)[=\s]+"
@@ -966,31 +1023,55 @@ def file_name(token: str) -> str:
 
 def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     """True when the heredoc at `heredoc_start` is `cat` output redirected
-    into a file that nothing else in the command reads back. Files compare
-    by base name. A name held in a variable cannot be compared, so when the
-    command reads any file back the heredoc stays a payload."""
+    into a file, or `tee` input written to files, that nothing else in the
+    command reads back. Files compare by base name. A name held in
+    a variable cannot be compared, so when the command reads any file back
+    the heredoc stays a payload."""
+    program = heredoc_program(command, heredoc_start)
+    if program not in ("cat", "tee"):
+        return False
     segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
-    words = segment.split()
-    if not words or words[0] != "cat":
+    names = [file_name(t) for t in HEREDOC_REDIRECT_RE.findall(segment)]
+    if program == "tee":
+        names += map(file_name, heredoc_args(command, heredoc_start))
+    if not names:
         return False
-    target = HEREDOC_REDIRECT_RE.search(segment)
-    if target is None:
-        return False
-    name = file_name(target.group(1))
     found = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
     readers = [r for r in map(file_name, found) if r != "-"]
-    opaque = any("$" in n or "`" in n for n in [name, *readers])
-    return name not in readers and not (opaque and readers)
+    opaque = any("$" in n or "`" in n for n in [*names, *readers])
+    return not any(n in readers for n in names) and not (opaque and readers)
 
 
-# `gh ... --body-file <path>` and `git commit -F|--file <path>` point the
-# command at a file rather than carrying the body inline. The Write call
-# that created the file is linted only when it has a Markdown extension,
-# so non-`.md` bodies (like `/tmp/commit-msg.txt`) bypass the lint
-# entirely. Read the file contents at hook-eval time so the body is
-# always inspected regardless of file extension.
-BODY_FILE_FLAG_RE = re.compile(r"(?:^|\s)--body-file[=\s]+(\S+)")
-COMMIT_FILE_FLAG_RE = re.compile(r"(?:^|\s)(?:-F|--file)[=\s]+(\S+)")
+# `gh ... --body-file <path>`, `gh pr create -F <path>` and `git commit
+# -F|--file <path>` point the command at a file rather than carrying the body
+# inline. The Write call that created the file is linted only when it has
+# a Markdown extension, so non-`.md` bodies (like `/tmp/commit-msg.txt`)
+# bypass the lint entirely. Read the file contents at hook-eval time so the
+# body is always inspected regardless of file extension. `-F` means
+# a different thing under each command (see `extract_bash_content`).
+PATH_TOKEN = r"(\"[^\"]*\"|'[^']*'|[^\s;|&<>()]+)"
+BODY_FILE_FLAG_RE = re.compile(rf"(?:^|\s)--body-file[=\s]+{PATH_TOKEN}")
+FILE_FLAG_RE = re.compile(rf"(?:^|\s)(?:--file|-[apsneioqvz]*F)[=\s]+{PATH_TOKEN}")
+# `-m "$(cat body.md)"` sends the file's text as the value.
+CAT_FILE_SUBST_RE = re.compile(rf"\$\(\s*(?:cat\s+|<\s*){PATH_TOKEN}\s*\)")
+
+
+def read_file(token: str) -> str:
+    """Text of the file a path token names, or an empty string when it
+    cannot be read."""
+    try:
+        return Path(os.path.expanduser(token.strip("'\""))).read_text()
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+def resolve_value(value: str) -> str:
+    """`value` with a whole-value `$(cat <file>)` replaced by the file's text,
+    as the shell would pass it. Unchanged when the file cannot be read."""
+    m = CAT_FILE_SUBST_RE.fullmatch(value)
+    text = read_file(m.group(1)) if m else ""
+    return text.rstrip("\n") if text else value
+
 
 # Git accepts global options between `git` and the subcommand, so
 # `git -c core.hooksPath=/dev/null commit` is a commit that a bare
@@ -1012,9 +1093,87 @@ GIT_GLOBAL_OPT = (
 )
 # `(?![-\w])` keeps `git commit-graph` from reading as a commit.
 GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])")
-OUTBOUND_COMMAND_RE = re.compile(
-    rf"{GIT_COMMIT_RE.pattern}|\bgh\s+(?:pr|issue)\s+\w+|\bgh\s+api\b"
+# gh accepts `-R`/`--repo` before its subcommand and between `pr` and the
+# subcommand (`gh -R o/r pr create`, `gh pr -R o/r comment 12`).
+GH_OPT = r"(?:-R|--repo)(?:=|\s+)\S+"
+GH_PREFIX = rf"\bgh(?:\s+(?:{GH_OPT}))*\s+"
+GH_COMMAND_RE = re.compile(
+    rf"{GH_PREFIX}(?:(pr|issue)(?:\s+(?:{GH_OPT}))*\s+(\w+)|api\b)"
 )
+# The `gh pr` and `gh issue` subcommands whose `-b`, `-t` and `-F` are a body,
+# a title and a body file. Elsewhere they mean other things (`gh pr checkout
+# -b` is a branch).
+GH_TEXT_SUBCOMMANDS = frozenset({"comment", "create", "edit", "merge", "review"})
+OUTBOUND_COMMAND_RE = re.compile(rf"{GIT_COMMIT_RE.pattern}|{GH_COMMAND_RE.pattern}")
+QUOTED_RE = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'[^']*'")
+# What ends a simple command. The `&` of a redirection such as `2>&1` does not.
+SEPARATOR_RE = re.compile(r"[;|\n]|(?<![<>])&")
+
+
+def command_owners(command: str) -> list[tuple[int, int, int, str]]:
+    """Start, end, end of its simple command, and kind of every `git commit`
+    and `gh` command in `command`, in order. The kind is `commit`, `gh-text`
+    (a subcommand in `GH_TEXT_SUBCOMMANDS`) or `gh`."""
+    masked = QUOTED_RE.sub(
+        lambda m: " " * len(m.group(0)), command.replace("\\\n", "  ")
+    )
+    found = [(m.start(), m.end(), "commit") for m in GIT_COMMIT_RE.finditer(command)]
+    for m in GH_COMMAND_RE.finditer(command):
+        kind = "gh-text" if m.group(2) in GH_TEXT_SUBCOMMANDS else "gh"
+        found.append((m.start(), m.end(), kind))
+    owners = []
+    for start, end, kind in sorted(found):
+        stop = SEPARATOR_RE.search(masked, end)
+        owners.append((start, end, stop.start() if stop else len(command), kind))
+    return owners
+
+
+def flag_owner(
+    owners: list[tuple[int, int, int, str]], flag_start: int
+) -> tuple[int, str]:
+    """Start and kind of the command whose flag starts at `flag_start`, or
+    `(-1, "")` when no `git commit` or `gh` command precedes it in the same
+    simple command."""
+    for start, end, stop, kind in reversed(owners):
+        if end <= flag_start:
+            return (start, kind) if flag_start < stop else (-1, "")
+    return -1, ""
+
+
+def flag_kind(flag: str, owner: str) -> str:
+    """What a `FLAG_VALUE_RE` value is under the command that owns it:
+    `message`, `body`, `title`, or an empty string when that command gives
+    the flag another meaning (`git commit -t` names a template)."""
+    name = flag.lstrip("-")
+    if name in ("m", "message"):
+        return "message"
+    if name in ("body", "title"):
+        return name
+    if owner == "commit" and name.endswith("m"):
+        return "message"
+    if owner == "gh-text":
+        return {"b": "body", "t": "title"}.get(name, "")
+    return ""
+
+
+def heredoc_feeds_gh_input(command: str, heredoc_start: int) -> bool:
+    """True when the heredoc at `heredoc_start` is the request body that
+    `gh api --input -` reads."""
+    segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
+    return bool(
+        re.search(r"\bgh\s+api\b", segment)
+        and re.search(r"(?:^|\s)--input[=\s]+-", segment)
+    )
+
+
+def json_strings(text: str) -> list[tuple[str, str]] | None:
+    """(path, value) for every string in `text` read as JSON, or None when
+    `text` is not JSON."""
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return None
+    return list(walk_strings(data))
 
 
 def extract_bash_content(
@@ -1028,14 +1187,18 @@ def extract_bash_content(
     `is_pr_body` enables the `Closes:`/`Fixes:`/`Resolves:` check (PR
     bodies only per rules/git.md); `is_full_commit` enables the
     deterministic subject-length and body-wrap checks, so it is set only
-    when the field is unambiguously an entire commit message.
+    when the field is unambiguously an entire commit message. The `-m`
+    values of one commit form one field, joined the way git joins them.
     """
     if not OUTBOUND_COMMAND_RE.search(command):
         return []
 
     is_commit = bool(GIT_COMMIT_RE.search(command))
-    has_gh = bool(re.search(r"\bgh\s+(pr|issue|api)\b", command))
-    is_pr_body = bool(re.search(r"\bgh\s+pr\s+(create|edit)\b", command))
+    has_gh = bool(re.search(rf"{GH_PREFIX}(?:pr|issue|api)\b", command))
+    is_pr_body = any(
+        m.group(1) == "pr" and m.group(2) in ("create", "edit")
+        for m in GH_COMMAND_RE.finditer(command)
+    )
     fields: list[tuple[str, str, bool, bool, bool]] = []
 
     # A heredoc in a commit-only command is the whole commit message. In
@@ -1044,41 +1207,61 @@ def extract_bash_content(
     # subject rule against a PR body.
     heredoc_is_commit = is_commit and not has_gh
     for m in HEREDOC_RE.finditer(command):
+        if heredoc_feeds_shell(command, m.start()):
+            fields.extend(extract_bash_content(m.group(2)))
+            continue
         if heredoc_feeds_interpreter(command, m.start()):
             continue
         if heredoc_feeds_data_consumer(command, m.start()):
             continue
         if heredoc_writes_other_file(command, m.start()):
             continue
-        fields.append(
-            (
-                f"heredoc<{m.group(1)}>",
-                m.group(2),
-                is_commit,
-                is_pr_body,
-                heredoc_is_commit,
+        label = f"heredoc<{m.group(1)}>"
+        # A JSON request body is linted one string at a time, so its syntax
+        # is never read as wrapped prose.
+        strings = None
+        if heredoc_feeds_gh_input(command, m.start()):
+            strings = json_strings(m.group(2))
+        if strings is not None:
+            fields.extend(
+                (f"{label} {path}", text, is_commit, is_pr_body, False)
+                for path, text in strings
             )
-        )
+            continue
+        fields.append((label, m.group(2), is_commit, is_pr_body, heredoc_is_commit))
 
     redacted = HEREDOC_RE.sub("", CAT_HEREDOC_SUBST_RE.sub("", command))
-    message_flags = [
-        m for m in FLAG_VALUE_RE.finditer(redacted) if m.group(2) in ("m", "message")
-    ]
+    owners = command_owners(redacted)
+    flags: list[tuple[str, str, str, int]] = []
     for m in FLAG_VALUE_RE.finditer(redacted):
-        flag = f"{m.group(1)}{m.group(2)}"
-        value = m.group(4) if m.group(4) is not None else m.group(5)
-        if value:
-            # Label each flag by the command that owns it: -m/--message
-            # are commit flags; --body/--title/--body-file belong to gh.
-            # The body of a PR is what carries the autoclose keywords;
-            # the title is too short to bother filtering, but applying
-            # the check there is also harmless.
-            field_is_commit = is_commit and m.group(2) in ("m", "message")
-            is_body = is_pr_body and m.group(2) in ("body", "body-file")
-            # A sole -m is the entire commit message (subject only);
-            # with multiple -m flags, later ones are body paragraphs.
-            is_full = field_is_commit and len(message_flags) == 1
-            fields.append((f"arg {flag}", value, field_is_commit, is_body, is_full))
+        start, owner = flag_owner(owners, m.start())
+        kind = flag_kind(m.group(1), owner)
+        value = resolve_value(m.group(3) if m.group(3) is not None else m.group(4))
+        if kind and value:
+            commit = start if kind == "message" and owner == "commit" else -1
+            flags.append((m.group(1), value, kind, commit))
+    messages: dict[int, list[tuple[str, str]]] = {}
+    for flag, value, _, commit in flags:
+        if commit != -1:
+            messages.setdefault(commit, []).append((flag, value))
+    for flag, value, kind, commit in flags:
+        if commit == -1:
+            # The body of a PR is what carries the autoclose keywords; the
+            # title is too short to bother filtering, but applying the check
+            # there is also harmless.
+            is_message = is_commit and kind == "message"
+            is_body = is_pr_body and kind == "body"
+            fields.append((f"arg {flag}", value, is_message, is_body, False))
+            continue
+        # Git joins the `-m` values of one commit as paragraphs: the first is
+        # the subject and each later one a body paragraph. A variable among
+        # them hides the message, so the values stay apart to be blocked.
+        parts = messages.pop(commit, [])
+        if any(is_bypass_value(part) for _, part in parts):
+            fields.extend((f"arg {f}", part, True, False, False) for f, part in parts)
+        elif parts:
+            text = "\n\n".join(part for _, part in parts)
+            fields.append((f"arg {flag}", text, True, False, True))
     for m in GH_API_FIELD_RE.finditer(redacted):
         flag = f"-f {m.group(1)}"
         value = m.group(3) if m.group(3) is not None else m.group(4)
@@ -1107,31 +1290,35 @@ def extract_bash_content(
             )
 
     # `gh ... --body-file <path>` (any gh subcommand). Read the file so
-    # the body is linted regardless of its extension. Silent on OSError
-    # so a missing path does not block the command (gh itself will
-    # surface the file-not-found error at execution time).
+    # the body is linted regardless of its extension. Silent when the file
+    # cannot be read so a missing path does not block the command (gh itself
+    # will surface the file-not-found error at execution time). A quoted
+    # variable hides the body, so it is blocked like a variable `--body`.
     for m in BODY_FILE_FLAG_RE.finditer(redacted):
         path = m.group(1).strip("'\"")
-        try:
-            text = Path(os.path.expanduser(path)).read_text()
-            if text:
-                fields.append(
-                    (f"arg --body-file {path}", text, False, is_pr_body, False)
-                )
-        except OSError:
-            pass
+        if path != m.group(1) and BARE_VAR_RE.match(path):
+            fields.append(("arg --body-file", path, False, is_pr_body, False))
+            continue
+        text = read_file(path)
+        if text:
+            fields.append((f"arg --body-file {path}", text, False, is_pr_body, False))
 
-    # `git commit -F|--file <path>`. Scoped to git commit because `-F`
-    # collides with `gh api -F field=value`.
-    if is_commit:
-        for m in COMMIT_FILE_FLAG_RE.finditer(redacted):
-            path = m.group(1).strip("'\"")
-            try:
-                text = Path(os.path.expanduser(path)).read_text()
-                if text:
-                    fields.append((f"arg -F {path}", text, True, False, True))
-            except OSError:
-                pass
+    # `-F` is the message file under `git commit` and the body file under gh's
+    # text subcommands, but a field under `gh api`. An `-F` that no command
+    # owns is read as the commit message whenever the command commits.
+    for m in FILE_FLAG_RE.finditer(redacted):
+        path = m.group(1).strip("'\"")
+        _, owner = flag_owner(owners, m.start())
+        if owner == "gh-text":
+            is_message = False
+        elif owner == "commit" or (not owner and is_commit):
+            is_message = True
+        else:
+            continue
+        text = read_file(path)
+        if text:
+            is_body = is_pr_body and not is_message
+            fields.append((f"arg -F {path}", text, is_message, is_body, is_message))
 
     return fields
 
