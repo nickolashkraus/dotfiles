@@ -101,7 +101,18 @@ GH_WRITES = {
 
 # Every path argument is written.
 FILE_WRITERS = frozenset(
-    {"chmod", "chown", "mv", "rm", "rmdir", "shred", "tee", "touch", "truncate", "unlink"}
+    {
+        "chmod",
+        "chown",
+        "mv",
+        "rm",
+        "rmdir",
+        "shred",
+        "tee",
+        "touch",
+        "truncate",
+        "unlink",
+    }
 )
 # Only the destination, the last path argument, is written.
 DEST_WRITERS = frozenset({"cp", "install", "ln", "rsync"})
@@ -120,7 +131,9 @@ IN_PLACE_FLAG = {
 
 SHELLS = frozenset({"bash", "dash", "sh", "zsh"})
 FIX_SCRIPT_RE = re.compile(r"fmt|format|fix")
-CHECK_FLAGS = frozenset({"--check", "--diff", "--check-only", "-check", "-diff", "-write=false"})
+CHECK_FLAGS = frozenset(
+    {"--check", "--diff", "--check-only", "-check", "-diff", "-write=false"}
+)
 
 DELETE_COMMANDS = frozenset({"mv", "rm", "rmdir", "shred", "unlink"})
 INTERPRETER_RE = re.compile(r"(?:python|pypy)[\d.]*|perl|ruby|node|php|osascript")
@@ -227,7 +240,9 @@ def resolve(token: str, state: State, base: Path | None = None) -> Path | None:
     return Path(os.path.normpath((base or state.cur) / expanded))
 
 
-def drop_flags(words: list[str], value_flags: frozenset[str] = frozenset()) -> list[str]:
+def drop_flags(
+    words: list[str], value_flags: frozenset[str] = frozenset()
+) -> list[str]:
     i = 0
     while i < len(words) and words[i].startswith("-") and words[i] != "-":
         i += 2 if words[i] in value_flags else 1
@@ -239,7 +254,15 @@ def unwrap(words: list[str]) -> list[str]:
     while words:
         name = os.path.basename(words[0])
         nxt = words[1:2]
-        if name in ("builtin", "caffeinate", "command", "exec", "nice", "nohup", "time"):
+        if name in (
+            "builtin",
+            "caffeinate",
+            "command",
+            "exec",
+            "nice",
+            "nohup",
+            "time",
+        ):
             words = drop_flags(words[1:])
         elif name == "sudo":
             words = drop_flags(words[1:], frozenset({"-u", "-g"}))
@@ -251,14 +274,20 @@ def unwrap(words: list[str]) -> list[str]:
             words = drop_flags(words[1:], frozenset({"-s", "-k"}))[1:]
         elif name == "xargs":
             words = drop_flags(
-                words[1:], frozenset({"-I", "-J", "-L", "-n", "-P", "-R", "-d", "-E", "-s"})
+                words[1:],
+                frozenset({"-I", "-J", "-L", "-n", "-P", "-R", "-d", "-E", "-s"}),
             )
-        elif name in ("hatch", "pdm", "pipenv", "poetry", "rye", "uv") and nxt == ["run"]:
+        elif name in ("hatch", "pdm", "pipenv", "poetry", "rye", "uv") and nxt == [
+            "run"
+        ]:
             words = drop_flags(
-                words[2:], frozenset({"--with", "--python", "-p", "--env-file", "--group"})
+                words[2:],
+                frozenset({"--with", "--python", "-p", "--env-file", "--group"}),
             )
         elif name in ("bunx", "npx", "uvx"):
-            words = drop_flags(words[1:], frozenset({"--from", "--with", "--package", "-p"}))
+            words = drop_flags(
+                words[1:], frozenset({"--from", "--with", "--package", "-p"})
+            )
         elif name == "pipx" and nxt == ["run"]:
             words = drop_flags(words[2:])
         elif name in ("pnpm", "yarn") and nxt in (["exec"], ["dlx"]):
@@ -319,7 +348,10 @@ def is_git_write(sub: str, rest: list[str]) -> bool:
     if sub == "branch":
         return any(
             a.startswith(GIT_BRANCH_WRITE_OPTIONS)
-            or (re.fullmatch(r"-[a-zA-Z]+", a) is not None and bool(set(a[1:]) & GIT_BRANCH_WRITE_FLAGS))
+            or (
+                re.fullmatch(r"-[a-zA-Z]+", a) is not None
+                and bool(set(a[1:]) & GIT_BRANCH_WRITE_FLAGS)
+            )
             for a in rest
         )
     if sub == "symbolic-ref":
@@ -362,7 +394,11 @@ def formatter(name: str, args: list[str]) -> str | None:
         return f"`{name}`"
     if name == "isort" and not flags & (CHECK_FLAGS | {"-c"}):
         return "`isort`"
-    if name in ("cargo", "terraform", "tofu") and sub == "fmt" and not flags & CHECK_FLAGS:
+    if (
+        name in ("cargo", "terraform", "tofu")
+        and sub == "fmt"
+        and not flags & CHECK_FLAGS
+    ):
         return f"`{name} fmt`"
     if name == "prettier" and flags & {"--write", "-w"}:
         return "`prettier --write`"
@@ -406,7 +442,9 @@ def scan_words(
                 state.env[key] = expand(value, state)
         return []
     if name in SHELLS:
-        c = next((i for i, a in enumerate(args) if re.fullmatch(r"-[a-zA-Z]*c", a)), None)
+        c = next(
+            (i for i, a in enumerate(args) if re.fullmatch(r"-[a-zA-Z]*c", a)), None
+        )
         if c is not None and c + 1 < len(args):
             return scan_command(args[c + 1], state.fork(), depth + 1)
         if stdin_body is not None:
@@ -438,7 +476,10 @@ def scan_words(
                 inner = args[args.index(flag) + 1 :]
                 if "+" in inner:
                     inner = inner[: inner.index("+")]
-                if selects_flag and os.path.basename((unwrap(inner) or [""])[0]) in DELETE_COMMANDS:
+                if (
+                    selects_flag
+                    and os.path.basename((unwrap(inner) or [""])[0]) in DELETE_COMMANDS
+                ):
                     intents.append((FLAG_REASON, None))
                 start = starts[0] if starts else "."
                 inner = [start if w == "{}" else w for w in inner]
@@ -449,7 +490,9 @@ def scan_words(
         if name in ("chmod", "chown"):
             targets = targets[1:]
         flag = flag_intents(targets, state) if name in DELETE_COMMANDS else []
-        return flag + [(f"`{name}` on {t}", p) for t in targets if (p := resolve(t, state))]
+        return flag + [
+            (f"`{name}` on {t}", p) for t in targets if (p := resolve(t, state))
+        ]
     if name in DEST_WRITERS:
         targets = path_args(name, args)[-1:]
         return [(f"`{name}` into {t}", p) for t in targets if (p := resolve(t, state))]
@@ -458,14 +501,20 @@ def scan_words(
         return [(f"`dd` into {t}", p) for t in outs if (p := resolve(t, state))]
     if INTERPRETER_RE.fullmatch(name):
         code = [*args, stdin_body or ""]
-        if any(FLAG_NAME in c for c in code) and any(INTERP_DELETE_RE.search(c) for c in code):
+        if any(FLAG_NAME in c for c in code) and any(
+            INTERP_DELETE_RE.search(c) for c in code
+        ):
             return [(FLAG_REASON, None)]
     if name in IN_PLACE_FLAG and any(IN_PLACE_FLAG[name].match(a) for a in args):
         files = [p for a in args if (p := resolve(a, state)) and p.is_file()]
         return [(f"`{name} -i` on {p.name}", p) for p in files]
     reason = formatter(name, args)
     if reason:
-        paths = [p for a in args if not a.startswith("-") and (p := resolve(a, state)) and p.exists()]
+        paths = [
+            p
+            for a in args
+            if not a.startswith("-") and (p := resolve(a, state)) and p.exists()
+        ]
         return [(reason, p) for p in paths or [state.cur]]
     return []
 
@@ -520,7 +569,9 @@ def scan_command(cmd: str, state: State, depth: int = 0) -> list[Intent]:
         return f"<< {key}{m.group(3)}\n"
 
     cmd = HEREDOC_RE.sub(set_aside, cmd)
-    intents: list[Intent] = [(FLAG_REASON, None)] if SUBST_FLAG_DELETE_RE.search(cmd) else []
+    intents: list[Intent] = (
+        [(FLAG_REASON, None)] if SUBST_FLAG_DELETE_RE.search(cmd) else []
+    )
     cmd = cmd.replace("\\\n", " ").replace("`", " ( ")
     lexer = shlex.shlex(cmd, posix=True, punctuation_chars=PUNCTUATION)
     lexer.whitespace = " \t\r"

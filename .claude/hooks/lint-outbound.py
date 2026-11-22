@@ -251,17 +251,20 @@ def autofix_label_colon_line(raw: str) -> str | None:
     false positives are touched; the ambiguous lowercase-tail plain label is
     left for the semantic check. An identifier after the colon is left
     unfixed so the block asks for backticks instead."""
-    for fix_re in (LOWERCASE_AFTER_BOLD_COLON_FIX_RE, LOWERCASE_AFTER_LINK_COLON_FIX_RE):
+    for fix_re in (
+        LOWERCASE_AFTER_BOLD_COLON_FIX_RE,
+        LOWERCASE_AFTER_LINK_COLON_FIX_RE,
+    ):
         m = fix_re.match(raw)
         if m:
-            if _starts_with_identifier(raw[m.start(2):]):
+            if _starts_with_identifier(raw[m.start(2) :]):
                 return None
             return fix_re.sub(_capitalize_after_colon, raw, count=1)
     if plain_label_colon_violation(raw):
         # The plain label carries no internal colon, so the first `: ` is the
         # label colon.
         m = re.search(r"(:\s+)([a-z])", raw)
-        if m is None or _starts_with_identifier(raw[m.start(2):]):
+        if m is None or _starts_with_identifier(raw[m.start(2) :]):
             return None
         return re.sub(r"(:\s+)([a-z])", _capitalize_after_colon, raw, count=1)
     return None
@@ -282,8 +285,10 @@ def autofix_label_colons(text: str, existing: frozenset[str] = frozenset()) -> s
             continue
         fixed = autofix_label_colon_line(body)
         if fixed is not None:
-            lines[idx] = fixed + raw[len(body):]
+            lines[idx] = fixed + raw[len(body) :]
     return "".join(lines)
+
+
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
@@ -390,10 +395,7 @@ def detect_hard_wraps(text: str) -> list[int]:
             return
         prev = block[0][1]
         for ln, line in block[1:]:
-            if (
-                not is_structural_line(line)
-                and len(prev.rstrip()) >= WRAP_MIN_PREV_LEN
-            ):
+            if not is_structural_line(line) and len(prev.rstrip()) >= WRAP_MIN_PREV_LEN:
                 violations.append(ln)
             prev = line
         block.clear()
@@ -586,7 +588,6 @@ def lint_commit_message(text: str, field: str) -> list[str]:
     return violations
 
 
-
 def _sentences(text: str) -> list[str]:
     """Split prose into whitespace-normalized sentences.
 
@@ -758,7 +759,7 @@ def lint_text(
             )
         if EN_DASH in line:
             violations.append(
-                f"{field} line {lineno}: en dash (use straight hyphen or " "rewrite)"
+                f"{field} line {lineno}: en dash (use straight hyphen or rewrite)"
             )
         for ch, name in SMART_QUOTES.items():
             if ch in line:
@@ -783,8 +784,8 @@ def lint_text(
             if found[:1].isupper():
                 american = american.capitalize()
             violations.append(
-                f"{field} line {lineno}: British spelling \"{found}\" "
-                f"(use \"{american}\" per rules/typography.md)"
+                f'{field} line {lineno}: British spelling "{found}" '
+                f'(use "{american}" per rules/typography.md)'
             )
         if LIST_LEADIN_RE.match(raw):
             violations.append(
@@ -904,8 +905,24 @@ CODE_INTERPRETERS = frozenset(
 # `sort <<'EOF'`) carry data, not outbound prose, even when the same command
 # later runs `git commit`.
 DATA_CONSUMERS = frozenset(
-    {"done", "while", "read", "xargs", "sort", "uniq", "grep", "sed", "tr",
-     "wc", "head", "tail", "cut", "column", "comm", "diff"}
+    {
+        "done",
+        "while",
+        "read",
+        "xargs",
+        "sort",
+        "uniq",
+        "grep",
+        "sed",
+        "tr",
+        "wc",
+        "head",
+        "tail",
+        "cut",
+        "column",
+        "comm",
+        "diff",
+    }
 )
 
 
@@ -984,9 +1001,7 @@ GIT_GLOBAL_OPT = (
     r"|-[A-Za-z]+"
 )
 # `(?![-\w])` keeps `git commit-graph` from reading as a commit.
-GIT_COMMIT_RE = re.compile(
-    rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])"
-)
+GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])")
 OUTBOUND_COMMAND_RE = re.compile(
     rf"{GIT_COMMIT_RE.pattern}|\bgh\s+(?:pr|issue)\s+\w+|\bgh\s+api\b"
 )
@@ -1291,9 +1306,14 @@ def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
     list of violation strings."""
     violations: list[str] = []
     existing = existing_file_lines(tool_name, tool_input)
-    for label, text, allow_coauthor, is_pr_body, check_local_paths, is_full in (
-        extract_fields(tool_name, tool_input)
-    ):
+    for (
+        label,
+        text,
+        allow_coauthor,
+        is_pr_body,
+        check_local_paths,
+        is_full,
+    ) in extract_fields(tool_name, tool_input):
         if not isinstance(text, str):
             continue
         bypass_reason = is_bypass_value(text)

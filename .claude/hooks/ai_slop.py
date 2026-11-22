@@ -205,8 +205,12 @@ def splice(text: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--sync-rules", action="store_true", help="rewrite rules/general.md")
-    group.add_argument("--check-rules", action="store_true", help="diff without writing")
+    group.add_argument(
+        "--sync-rules", action="store_true", help="rewrite rules/general.md"
+    )
+    group.add_argument(
+        "--check-rules", action="store_true", help="diff without writing"
+    )
     args = parser.parse_args()
 
     current = RULES_PATH.read_text()

@@ -22,12 +22,8 @@ import re
 import subprocess
 import sys
 
-LOG_ROOT = os.path.expanduser(
-    "~/nickolashkraus/agent-os/master/notes/logs"
-)
-PROJECT_GLOB_ROOT = os.path.expanduser(
-    "~/nickolashkraus/agent-os/master/domains"
-)
+LOG_ROOT = os.path.expanduser("~/nickolashkraus/agent-os/master/notes/logs")
+PROJECT_GLOB_ROOT = os.path.expanduser("~/nickolashkraus/agent-os/master/domains")
 
 # Sources worth printing for. A compaction already carries its own summary
 # and PostCompact writes the log entry, so re-printing there is noise.
@@ -42,9 +38,18 @@ BLOCK_LINES = 3
 # keys an entry on `basename(cwd)` alone, so these say nothing about which
 # repo the entry came from and need the body checked before they count.
 GENERIC_DIRS = {
-    "main", "master", "dev", "develop", "trunk", "src",
-    "agent-os", "dotfiles", "nickolas", "nickolashkraus",
-    "Function-Health", "",
+    "main",
+    "master",
+    "dev",
+    "develop",
+    "trunk",
+    "src",
+    "agent-os",
+    "dotfiles",
+    "nickolas",
+    "nickolashkraus",
+    "Function-Health",
+    "",
 }
 
 
@@ -91,8 +96,7 @@ def candidate_dirs(cwd, repo):
     if os.path.basename(root) == repo:
         try:
             names.update(
-                d for d in os.listdir(root)
-                if os.path.isdir(os.path.join(root, d))
+                d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))
             )
         except OSError:
             pass
@@ -130,9 +134,7 @@ def log_entries(names, repo):
         # parts: [preamble, time, dir, id, body, time, dir, id, body, ...]
         chunks = []
         for i in range(1, len(parts) - 3, 4):
-            chunks.append(
-                (parts[i], parts[i + 1].strip(), parts[i + 3])
-            )
+            chunks.append((parts[i], parts[i + 1].strip(), parts[i + 3]))
         for time, directory, body in reversed(chunks):
             if directory not in names:
                 continue
@@ -225,10 +227,19 @@ def project_notes(project_dir):
 def open_prs(cwd):
     raw = run(
         [
-            "gh", "pr", "list", "--author", "@me", "--state", "open",
-            "--limit", str(MAX_PRS),
-            "--json", "number,title",
-            "--jq", '.[] | "#\\(.number) \\(.title)"',
+            "gh",
+            "pr",
+            "list",
+            "--author",
+            "@me",
+            "--state",
+            "open",
+            "--limit",
+            str(MAX_PRS),
+            "--json",
+            "number,title",
+            "--jq",
+            '.[] | "#\\(.number) \\(.title)"',
         ],
         cwd=cwd,
     )

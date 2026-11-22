@@ -55,7 +55,9 @@ def _message_text(o: dict) -> str:
         return c.strip()
     if isinstance(c, list):
         return " ".join(
-            p.get("text", "") for p in c if isinstance(p, dict) and p.get("type") == "text"
+            p.get("text", "")
+            for p in c
+            if isinstance(p, dict) and p.get("type") == "text"
         ).strip()
     return ""
 
@@ -124,7 +126,10 @@ def _tilde(path: str) -> str:
 
 
 def render(sessions: list[dict], target: datetime.date) -> str:
-    out = [f"# Claude sessions with activity on {target.isoformat()}: {len(sessions)}", ""]
+    out = [
+        f"# Claude sessions with activity on {target.isoformat()}: {len(sessions)}",
+        "",
+    ]
     if not sessions:
         out.append("No interactive sessions found for that date.")
         return "\n".join(out)
@@ -151,7 +156,7 @@ def write_tmux_script(sessions: list[dict], target: datetime.date) -> str:
         "# Each window cd's to the right directory and stages `claude --resume <id>`",
         "# WITHOUT pressing Enter, so you can review before launching each one.",
         "set -euo pipefail",
-        f'tmux kill-session -t {session_name} 2>/dev/null || true',
+        f"tmux kill-session -t {session_name} 2>/dev/null || true",
     ]
     for i, s in enumerate(sessions):
         # tmux window names cannot contain ':' or '.'; keep it simple.
@@ -159,12 +164,14 @@ def write_tmux_script(sessions: list[dict], target: datetime.date) -> str:
         cwd = s["cwd"]
         cmd = f"claude --resume {s['sid']}"
         if i == 0:
-            lines.append(f'tmux new-session -d -s {session_name} -n {name!r} -c {cwd!r}')
+            lines.append(
+                f"tmux new-session -d -s {session_name} -n {name!r} -c {cwd!r}"
+            )
         else:
-            lines.append(f'tmux new-window -t {session_name} -n {name!r} -c {cwd!r}')
+            lines.append(f"tmux new-window -t {session_name} -n {name!r} -c {cwd!r}")
         target_pane = f"{session_name}:{i}"
-        lines.append(f'tmux send-keys -t {target_pane} {cmd!r}')
-    lines.append(f'tmux attach -t {session_name}')
+        lines.append(f"tmux send-keys -t {target_pane} {cmd!r}")
+    lines.append(f"tmux attach -t {session_name}")
     with open(path, "w") as fh:
         fh.write("\n".join(lines) + "\n")
     os.chmod(path, 0o755)

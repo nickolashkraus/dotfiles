@@ -199,8 +199,7 @@ UNTRUSTED_CODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     ),
     (
         re.compile(
-            COMMAND_START
-            + r"open\s+(?:-a\s+\S+\s+)?[\"']?\S*"
+            COMMAND_START + r"open\s+(?:-a\s+\S+\s+)?[\"']?\S*"
             r"\.(?:app|command|dmg|pkg|scpt|terminal|tool)\b"
         ),
         "app or installer opened directly",
@@ -301,7 +300,9 @@ def runs_project_outside_trusted_roots(cmd: str, cwd: str) -> bool:
 
 def untrusted_code_matches(cmd: str, cwd: str) -> list[str]:
     """Return a label for each way a command would run untrusted code."""
-    labels = [label for pattern, label in UNTRUSTED_CODE_PATTERNS if pattern.search(cmd)]
+    labels = [
+        label for pattern, label in UNTRUSTED_CODE_PATTERNS if pattern.search(cmd)
+    ]
     if untrusted_clone(cmd):
         labels.append("clone outside the trusted owners")
     if untrusted_brew(cmd):

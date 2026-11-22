@@ -53,17 +53,13 @@ def padded_table(header: list[str], rows: list[list[str]]) -> str:
     correctly padded even when cells hold code spans or links, whose
     rendered width differs from their source width."""
     all_rows = [header] + rows
-    widths = [
-        max(len(r[i]) for r in all_rows) for i in range(len(header))
-    ]
+    widths = [max(len(r[i]) for r in all_rows) for i in range(len(header))]
     lines = [
         "| " + " | ".join(c.ljust(w) for c, w in zip(header, widths)) + " |",
         "| " + " | ".join("-" * w for w in widths) + " |",
     ]
     for r in rows:
-        lines.append(
-            "| " + " | ".join(c.ljust(w) for c, w in zip(r, widths)) + " |"
-        )
+        lines.append("| " + " | ".join(c.ljust(w) for c, w in zip(r, widths)) + " |")
     return "\n".join(lines)
 
 
@@ -292,9 +288,7 @@ TESTS: list[dict] = [
     {
         "id": "fail_commit_subject_past_tense",
         "category": "TP",
-        "payload": bash(
-            "git commit -m 'Added upgrade gate column to members table.'"
-        ),
+        "payload": bash("git commit -m 'Added upgrade gate column to members table.'"),
         "expected": "fail",
         "expected_rule_substrings": ["git.md"],
     },
@@ -469,7 +463,10 @@ TESTS: list[dict] = [
             "gh pr create --title 'Clean huge body' --body "
             + heredoc(
                 "Adds a feature flag for membership upgrades. "
-                + ("This is a benign sentence that repeats to stretch the payload. " * 1200)
+                + (
+                    "This is a benign sentence that repeats to stretch the payload. "
+                    * 1200
+                )
                 + "End of body."
             )
         ),
@@ -547,8 +544,8 @@ TESTS: list[dict] = [
         "category": "TN",
         "payload": bash(
             "python3 - <<'PY'\n"
-            "text = \"An em dash — and a hard-wrapped\\nparagraph inside "
-            "python source.\"\n"
+            'text = "An em dash — and a hard-wrapped\\nparagraph inside '
+            'python source."\n'
             "print(text.upper())\n"
             "PY"
         ),
@@ -582,7 +579,7 @@ TESTS: list[dict] = [
         "payload": bash(
             "gh pr create --title 'Add upgrade gate' --body "
             + heredoc(
-                "<!-- rule-check: skip reason=\"intentional non-standard format for migration callout\" -->\n\n"
+                '<!-- rule-check: skip reason="intentional non-standard format for migration callout" -->\n\n'
                 "This PR adds a feature flag gate — see ~/nickolashkraus/agent-os/notes.\n"
             )
         ),
@@ -711,22 +708,10 @@ def main() -> int:
     print()
     total = len(results)
     ok = sum(1 for r in results if r["ok"])
-    tp = sum(
-        1 for r in results
-        if r["expected"] == "fail" and r["actual"] == "fail"
-    )
-    fp = sum(
-        1 for r in results
-        if r["expected"] == "pass" and r["actual"] == "fail"
-    )
-    fn = sum(
-        1 for r in results
-        if r["expected"] == "fail" and r["actual"] == "pass"
-    )
-    tn = sum(
-        1 for r in results
-        if r["expected"] == "pass" and r["actual"] == "pass"
-    )
+    tp = sum(1 for r in results if r["expected"] == "fail" and r["actual"] == "fail")
+    fp = sum(1 for r in results if r["expected"] == "pass" and r["actual"] == "fail")
+    fn = sum(1 for r in results if r["expected"] == "fail" and r["actual"] == "pass")
+    tn = sum(1 for r in results if r["expected"] == "pass" and r["actual"] == "pass")
     precision = tp / (tp + fp) if tp + fp else float("nan")
     recall = tp / (tp + fn) if tp + fn else float("nan")
     f1 = (
