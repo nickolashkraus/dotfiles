@@ -465,7 +465,15 @@ def main() -> int:
         return 0
 
     if cmd.lstrip().startswith(ALLOWLIST_PREFIX):
-        return 0
+        if "\n" in cmd.strip():
+            return 0
+        sys.stderr.write(
+            "BLOCKED: `" + ALLOWLIST_PREFIX + "` shares a line with the "
+            "command, so the shell reads the whole line as a comment and "
+            "runs nothing. Put the prefix on its own line and the command "
+            "on the next one.\n"
+        )
+        return 2
 
     scan_target = strip_text_payloads(cmd)
 
@@ -484,9 +492,10 @@ def main() -> int:
         "BLOCKED: risky command detected. Pattern(s): "
         + ", ".join(matches)
         + "\n\nSurface the exact command to the user verbatim and ask "
-        "for explicit approval before retrying. On the retry, prefix the "
-        "command with `" + ALLOWLIST_PREFIX + " ` to indicate the user "
-        "has approved it.\n"
+        "for explicit approval before retrying. On the retry, put `"
+        + ALLOWLIST_PREFIX
+        + "` on its own line above the command to indicate the user has "
+        "approved it.\n"
     )
     if untrusted:
         sys.stderr.write(
