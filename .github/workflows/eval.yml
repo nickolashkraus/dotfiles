@@ -14,7 +14,7 @@ on:
 
 jobs:
   eval:
-    name: rule-check Sonnet eval
+    name: rule-check Opus eval
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

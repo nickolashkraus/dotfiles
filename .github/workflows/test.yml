@@ -22,3 +22,5 @@ jobs:
         run: python3 .claude/evals/pairing-guard/test_unit.py
       - name: Run model-policy unit tests
         run: python3 .claude/evals/model-policy/test_unit.py
+      - name: Run confirm-risky unit tests
+        run: python3 .claude/evals/confirm-risky/test_unit.py
