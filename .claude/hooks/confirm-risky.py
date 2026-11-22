@@ -39,6 +39,24 @@ import os
 import re
 import sys
 
+# A flag between a command and its subcommand, such as `kubectl -n payments`
+# or `terraform -chdir=envs/prod`, with an optional value after `=` or in the
+# next word. A value never starts with `-`, which keeps backtracking linear.
+CLI_OPT = r"\s+-[\w-]+(?:=[^\s;&|]*|\s+[^\s;&|-][^\s;&|]*)?"
+# The rest of one simple command, so a match never reads a flag out of the
+# next command.
+SAME_COMMAND = r"[^\n;&|]*"
+# Git accepts global options between `git` and the subcommand, so
+# `git -C <dir> push` is a push too. Every token in between must be a flag
+# or a known flag's value, and `-c`/`-C` always take a value.
+GIT_GLOBAL_OPT = (
+    r"-[cC](?:=|\s+)\S+"
+    r"|--(?:git-dir|work-tree|namespace|exec-path|config-env|super-prefix)"
+    r"(?:=|\s+)\S+"
+    r"|--[\w-]+(?:=\S+)?"
+    r"|-(?![cC]\s)[A-Za-z]+"
+)
+
 # The body is whole lines up to the first line that opens with the tag, so an
 # empty heredoc ends on the line after its opener, as it does in the shell.
 HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?\s*\n((?:[^\n]*\n)*?)\s*\1\b")
@@ -206,8 +224,16 @@ def strip_text_payloads(cmd: str) -> str:
 
 
 RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    # The first alternative of each push and auto-approve pattern is the
+    # original, which reads past `;` and `&&`. The second adds the spellings it
+    # misses (global options, `-fu`, `-auto-approve`) but stays inside one
+    # command.
     (
-        re.compile(r"\bgit\s+push\s+(?:[^\n]*\s)?(?:--force|-f)\b(?!-with-lease)"),
+        re.compile(
+            r"\bgit\s+push\s+(?:[^\n]*\s)?(?:--force|-f)\b(?!-with-lease)"
+            rf"|\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+push\b{SAME_COMMAND}"
+            r"\s(?:--force(?!-with-lease)|-[A-Za-z0-9]*f)"
+        ),
         "git force-push without --force-with-lease",
     ),
     (
@@ -221,18 +247,26 @@ RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         "branch rename API (closes open PRs whose head is the branch)",
     ),
     (
-        re.compile(r"\bgit\s+push\b[^\n]*(?:\s(?:--delete|-d)\b|\s:\S)"),
+        re.compile(
+            r"\bgit\s+push\b[^\n]*(?:\s(?:--delete|-d)\b|\s:\S)"
+            rf"|\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+push\b{SAME_COMMAND}"
+            r"\s(?:--delete|-[A-Za-z0-9]*d|:\S)"
+        ),
         "remote branch delete (closes open PRs whose head is the branch)",
     ),
-    (re.compile(r"\bkubectl\s+delete\b"), "kubectl delete"),
-    (
-        re.compile(r"\bterraform\s+(?:apply|destroy)\b[^\n]*--auto-approve"),
-        "terraform apply/destroy with --auto-approve",
-    ),
-    (re.compile(r"\bterraform\s+destroy\b"), "terraform destroy"),
+    (re.compile(rf"\bkubectl(?:{CLI_OPT})*\s+delete\b"), "kubectl delete"),
     (
         re.compile(
-            r"\bgcloud\s+(?:sql\s+instances|run\s+services|projects|"
+            r"\bterraform\s+(?:apply|destroy)\b[^\n]*--auto-approve"
+            rf"|\bterraform(?:{CLI_OPT})*\s+(?:apply|destroy)\b{SAME_COMMAND}"
+            r"-auto-approve"
+        ),
+        "terraform apply/destroy with --auto-approve",
+    ),
+    (re.compile(rf"\bterraform(?:{CLI_OPT})*\s+destroy\b"), "terraform destroy"),
+    (
+        re.compile(
+            rf"\bgcloud(?:{CLI_OPT})*\s+(?:sql\s+instances|run\s+services|projects|"
             r"compute\s+instances)\s+delete\b"
         ),
         "gcloud resource delete",
@@ -278,16 +312,15 @@ TRUSTED_ROOTS = (
 )
 HARNESS_SCRATCH_PREFIX = "/private/tmp/claude-"
 
-COMMAND_START = r"(?:^|[;&|(\n])\s*(?:\w+=\S*\s+|env\s+|command\s+|sudo\s+)*"
+COMMAND_START = r"(?:^|[;&|(\n])\s*(?:\w+=\S*\s+|env\s+|command\s+|sudo\s+|time\s+)*"
 SHELL = r"(?:/\S*/)?(?:ba|z|da|k)?sh"
 ARGS = r"([^\n;&|]*)"
 
 UNTRUSTED_CODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(
-            r"\b(?:curl|wget|base64)\b[^\n;]*\|\s*(?:sudo\s+)?(?:env\s+)?"
-            + SHELL
-            + r"\b(?!\s+-c\b)"
+            r"\b(?:curl|wget|base64)\b[^\n;]*\|\s*"
+            rf"(?:sudo(?:{CLI_OPT})*\s+)?(?:env\s+)?" + SHELL + r"\b(?!\s+-c\b)"
         ),
         "download or decoded text piped into a shell",
     ),
@@ -310,9 +343,9 @@ UNTRUSTED_CODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     ),
     (
         re.compile(
-            r"\b(?:pip[\d.]*\s+install|pipx\s+install|"
-            r"uv\s+(?:add|pip\s+install|tool\s+install))\b[^\n;&|]*\s"
-            r"(?:git\+\S+|https?://\S+\.(?:whl|zip|tar\.gz|tgz))"
+            r"\b(?:pip[\d.]*\s+install|pipx\s+install|poetry\s+add|uvx|"
+            r"uv\s+(?:add|pip\s+install|tool\s+(?:install|run)))\b[^\n;&|]*\s"
+            r"[\"']?(?:git\+\S+|https?://\S+\.(?:whl|zip|tar\.gz|tgz))"
         ),
         "Python package from a URL",
     ),
@@ -320,7 +353,7 @@ UNTRUSTED_CODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
         re.compile(
             r"\b(?:(?:npm|pnpm|yarn|bun)\s+(?:i|install|add)|npx|bunx|"
             r"(?:pnpm|yarn)\s+dlx)\b[^\n;&|]*\s"
-            r"(?:(?:github:|gitlab:|bitbucket:|git\+|https?://|git@)\S*|"
+            r"(?:[\"']?(?:github:|gitlab:|bitbucket:|git\+|https?://|git@)\S*|"
             r"[A-Za-z0-9][\w.-]*/[\w.-]+(?=\s|$))"
         ),
         "Node package from a URL or a Git repository",
@@ -347,7 +380,8 @@ UNTRUSTED_CODE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 
 CLONE_RE = re.compile(
     COMMAND_START
-    + r"(?:git\b[^\n;&|]*?\s(?:clone|submodule\s+add)|(gh)\s+repo\s+clone)"
+    + r"(?:git\b[^\n;&|]*?\s(?:clone|submodule\s+add)"
+    + rf"|(gh)\s+repo\s+(?:clone|fork(?={SAME_COMMAND}\s--clone)))"
     + r"\s"
     + ARGS
 )
@@ -367,7 +401,14 @@ RUN_PROJECT_RE = re.compile(
     r"|poetry\s+(?:install|run)\b|make\b|docker(?:-|\s+)compose\b|go\s+run\b"
     r"|cargo\s+(?:run|build)\b|(?:code|cursor|claude)(?:\s|$))"
 )
-CD_RE = re.compile(r"(?:^|[;&|(\n])\s*cd\s+[\"']?([^\s;&|\"')]+)")
+CD_RE = re.compile(r"(?:^|[;&|(\n])\s*(cd|pushd)\s+[\"']?([^\s;&|\"')]+)")
+PROJECT_DIR_RE = re.compile(
+    COMMAND_START
+    + rf"(?:make\b{SAME_COMMAND}\s(?:-C|--directory)"
+    + rf"|npm\b{SAME_COMMAND}\s(?:-C|--prefix)"
+    + rf"|uv\b{SAME_COMMAND}\s--directory)"
+    + r"(?:=|\s*)[\"']?([^\s;&|\"')]+)"
+)
 
 
 def untrusted_clone(cmd: str) -> bool:
@@ -410,31 +451,57 @@ def untrusted_brew(cmd: str) -> bool:
     return False
 
 
-def effective_dir(cmd: str, cwd: str) -> str | None:
-    """Return the real directory a command runs in, or None when unknown."""
+def expand_dir(path: str) -> str | None:
+    """Return `path` with `~` and `$HOME` expanded, or None when only the
+    shell knows it."""
+    path = path.replace("${HOME}", "~").replace("$HOME", "~")
+    if "$" in path or "`" in path or path == "-":
+        return None
+    return os.path.expanduser(path)
+
+
+def effective_dir(cmd: str, cwd: str, verbs: tuple[str, ...]) -> str | None:
+    """Return the real directory a command runs in after the `verbs` (`cd`,
+    `pushd`) it contains, or None when unknown."""
     target = cwd
     for match in CD_RE.finditer(cmd):
-        path = match.group(1).replace("${HOME}", "~").replace("$HOME", "~")
-        if "$" in path or "`" in path or path == "-":
+        if match.group(1) not in verbs:
+            continue
+        path = expand_dir(match.group(2))
+        if path is None:
             return None
-        target = os.path.join(target, os.path.expanduser(path))
+        target = os.path.join(target, path)
     return os.path.realpath(target) if target else None
 
 
-def runs_project_outside_trusted_roots(cmd: str, cwd: str) -> bool:
-    """Return whether an install or run command targets an unknown directory."""
-    if not RUN_PROJECT_RE.search(cmd):
-        return False
-    directory = effective_dir(cmd, cwd)
-    if directory is None:
-        return False
+def trusted_dir(directory: str) -> bool:
+    """Return whether a real path is the harness scratchpad or under a trusted
+    root."""
     if directory.startswith(HARNESS_SCRATCH_PREFIX):
-        return False
+        return True
     for root in TRUSTED_ROOTS:
         real = os.path.realpath(os.path.expanduser(root))
         if directory == real or directory.startswith(real + os.sep):
-            return False
-    return True
+            return True
+    return False
+
+
+def runs_project_outside_trusted_roots(cmd: str, cwd: str) -> bool:
+    """
+    Return whether an install or run command targets an unknown directory:
+    the one `cd` leads to, the one `cd` and `pushd` lead to (`popd` is not
+    followed, so both count), or a `make -C`, `npm --prefix` or
+    `uv --directory` value. A directory only the shell knows does not block.
+    """
+    base = effective_dir(cmd, cwd, ("cd", "pushd"))
+    dirs: list[str | None] = []
+    if RUN_PROJECT_RE.search(cmd):
+        dirs += [effective_dir(cmd, cwd, ("cd",)), base]
+    for flag_value in PROJECT_DIR_RE.findall(cmd):
+        path = expand_dir(flag_value)
+        if base is not None and path is not None:
+            dirs.append(os.path.realpath(os.path.join(base, path)))
+    return any(d is not None and not trusted_dir(d) for d in dirs)
 
 
 def untrusted_code_matches(cmd: str, cwd: str) -> list[str]:
@@ -476,14 +543,16 @@ def main() -> int:
         return 2
 
     scan_target = strip_text_payloads(cmd)
+    cwd = str(payload.get("cwd") or "")
 
-    matches: list[str] = []
-    for pattern, label in RISKY_PATTERNS:
-        if pattern.search(scan_target):
-            matches.append(label)
-
-    untrusted = untrusted_code_matches(scan_target, str(payload.get("cwd") or ""))
-    matches.extend(untrusted)
+    risky: list[str] = []
+    untrusted: list[str] = []
+    # Bash joins a backslash-newline into one line. Scan the joined text as
+    # well as the original, so nothing the original matched is lost.
+    for target in (scan_target, scan_target.replace("\\\n", "")):
+        risky += [label for pattern, label in RISKY_PATTERNS if pattern.search(target)]
+        untrusted += untrusted_code_matches(target, cwd)
+    matches = list(dict.fromkeys(risky + untrusted))
 
     if not matches:
         return 0
