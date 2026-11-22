@@ -89,7 +89,8 @@ Create a pull request with the **original PR's head branch** as the base:
 
 ```
 gh pr create --base <head-branch> --head <head-branch>-fixes-<number> \
-  --title "<issue-slug>: Address bot review findings" --body "..."
+  --title "<issue-slug>: Address bot review findings" \
+  --body-file /tmp/pr-new-body.md
 ```
 
 The PR title must use the format `<issue-slug>: Address bot review
@@ -98,8 +99,9 @@ findings`, where `<issue-slug>` is extracted from the parent PR's title
 is `BYB-1120`). If the parent PR title has no issue slug prefix, use
 `Address bot review findings` as the full title.
 
-Write the PR description following @~/.claude/rules/git.md. Include a summary
-of which bot comments were fixed and which were dismissed (with reasons).
+Write the PR description following @~/.claude/rules/git.md to
+`/tmp/pr-new-body.md` before running the command above. Include a summary of
+which bot comments were fixed and which were dismissed (with reasons).
 
 Print the fix PR URL.
 
