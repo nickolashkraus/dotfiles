@@ -94,4 +94,4 @@ Print the absolute path to `{artifact_dir}/orchestrator/final.md` so the user
 can pipe it into any downstream skill (`/create-notion-page`,
 `/update-linear-issue`, etc.). For skills that auto-update a Linear issue
 (investigate's `--linear` flag), invoke
-`Skill(skill: "update-linear-issue", args: "<slug>")` after Ship.
+`Skill(skill: "update-linear-issue", args: "<ISSUE-ID>")` after Ship.
