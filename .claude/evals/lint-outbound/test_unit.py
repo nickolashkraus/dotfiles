@@ -811,6 +811,8 @@ def test_archive_cleanup_false_positives() -> None:
 
     check("URL after a bold label is legal", not colon("- **Docs**: https://example.com/x\n"))
     check("URL after a link label is legal", not colon("[Docs](https://x): https://example.com\n"))
+    check("URL after a plain label is legal", not colon("- Docs: https://example.com/x\n"))
+    check("lowercase word after a plain label still flagged", colon("- Docs: example text\n"))
     check("lowercase word after a label still flagged", colon("- **Docs**: example text\n"))
 
     loop = (
