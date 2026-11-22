@@ -72,8 +72,8 @@ For each failure:
 
 1. Read the relevant source files to understand context.
 2. Apply the fix directly. Do not just describe what needs to change.
-3. If the fix requires running a command (e.g., `npm run format`, `ruff .`),
-   run it.
+3. If the fix requires running a command (e.g., `npm run format`,
+   `poetry run ruff check .`), run it.
 
 ## Step 5: Assess review bot comments
 
