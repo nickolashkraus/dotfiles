@@ -24,3 +24,22 @@ jobs:
         run: python3 .claude/evals/model-policy/test_unit.py
       - name: Run confirm-risky unit tests
         run: python3 .claude/evals/confirm-risky/test_unit.py
+      - name: Run pre-commit unit tests
+        run: python3 .claude/evals/pre-commit/test_unit.py
+      - name: Run session-start-state unit tests
+        run: python3 .claude/evals/session-start-state/test_unit.py
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff==0.17.5
+      - name: Lint
+        run: ruff check .
+      - name: Check formatting
+        run: ruff format --check .
