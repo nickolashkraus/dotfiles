@@ -609,6 +609,7 @@ def run_one(test: dict) -> dict:
             input=payload_bytes,
             capture_output=True,
             timeout=180,
+            check=False,
             env={**os.environ, "CLAUDE_RULE_CHECK_NO_CACHE": "1"},
         )
         elapsed = time.monotonic() - started
@@ -631,15 +632,17 @@ def run_one(test: dict) -> dict:
         smoke_only = test.get("smoke_only", False)
         min_violations = test.get("min_violations", 0)
 
-        if smoke_only:
-            ok = proc.returncode in (0, 2)
-        elif expected == "any":
+        if smoke_only or expected == "any":
             ok = proc.returncode in (0, 2)
         else:
             ok = actual_verdict == expected
-            if ok and expected == "fail" and min_violations:
-                if violation_count < min_violations:
-                    ok = False
+            if (
+                ok
+                and expected == "fail"
+                and min_violations
+                and violation_count < min_violations
+            ):
+                ok = False
 
         return {
             "id": test["id"],

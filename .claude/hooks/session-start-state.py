@@ -64,7 +64,7 @@ def run(args, cwd=None, timeout=6):
             timeout=timeout,
             check=False,
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     if out.returncode != 0:
         return None
@@ -166,7 +166,7 @@ def summarize(body):
             blocks[label].append(line.strip())
     out = []
     for label in ("Intent", "Pending", "Work"):
-        if label in blocks and blocks[label]:
+        if blocks.get(label):
             kept = [x for x in blocks[label] if x][:BLOCK_LINES]
             out.append(f"  {label}: " + " ".join(kept)[:400])
         if len(out) >= 2:
@@ -195,7 +195,7 @@ def find_project(repo):
             hits.append((mtime, dirpath))
     if not hits:
         return None
-    return sorted(hits, reverse=True)[0][1]
+    return max(hits)[1]
 
 
 def project_notes(project_dir):
@@ -251,7 +251,7 @@ def open_prs(cwd):
 def main():
     try:
         payload = json.load(sys.stdin)
-    except Exception:
+    except Exception:  # noqa: BLE001
         payload = {}
 
     if payload.get("source") not in SOURCES:

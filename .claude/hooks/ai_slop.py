@@ -168,7 +168,7 @@ ENTRIES: tuple[Entry, ...] = (
 # Consumed by lint-outbound.py. Checked against inline-code-scrubbed prose
 # outside fenced blocks, so identifiers like `landed_at` do not trip it.
 AI_SLOP_PATTERNS: list[tuple[re.Pattern[str], str, str]] = [
-    (re.compile(entry.pattern, re.I), entry.label, entry.hint)
+    (re.compile(entry.pattern, re.IGNORECASE), entry.label, entry.hint)
     for entry in ENTRIES
     if entry.pattern is not None
 ]

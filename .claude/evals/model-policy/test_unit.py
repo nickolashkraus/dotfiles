@@ -42,6 +42,7 @@ def run_hook(tool: str, tool_input: dict) -> subprocess.CompletedProcess:
         input=json.dumps({"tool_name": tool, "tool_input": tool_input}),
         capture_output=True,
         text=True,
+        check=False,
     )
 
 
@@ -118,6 +119,7 @@ def main() -> int:
         input="not json",
         capture_output=True,
         text=True,
+        check=False,
     )
     check("unreadable payload passes", r.returncode == 0, r.stderr[:200])
 

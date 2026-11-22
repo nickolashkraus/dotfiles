@@ -170,7 +170,7 @@ class State:
         return State(self.cur, dict(self.env))
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def paired_gitdir(directory: str) -> str | None:
     """Return the Git directory for `directory` when the guard is on there."""
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
@@ -181,6 +181,7 @@ def paired_gitdir(directory: str) -> str | None:
             text=True,
             timeout=3,
             env=env,
+            check=False,
         )
     except (OSError, subprocess.SubprocessError):
         return None
@@ -290,9 +291,9 @@ def unwrap(words: list[str]) -> list[str]:
             )
         elif name == "pipx" and nxt == ["run"]:
             words = drop_flags(words[2:])
-        elif name in ("pnpm", "yarn") and nxt in (["exec"], ["dlx"]):
-            words = words[2:]
-        elif re.fullmatch(r"python[\d.]*", name) and nxt == ["-m"]:
+        elif (name in ("pnpm", "yarn") and nxt in (["exec"], ["dlx"])) or (
+            re.fullmatch(r"python[\d.]*", name) and nxt == ["-m"]
+        ):
             words = words[2:]
         else:
             break

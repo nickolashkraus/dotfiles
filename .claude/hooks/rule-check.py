@@ -182,9 +182,7 @@ def _is_real_prose_value(value: str | None) -> bool:
     phantom payload like `$(cat \\n)` that wastes an Opus call."""
     if not value or len(value) <= 4:
         return False
-    if CMD_SUBST_PREFIX_RE.match(value.lstrip()):
-        return False
-    return True
+    return not CMD_SUBST_PREFIX_RE.match(value.lstrip())
 
 
 VERDICT_SCHEMA = {
@@ -482,6 +480,7 @@ def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
             capture_output=True,
             text=True,
             timeout=SUBPROCESS_TIMEOUT_SEC,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         # Fail OPEN. A linter timing out must never block a correct

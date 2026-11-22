@@ -27,8 +27,8 @@ import os
 import re
 import sys
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 LOG_FILE = Path.home() / ".claude" / "lint-outbound.log"
 
@@ -59,7 +59,7 @@ EN_DASH = "–"
 # shapes). Checked against inline-code-scrubbed prose outside fenced
 # blocks, so identifiers like `landed_at` in code spans do not trip it.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ai_slop import AI_SLOP_CONTEXT, AI_SLOP_PATTERNS  # noqa: E402
+from ai_slop import AI_SLOP_CONTEXT, AI_SLOP_PATTERNS
 
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
 
@@ -231,7 +231,7 @@ LOWERCASE_AFTER_LINK_COLON_FIX_RE = re.compile(
 )
 
 
-def _capitalize_after_colon(m: "re.Match[str]") -> str:
+def _capitalize_after_colon(m: re.Match[str]) -> str:
     return m.group(1) + m.group(2).upper()
 
 
@@ -402,7 +402,7 @@ def detect_hard_wraps(text: str) -> list[int]:
 
     for lineno, raw in enumerate(text.splitlines(), 1):
         stripped = raw.lstrip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             flush()
             in_code = not in_code
             continue
@@ -467,8 +467,7 @@ TABLE_SEPARATOR_CELL_RE = re.compile(r"^\s*:?-{3,}:?\s*$")
 
 def split_table_row(line: str) -> list[str]:
     s = line.strip()
-    if s.startswith("|"):
-        s = s[1:]
+    s = s.removeprefix("|")
     if s.endswith("|") and not s.endswith("\\|"):
         s = s[:-1]
     return re.split(r"(?<!\\)\|", s)
@@ -514,7 +513,7 @@ def detect_table_padding(text: str) -> list[str]:
 
     for lineno, raw in enumerate(text.splitlines(), 1):
         stripped = raw.strip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             check_block()
             in_code = not in_code
             continue
@@ -572,7 +571,7 @@ def lint_commit_message(text: str, field: str) -> list[str]:
     in_code = False
     for lineno, raw in enumerate(lines[2:], 3):
         stripped = raw.strip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             in_code = not in_code
             continue
         if in_code:
@@ -738,7 +737,7 @@ def lint_text(
     scrubbed = scrub_code_spans(text.splitlines())
     for lineno, raw in enumerate(text.splitlines(), 1):
         stripped = raw.lstrip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             in_code = not in_code
             continue
         if in_code:
@@ -1157,7 +1156,7 @@ def extract_markdown_heredocs(command: str) -> list[tuple[str, str, str]]:
 
 def _markdown_heredoc_matches(
     command: str,
-) -> Iterable[tuple["re.Match[str]", str]]:
+) -> Iterable[tuple[re.Match[str], str]]:
     for m in FILE_HEREDOC_RE.finditer(command):
         if heredoc_feeds_interpreter(command, m.start()):
             continue

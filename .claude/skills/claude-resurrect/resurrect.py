@@ -43,7 +43,7 @@ def _target_date(arg: str | None) -> datetime.date:
 
 def _local_dt(ts: str) -> datetime.datetime | None:
     try:
-        return datetime.datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone()
+        return datetime.datetime.fromisoformat(ts).astimezone()
     except (ValueError, AttributeError):
         return None
 
