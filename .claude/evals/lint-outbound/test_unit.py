@@ -828,6 +828,54 @@ def test_archive_cleanup_false_positives() -> None:
     )
 
 
+def test_wrapped_code_span() -> None:
+    section("lint_text: a code span that wraps across lines is still code")
+
+    def british(text: str) -> list[str]:
+        return [
+            v.split(": ", 1)[1].split(" (")[0]
+            for v in lo.lint_text(text, "t", check_local_paths=False)
+            if "British" in v
+        ]
+
+    inside = "Run the check with `tool --colour\nred --all` before the push.\n"
+    check("word inside a wrapped span is legal", british(inside) == [], f"{british(inside)!r}")
+    after = "See `git commit\n-F file` and the colour of `behaviour` here.\n"
+    found = [v for v in lo.lint_text(after, "t", check_local_paths=False) if "British" in v]
+    check(
+        "prose after the wrapped span is checked on its own line",
+        len(found) == 1 and found[0].startswith("t line 2:") and '"colour"' in found[0],
+        f"got {found!r}",
+    )
+    three = "Use `one\ntwo\nthree` and then the colour red.\n"
+    check(
+        "span over three lines keeps the line count",
+        [v.split(":")[0] for v in lo.lint_text(three, "t", check_local_paths=False)]
+        == ["t line 3"],
+        f"got {lo.lint_text(three, 't', check_local_paths=False)!r}",
+    )
+    stray = "A stray ` tick and `code`\nthen the colour of `x` here.\n"
+    check(
+        "odd backtick count falls back to one line at a time",
+        british(stray) == ['British spelling "colour"'],
+        f"got {british(stray)!r}",
+    )
+    for name, text in (
+        ("blank line", "one ` stray\n\ntwo colour ` stray\n"),
+        ("list item", "- one ` stray\n- two colour ` stray\n"),
+        ("heading", "one ` stray\n# Two colour ` stray\n"),
+        ("heading end", "# One ` stray\ntwo colour ` stray\n"),
+        ("table row", "| one ` stray |\n| two colour ` stray |\n"),
+        ("backtick fence", "one ` stray\n```\necho hi\n```\ntwo colour ` stray\n"),
+        ("tilde fence", "one ` stray\n~~~\necho hi\n~~~\ntwo colour ` stray\n"),
+    ):
+        check(
+            f"span does not cross a {name}",
+            british(text) == ['British spelling "colour"'],
+            f"got {british(text)!r}",
+        )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -850,6 +898,7 @@ TESTS = [
     test_in_repo_path_prefixes,
     test_linear_mirror_paths_skip_lint,
     test_archive_cleanup_false_positives,
+    test_wrapped_code_span,
 ]
 
 

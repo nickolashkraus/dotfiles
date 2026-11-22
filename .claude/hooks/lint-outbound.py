@@ -429,6 +429,37 @@ def scrub_inline_code(line: str) -> str:
     return re.sub(r"`[^`\n]*`", "", line)
 
 
+def scrub_code_spans(lines: list[str]) -> list[str]:
+    """
+    Return `lines` with inline code spans removed, one output line per input
+    line. A span that wraps onto the next line of the same paragraph or list
+    item is removed whole. A block with an odd number of backticks holds a
+    stray one, so it is scrubbed line by line instead of guessing the pairs.
+    """
+    out: list[str] = []
+    block: list[str] = []
+
+    def flush() -> None:
+        joined = "\n".join(block)
+        if joined.count("`") % 2 == 0:
+            kept = re.sub(r"`[^`]*`", lambda m: "\n" * m.group(0).count("\n"), joined)
+            out.extend(kept.split("\n") if block else [])
+        else:
+            out.extend(scrub_inline_code(line) for line in block)
+        block.clear()
+
+    for raw in lines:
+        stripped = raw.lstrip()
+        alone = not stripped or stripped.startswith(("#", "|", "```", "~~~"))
+        if alone or is_structural_line(raw):
+            flush()
+        block.append(raw)
+        if alone:
+            flush()
+    flush()
+    return out
+
+
 TABLE_SEPARATOR_CELL_RE = re.compile(r"^\s*:?-{3,}:?\s*$")
 
 
@@ -703,6 +734,7 @@ def lint_text(
     violations.extend(f"{field}: {v}" for v in detect_table_padding(text))
 
     in_code = False
+    scrubbed = scrub_code_spans(text.splitlines())
     for lineno, raw in enumerate(text.splitlines(), 1):
         stripped = raw.lstrip()
         if stripped.startswith("```") or stripped.startswith("~~~"):
@@ -711,7 +743,7 @@ def lint_text(
         if in_code:
             continue
 
-        line = scrub_inline_code(raw)
+        line = scrubbed[lineno - 1]
         # Word-level checks (slop, spelling, label colons) skip lines that
         # already exist in the file, blockquotes, and quoted spans.
         check_words = not (raw.strip() and raw.strip() in existing)
