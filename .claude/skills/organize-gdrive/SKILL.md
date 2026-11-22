@@ -67,15 +67,15 @@ local copy rather than re-querying:
 ```bash
 GWS_PROFILE=function gws drive files list --page-all --page-limit 50 --params \
   "{\"q\":\"'me' in owners and trashed = false\",\"pageSize\":1000,\"fields\":\"nextPageToken,files(id,name,mimeType,parents,modifiedTime,shortcutDetails)\"}" \
-  | grep -v keyring > "$SP/drive.ndjson"
+  > "$SP/drive.ndjson"
 ```
 
 Use the double-quoted form. The Drive `q` syntax needs single quotes
 around literals, so single-quoting the whole `--params` value turns into
 unreadable `'"'"'` escaping.
 
-Strip the `Using keyring backend: file` line on the personal profile
-before any JSON parse, or the decode fails at char 0.
+The personal profile prints a `Using keyring backend: file` line to stderr,
+so it stays out of the redirect and out of any JSON parse.
 
 Build a path helper from `parents[0]` and print the tree, collapsing any
 folder with more than about eight leaf files so the output stays
