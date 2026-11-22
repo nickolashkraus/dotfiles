@@ -92,6 +92,6 @@ For Bug and Feature swarms, the code PR happens in the code worktree
 
 Print the absolute path to `{artifact_dir}/orchestrator/final.md` so
 the user can pipe it into any downstream skill (`/create-notion-page`,
-`/update-linear-issue`, `/outbox`, etc.). For skills that auto-update
-a Linear issue (investigate's `--linear` flag), invoke
+`/update-linear-issue`, etc.). For skills that auto-update a Linear
+issue (investigate's `--linear` flag), invoke
 `Skill(skill: "update-linear-issue", args: "<slug>")` after Ship.

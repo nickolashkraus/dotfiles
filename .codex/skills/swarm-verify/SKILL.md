@@ -147,8 +147,8 @@ proceed until the user approves.
 In the **agent-os worktree**: commit all artifacts on the `{slug}` branch with
 message `"swarm-verify: {slug}"` and push.
 
-If the user wants to share the memo, suggest the appropriate channel (`$outbox`
-for Slack, `$update-notion-page` if the original source was a Notion doc,
+If the user wants to share the memo, suggest the appropriate channel (a Slack
+draft for Slack, `$update-notion-page` if the original source was a Notion doc,
 `$update-linear-issue` if a Linear issue exists).
 
 ~/.codex/rules/meta-learning.md
