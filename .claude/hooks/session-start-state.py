@@ -175,7 +175,10 @@ def summarize(body):
 
 
 def find_project(repo):
-    """The agent-os project directory whose manifest names this repo."""
+    """The agent-os project directory whose manifest lists this repo.
+
+    A manifest lists a repo as `- Org/repo` or `- path: ~/org/repo`.
+    """
     hits = []
     for dirpath, dirnames, filenames in os.walk(PROJECT_GLOB_ROOT):
         if "manifest.yaml" not in filenames:
@@ -187,7 +190,9 @@ def find_project(repo):
                 text = handle.read()
         except OSError:
             continue
-        if re.search(r"(?m)^\s*-\s+\S+/" + re.escape(repo) + r"\s*$", text):
+        if re.search(
+            r"(?m)^\s*-\s+(?:path:\s+)?\S+/" + re.escape(repo) + r"\s*$", text
+        ):
             try:
                 mtime = os.path.getmtime(dirpath)
             except OSError:
