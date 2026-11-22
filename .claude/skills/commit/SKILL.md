@@ -40,8 +40,8 @@ Follow the commit rules from @~/.claude/rules/git.md exactly:
   label-colon bullets (lint-outbound demands a capital after the colon, and
   rule-check then flags the capitalized form too), which blocks the commit.
 
-If there is a Linear issue, prefix the subject line with it (e.g.,
-`EPD-1337: Fix bug in user login flow`).
+If there is a Linear issue, the subject is `SLUG: Exact Issue Title`, with the
+verbatim Linear issue title and not a paraphrase (see rules/git.md).
 
 When the change set spans multiple unrelated logical changes (per the squashing
 rule in rules/git.md), split it into one commit per logical grouping rather
