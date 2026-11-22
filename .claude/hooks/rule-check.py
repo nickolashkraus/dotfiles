@@ -103,6 +103,21 @@ GH_API_AT_FILE_RE = re.compile(
 
 CMD_SUBST_PREFIX_RE = re.compile(r"^\$[\(\{]")
 
+# Git accepts global options between `git` and the subcommand, so
+# `git -C <dir> commit` and `git -c k=v commit` are commits too. Every token
+# in between must look like a flag or a known flag's value, which keeps
+# `git -C <dir> log --grep commit` out. `(?![-\w])` keeps `git commit-graph`
+# from reading as a commit. Same pattern as lint-outbound.py.
+GIT_GLOBAL_OPT = (
+    r"-[cC](?:=|\s+)\S+"
+    r"|--(?:git-dir|work-tree|namespace|exec-path|config-env|super-prefix)"
+    r"(?:=|\s+)\S+"
+    r"|--[\w-]+(?:=\S+)?"
+    r"|-[A-Za-z]+"
+)
+GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])")
+GH_COMMAND_RE = re.compile(r"\bgh\s+(?:pr|issue)\s+\w+|\bgh\s+api\b")
+
 # Heredocs that are stdin for a code interpreter (`python3 - <<'PY'`)
 # carry source code, not outbound prose, and must not be rule-checked.
 CODE_INTERPRETERS = frozenset(
@@ -210,13 +225,10 @@ def log(msg: str) -> None:
 
 def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
     """Return (surface_label, text) tuples extracted from a Bash command."""
-    if not re.search(
-        r"\b(git\s+commit|gh\s+(pr|issue)\s+\w+|gh\s+api\b)",
-        command,
-    ):
+    is_commit = bool(GIT_COMMIT_RE.search(command))
+    if not is_commit and not GH_COMMAND_RE.search(command):
         return []
 
-    is_commit = bool(re.search(r"\bgit\s+commit\b", command))
     is_pr = bool(re.search(r"\bgh\s+pr\b", command))
     is_issue = bool(re.search(r"\bgh\s+issue\b", command))
     gh_surface = "GitHub PR" if is_pr else "GitHub issue" if is_issue else "GitHub API"

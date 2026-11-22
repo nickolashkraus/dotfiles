@@ -545,6 +545,42 @@ def test_file_heredoc_is_not_the_message() -> None:
     )
 
 
+def test_git_global_options_before_commit() -> None:
+    section("extract_bash_payloads: git global options before `commit`")
+    for prefix in (
+        "git -C ~/repo commit",
+        "git -c core.hooksPath=/dev/null commit",
+        "git -c a=b -c c=d commit",
+        "git --no-pager -p commit",
+        "git --git-dir=/x/.git --work-tree=/x commit",
+        "git --work-tree /srv/app commit",
+    ):
+        out = rc.extract_bash_payloads(f"{prefix} -m 'Add the upgrade gate'")
+        check(
+            f"`{prefix}` message extracted as a commit message",
+            out == [("git commit message arg -m", "Add the upgrade gate")],
+            f"got {out!r}",
+        )
+    for cmd in (
+        "git -C ~/repo log --grep commit -m 'Add the upgrade gate'",
+        "git commit-graph write -m 'Add the upgrade gate'",
+        "git show HEAD --stat && echo commit -m 'Add the upgrade gate'",
+    ):
+        out = rc.extract_bash_payloads(cmd)
+        check(f"`{cmd.split(' -m')[0]}` is not a commit", out == [], f"got {out!r}")
+    for cmd in (
+        "gh pr comment 1 --body 'Adds the upgrade gate.'",
+        "gh issue create --title 'Add the upgrade gate'",
+        "gh api repos/o/r/issues -f title='Add the upgrade gate'",
+    ):
+        out = rc.extract_bash_payloads(cmd)
+        check(
+            f"`{' '.join(cmd.split()[:2])}` still extracted",
+            len(out) == 1 and out[0][0].startswith("GitHub"),
+            f"got {out!r}",
+        )
+
+
 def test_compound_command_per_flag_surfaces() -> None:
     section(
         "extract_bash_payloads: compound `git commit && gh pr create` labels "
@@ -722,6 +758,7 @@ TESTS = [
     test_load_rules_smoke,
     test_interpreter_heredoc_skipped,
     test_file_heredoc_is_not_the_message,
+    test_git_global_options_before_commit,
     test_compound_command_per_flag_surfaces,
     test_gh_api_at_file_read,
     test_width_arithmetic_filter,
