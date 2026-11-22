@@ -225,9 +225,9 @@ remain, surface them to the user.
 
 ## Step 7: Ship
 
-In the **code worktree**: squash commits, write the commit message (Linear
-issue slug prefix, summary of the feature), push the branch, and create the PR
-using `gh pr create`.
+In the **code worktree**: squash commits, write the commit message (subject
+`SLUG: Exact Issue Title`, the verbatim Linear issue title, per rules/git.md),
+push the branch, and create the PR using `gh pr create`.
 
 In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
 push the branch. The subject follows rules/git.md, with no `swarm-feature:`

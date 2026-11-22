@@ -252,8 +252,9 @@ surface them to the user.
 ## Step 7: Ship
 
 In the **code worktree**: rebase onto the default branch, squash commits into a
-single commit, write the commit message (Linear issue slug prefix, summary of
-the fix), then **re-run local CI on the squashed result before pushing**.
+single commit, write the commit message (subject `SLUG: Exact Issue Title`, the
+verbatim Linear issue title, per rules/git.md), then **re-run local CI on the
+squashed result before pushing**.
 Rebasing and squashing can shift line numbers and trigger different lint
 diagnostics, and staging mistakes (e.g., a `git stash`/`pop` that left
 modifications unstaged) can produce a partial commit. Run `ruff` / `pyright` /
