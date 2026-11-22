@@ -52,7 +52,8 @@ If already on a non-default branch, push it. Otherwise:
    - Otherwise, derive a short descriptive name from the changes.
 2. If `--worktree` was set:
    a. Create a worktree at HEAD with the new branch:
-      `git worktree add -b <branch> ../<branch> HEAD`
+      `git worktree add -b <branch> ../<branch> HEAD`, then run
+      `worktree-links`
    b. Reset the default branch to match the remote:
       `git reset --hard origin/<default-branch>`
    c. Change to the worktree: `cd ../<branch>`

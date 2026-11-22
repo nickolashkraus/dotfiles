@@ -38,8 +38,9 @@ phases all happen there:
    the bare slug. Otherwise, use a short descriptive name.
 3. Create the worktree as a peer directory:
    `git worktree add -b <name> ../<name> HEAD`
-4. `cd ../<name>`
-5. `git stash pop`
+4. `worktree-links`
+5. `cd ../<name>`
+6. `git stash pop`
 
 All subsequent steps run in the worktree.
 

@@ -44,6 +44,7 @@ fix branch:
 ```
 git worktree add -b <head-branch>-fixes-<number> \
   ../<head-branch>-fixes-<number> <head-branch>
+worktree-links
 ```
 
 All subsequent work (file reads, edits, CI commands) happens in the worktree
