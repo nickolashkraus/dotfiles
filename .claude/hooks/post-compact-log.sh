@@ -28,6 +28,8 @@ compact_summary=$(echo "${input}" | jq -r '.compact_summary // empty')
 
 [ -n "${compact_summary}" ] || exit 0
 
+# The single-quoted text is a Python program, not shell.
+# shellcheck disable=SC2016
 summary=$(printf '%s\n' "${compact_summary}" | python3 -c '
 import re, sys, textwrap
 

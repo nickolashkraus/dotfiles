@@ -35,7 +35,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 SMART_QUOTES = {
     "“": "left double quote",
     "”": "right double quote",
@@ -78,7 +77,7 @@ def lint_markdown(text: str, path: str) -> list[str]:
     in_code = False
     for lineno, raw in enumerate(text.splitlines(), 1):
         stripped = raw.lstrip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             in_code = not in_code
             continue
         if in_code:
@@ -103,8 +102,7 @@ def lint_markdown(text: str, path: str) -> list[str]:
             )
         if REF_LINK_SHORTHAND_RE.search(line):
             violations.append(
-                f"{path}:{lineno}: ref-link shorthand `[label][]` "
-                "(use `[text][label]`)"
+                f"{path}:{lineno}: ref-link shorthand `[label][]` (use `[text][label]`)"
             )
     return violations
 
@@ -202,8 +200,7 @@ def main() -> int:
     for v in violations:
         sys.stderr.write(f"  - {v}\n")
     sys.stderr.write(
-        "\nBypass with `git commit --no-verify` if you know what you "
-        "are doing.\n"
+        "\nBypass with `git commit --no-verify` if you know what you are doing.\n"
     )
     return 1
 
