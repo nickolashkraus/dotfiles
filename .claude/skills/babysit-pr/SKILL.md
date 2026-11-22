@@ -80,6 +80,11 @@ the user asked to merge and ship instead, check whether the PR already merged
 deploy to the `devhub` skill for EasyDeploy-managed services (e.g.
 ppp-service), or `release-trunk` only for tag-triggered repos.
 
+Before the squash-merge, run `gh pr view <pr-number> --json reviews,comments`.
+If any bot has posted a review with state `CHANGES_REQUESTED` or has left
+unresolved review comments with actionable suggestions, do not merge
+(rules/git.md, "Merging").
+
 On a repo whose ruleset requires the branch to be up to date (ppp-service),
 a busy `main` races a plain `gh pr merge`: it fails with "not up to date", and
 `confirm-risky.py` blocks it anyway without a per-command yes. Merge with
