@@ -29,10 +29,10 @@ Two tools, two jobs. Do not substitute one for the other.
   to widen that scope; see @~/.claude/rules/function-health.md and the standing
   memory. The connector is bound to the FH account and does write.
 
-`gws` is a shell function, not a binary on `PATH`. Call it from Bash. A Python
-`subprocess` call to `gws` skips the wrapper, authenticates as something else,
-and returns `{"files":[]}` with exit 0, which reads as an empty folder rather
-than an error.
+`gws` is a shell function that wraps the `gws` binary on `PATH`. Call it from
+Bash. A Python `subprocess` call to `gws` skips the wrapper, authenticates as
+something else, and returns `{"files":[]}` with exit 0, which reads as an empty
+folder rather than an error.
 
 What the connector can do:
 
