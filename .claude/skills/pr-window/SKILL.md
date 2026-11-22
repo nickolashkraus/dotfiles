@@ -93,6 +93,7 @@ Use `<repo>#<number>`, for example `sre#1914`, `mjs#126`, `mam#4192`.
 | `sre-infra-terraform`     | `sre`      |
 | `member-journey-services` | `mjs`      |
 | `member-app-middleware`   | `mam`      |
+| `member-app`              | `app`      |
 | `transaction-service`     | `ts`       |
 | `membership-service`      | `ms`       |
 | `ppp-service`             | `ppp`      |
@@ -100,6 +101,8 @@ Use `<repo>#<number>`, for example `sre#1914`, `mjs#126`, `mam#4192`.
 | `admin-app-fe-next`       | `admin`    |
 | `frontend-mono`           | `fe`       |
 | `agent-os`                | `agent-os` |
+| `dotfiles`                | `dot`      |
+| `bash-scripts`            | `bs`       |
 
 For a repo not listed, use the initials of the hyphenated segments
 (`member-data-platform` becomes `mdp`). Add a row here when a repo starts
@@ -113,7 +116,7 @@ the name only has to be unique and recognizable at a glance, not descriptive.
 
 With `v`, the panes stack top to bottom: `pr-body --check`, Vim on the pull
 request diff, then the Claude Code session, sized 15%, 60% and 25% like
-`tmux-layout v` (30, 122 and 52 rows on the 206-row monitor). With `h`, Vim is
+`tmux-layout v` (30, 122 and 51 rows on the 206-row monitor). With `h`, Vim is
 on the left, `pr-body --check` on the top right and Claude Code on the bottom
 right. Either way the window opens on the diff pane, which is split to make the
 other two.
