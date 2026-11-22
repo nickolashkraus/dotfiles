@@ -30,10 +30,12 @@ If `$ARGUMENTS` is empty, run it with no argument. Accepts `today`,
 
 - Scans `~/.claude/projects/*/*.jsonl` (top-level sessions only; nested
   `*/subagents/*` transcripts are excluded by the glob).
-- Keeps a session only if it has at least one genuine user turn on the target
-  date. This is the key filter: hook-spawned subsessions (`rule-check`,
-  `lint-outbound`) and skill-runner-only transcripts have zero genuine turns
-  and are dropped, so the result is the windows the user actually drove.
+- Keeps a session only if it has activity on the target date and at least one
+  genuine user turn anywhere in the transcript, so a session still working
+  past midnight is kept. This is the key filter: hook-spawned subsessions
+  (`rule-check`) and skill-runner-only transcripts have zero genuine turns and
+  are dropped, so the result is the windows the user actually drove. The
+  `turns=` count is the transcript total, not the day's.
 - Reads each session's `customTitle` (the tmux window name the user set), the
   cwd, the first genuine prompt, and the local first/last activity time.
 - Groups by directory and writes a tmux rebuild script to
@@ -58,8 +60,9 @@ Call out two things when present:
 The collector already wrote the tmux script and printed its path. The script
 stages `claude --resume <id>` in each window WITHOUT pressing Enter, so the
 user reviews before launching. Offer to run it (`bash
-/tmp/claude-resurrect-<date>.sh`), but do not run it unprompted: it spawns
-a new tmux session and one Claude process per window.
+/tmp/claude-resurrect-<date>.sh`), but do not run it unprompted: it first
+kills any existing `resurrect` tmux session, including a Claude already
+resumed in it, then opens a new session with one window per transcript.
 
 ## Notes
 
