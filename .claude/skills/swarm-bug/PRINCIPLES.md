@@ -66,7 +66,7 @@ The following lessons from the first swarm run inform the automation design:
     precede Layer 4 in all checkout paths) required tracing the call graph
     across three functions. Each path handled the ordering differently
     (explicit sequencing in `create_checkout`, implicit via branch structure in
-    `_execute_stripe_payment`, resolver- first in `ts_actions`). A diff review
+    `_execute_stripe_payment`, resolver-first in `ts_actions`). A diff review
     cannot catch this. The Investigator review prompt should explicitly require
     full-file reads, not just diff review.
 

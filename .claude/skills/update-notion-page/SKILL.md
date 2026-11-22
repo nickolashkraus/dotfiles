@@ -54,8 +54,8 @@ If the script is not available or no manifest exists yet, run without the flag
 (or read the file directly). Local links pointing at unmapped files are left
 unchanged.
 
-Read the cleaned output from `dist/<filename>`. This is the content you will
-use in subsequent steps.
+Read the cleaned output from `/tmp/notion-clean/<filename>`. This is the
+content you will use in subsequent steps.
 
 ## Step 3: Strip internal references
 

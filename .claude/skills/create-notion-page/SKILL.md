@@ -30,8 +30,8 @@ per the project's `manifest.yaml`, and convert Markdown footnotes to Notion
 `<callout>` blocks (Notion does not render `[^label]` natively):
 
 ```
-python scripts/clean_markdown.py --input <file> \
-  --resolve-refs --rewrite-local-links --notion-footnotes
+python ~/nickolashkraus/agent-os/master/scripts/clean_markdown.py \
+  --input <file> --resolve-refs --rewrite-local-links --notion-footnotes
 ```
 
 `--rewrite-local-links` walks up from `<file>` to the nearest `manifest.yaml`,

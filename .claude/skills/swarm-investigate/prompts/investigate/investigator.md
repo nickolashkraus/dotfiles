@@ -25,12 +25,12 @@ analysis: databases, logs, dashboards, and external systems.
    the system has a built-in recovery path: delete-event webhooks,
    garbage-collection crons, periodic reconcile jobs, on-error retry logic,
    compensating transactions, etc. For each candidate self-heal mechanism,
-   verify it is actually deployed and firing in prod: query logs for the
+   verify it is actually deployed and firing in Prod: query logs for the
    handler's expected log lines, count invocations against the rate the
    upstream event should fire, check the relevant feature flag / handler
    registration on the deployed revision (not just on the dev branch). The
    investigation should explicitly answer: "what naturally returns this state
-   to healthy, and is that mechanism running in prod right now?"
+   to healthy, and is that mechanism running in Prod right now?"
 
 ## Output
 

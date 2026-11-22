@@ -118,8 +118,8 @@ confirm zero before advancing.
 Every swarm run creates a new worktree of the bare repo at
 `~/nickolashkraus/agent-os` for its artifacts. The worktree branch name is the
 slug derived from the input. Inside the worktree, artifacts live under
-`domains/<domain>/<projects|teams>
-/<name>/<bucket>/<slug>/`. The bucket is determined by skill:
+`domains/<domain>/<projects|teams>/<name>/<bucket>/<slug>/`. The bucket is
+determined by skill:
 
 | Skill                | Bucket            |
 | -------------------- | ----------------- |
