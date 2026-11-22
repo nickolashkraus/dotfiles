@@ -24,9 +24,9 @@ allowed-tools: Bash, Read
   using `--params` with a `fields` mask, include `nextPageToken` in the mask.
   Without it, `gws` cannot detect additional pages and silently returns only
   the first page.
-- For methods with a request body (e.g., `gmail messages modify`, `gmail
-  messages send`), pass body fields via `--json`, not `--params`. `--params` is
-  only for URL/query parameters like `userId` and `id`.
+- For methods with a request body (e.g., `gmail users messages modify`, `gmail
+  users messages send`), pass body fields via `--json`, not `--params`.
+  `--params` is only for URL/query parameters like `userId` and `id`.
 - The personal profile prints `Using keyring backend: file` to stderr, so the
   JSON body on stdout pipes straight into `python3 -c "json.load"` or `jq`.
   A decode error at char 0 means the two streams were merged (`2>&1`). Drop

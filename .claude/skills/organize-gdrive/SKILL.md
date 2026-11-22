@@ -195,7 +195,7 @@ Create folders first, then move, then rename, then trash. Issue
 connector has no batch endpoint.
 
 Before the first call, confirm the whole move set is objects the user
-owns. Dump the id-to-change lists (moves, renames, trashes) to the
+owns. Dump the ID-to-change lists (moves, renames, trashes) to the
 scratchpad so a crash mid-run is recoverable.
 
 Each connector call echoes the full file object, so a run past about 40

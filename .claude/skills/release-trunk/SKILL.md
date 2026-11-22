@@ -60,7 +60,7 @@ The image tag is `tf_<short-sha>`. Map it to a commit:
 **EasyDeploy-managed services** (e.g. ppp-service) serve an
 EasyDeploy-owned image digest instead of `tf_<short-sha>`, so this
 mapping does not work. Determine the deployed version from the newest
-`release/*` tag whose prod deploy build succeeded
+`release/*` tag whose Prod deploy build succeeded
 (`gcloud builds list` filtered by the trigger ID). Also check the
 trigger's `_MIGRATION_ENABLED` substitution: repos that moved
 migrations to the DevHub Migrations action pin it `false`, and the
@@ -170,5 +170,5 @@ schema before rolling back code alone.
 Print: tag, GitHub Release URL, Cloud Build ID and status, Cloud Run
 revision before/after, migrations applied (or none), and any follow-ups.
 Update the daily task file in
-`~/nickolashkraus/agent-os/tasks/daily/<YYYY>/<MM>/<date>.md` if one exists
-for this release.
+`~/nickolashkraus/agent-os/master/tasks/daily/<YYYY>/<MM>/<date>.md` if one
+exists for this release.
