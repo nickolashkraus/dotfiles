@@ -435,15 +435,17 @@ def scrub_code_spans(lines: list[str]) -> list[str]:
     """
     Return `lines` with inline code spans removed, one output line per input
     line. A span that wraps onto the next line of the same paragraph or list
-    item is removed whole. A block with an odd number of backticks holds a
-    stray one, so it is scrubbed line by line instead of guessing the pairs.
+    item is removed whole. A block with an odd number of backticks, or with
+    a pair more than one line break apart, holds stray backticks, so it is
+    scrubbed line by line instead of guessing the pairs.
     """
     out: list[str] = []
     block: list[str] = []
 
     def flush() -> None:
         joined = "\n".join(block)
-        if joined.count("`") % 2 == 0:
+        spans = re.findall(r"`[^`]*`", joined)
+        if joined.count("`") % 2 == 0 and all(s.count("\n") < 2 for s in spans):
             kept = re.sub(r"`[^`]*`", lambda m: "\n" * m.group(0).count("\n"), joined)
             out.extend(kept.split("\n") if block else [])
         else:
@@ -951,16 +953,22 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
 # `< file`, `$(cat file)`).
 HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
 FILE_READER_RE = re.compile(
-    r"(?:(?:^|\s)(?:-F|--file|--body-file|--input)[=\s]+|=@|<\s*|\bcat\s+)"
+    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file|--input)[=\s]+"
+    r"|=@|<\s*|\bcat\s+)"
     r"([^\s;|&<>()]+)"
 )
+
+
+def file_name(token: str) -> str:
+    """Base name of a path token with its quotes dropped."""
+    return os.path.basename(token.strip("'\""))
 
 
 def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     """True when the heredoc at `heredoc_start` is `cat` output redirected
     into a file that nothing else in the command reads back. Files compare
-    by base name, so another spelling of the same path still counts as read
-    back and the heredoc stays a payload."""
+    by base name. A name held in a variable cannot be compared, so when the
+    command reads any file back the heredoc stays a payload."""
     segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
     words = segment.split()
     if not words or words[0] != "cat":
@@ -968,9 +976,11 @@ def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     target = HEREDOC_REDIRECT_RE.search(segment)
     if target is None:
         return False
-    name = os.path.basename(target.group(1).strip("'\""))
-    readers = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
-    return all(os.path.basename(r.strip("'\"")) != name for r in readers)
+    name = file_name(target.group(1))
+    found = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
+    readers = [r for r in map(file_name, found) if r != "-"]
+    opaque = any("$" in n or "`" in n for n in [name, *readers])
+    return name not in readers and not (opaque and readers)
 
 
 # `gh ... --body-file <path>` and `git commit -F|--file <path>` point the
@@ -991,13 +1001,14 @@ COMMIT_FILE_FLAG_RE = re.compile(r"(?:^|\s)(?:-F|--file)[=\s]+(\S+)")
 # Every token between `git` and the subcommand must look like a flag or a
 # known flag's value, so other subcommands (`git log ... commit`) stay
 # out. Separate-value options are enumerated to keep each token's arity
-# unambiguous, which bounds backtracking.
+# unambiguous, which bounds backtracking. `-c`/`-C` always take a value,
+# so `git -c commit.gpgsign=false tag` does not read as a commit.
 GIT_GLOBAL_OPT = (
     r"-[cC](?:=|\s+)\S+"
     r"|--(?:git-dir|work-tree|namespace|exec-path|config-env|super-prefix)"
     r"(?:=|\s+)\S+"
     r"|--[\w-]+(?:=\S+)?"
-    r"|-[A-Za-z]+"
+    r"|-(?![cC]\s)[A-Za-z]+"
 )
 # `(?![-\w])` keeps `git commit-graph` from reading as a commit.
 GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])")

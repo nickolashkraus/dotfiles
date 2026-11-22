@@ -541,12 +541,45 @@ def test_file_heredoc_is_not_the_message() -> None:
         "gh api repos/o/r/issues/1/comments --field body=@/tmp/unit-msg.txt",
         "gh pr comment 1 --body-file - < /tmp/unit-msg.txt",
         'git commit -m "$(cat /tmp/unit-msg.txt)"',
+        "git commit -aF /tmp/unit-msg.txt",
     ):
         check(
             f"heredoc read back by `{reader}` extracted",
             heredocs(message + reader) == ["Add the lint workflow"],
             f"got {heredocs(message + reader)!r}",
         )
+
+    for name, cmd in (
+        (
+            "variable target read back with braces",
+            "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
+            "git commit -F ${f}",
+        ),
+        (
+            "variable target, another file read back",
+            "cat > $f <<'MSG'\nAdd the lint workflow\nMSG\ngit commit -F m.txt",
+        ),
+        (
+            "named target, a variable read back",
+            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\ngit commit -F $f",
+        ),
+        (
+            "named target, a command's output read back",
+            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
+            "git commit -F `ls -t | head -1`",
+        ),
+    ):
+        check(
+            f"{name}: heredoc stays a payload",
+            heredocs(cmd) == ["Add the lint workflow"],
+            f"got {heredocs(cmd)!r}",
+        )
+    unread = "cat > $f <<'EOF'\nname: lint\nEOF\ngit commit -F - -- $f"
+    check(
+        "variable target that nothing reads back is not a payload",
+        heredocs(unread) == [],
+        f"got {heredocs(unread)!r}",
+    )
 
     stdin = "git commit -F - > /tmp/commit.log <<'EOF'\nSubject line here\nEOF"
     check(
@@ -576,6 +609,8 @@ def test_git_global_options_before_commit() -> None:
         "git -C ~/repo log --grep commit -m 'Add the upgrade gate'",
         "git commit-graph write -m 'Add the upgrade gate'",
         "git show HEAD --stat && echo commit -m 'Add the upgrade gate'",
+        "git -c commit.gpgsign=false tag -a v1 -m 'Add the upgrade gate'",
+        "git -C commit log -m 'Add the upgrade gate'",
     ):
         out = rc.extract_bash_payloads(cmd)
         check(f"`{cmd.split(' -m')[0]}` is not a commit", out == [], f"got {out!r}")

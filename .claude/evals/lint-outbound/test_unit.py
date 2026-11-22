@@ -238,12 +238,45 @@ def test_file_heredoc_is_not_the_message() -> None:
         "gh api repos/o/r/issues/1/comments --field body=@/tmp/unit-msg.txt",
         "gh pr comment 1 --body-file - < /tmp/unit-msg.txt",
         'git commit -m "$(cat /tmp/unit-msg.txt)"',
+        "git commit -aF /tmp/unit-msg.txt",
     ):
         check(
             f"heredoc read back by `{reader}` extracted",
             heredocs(message + reader) == ["Add the lint workflow"],
             f"got {heredocs(message + reader)!r}",
         )
+
+    for name, cmd in (
+        (
+            "variable target read back with braces",
+            "f=/tmp/m\ncat > $f <<'MSG'\nAdd the lint workflow\nMSG\n"
+            "git commit -F ${f}",
+        ),
+        (
+            "variable target, another file read back",
+            "cat > $f <<'MSG'\nAdd the lint workflow\nMSG\ngit commit -F m.txt",
+        ),
+        (
+            "named target, a variable read back",
+            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\ngit commit -F $f",
+        ),
+        (
+            "named target, a command's output read back",
+            "cat > m.txt <<'MSG'\nAdd the lint workflow\nMSG\n"
+            "git commit -F `ls -t | head -1`",
+        ),
+    ):
+        check(
+            f"{name}: heredoc stays a payload",
+            heredocs(cmd) == ["Add the lint workflow"],
+            f"got {heredocs(cmd)!r}",
+        )
+    unread = "cat > $f <<'EOF'\nname: lint\nEOF\ngit commit -F - -- $f"
+    check(
+        "variable target that nothing reads back is not a payload",
+        heredocs(unread) == [],
+        f"got {heredocs(unread)!r}",
+    )
 
     stdin = "git commit -F - > /tmp/commit.log <<'EOF'\nSubject line here\nEOF"
     check(
@@ -719,6 +752,8 @@ def test_git_global_flags_before_commit() -> None:
         ("git commit-tree", "git commit-tree abc123"),
         ("git log ... commit", "git log --format=%s -n1 commit"),
         ("echo commit", "git show HEAD --stat && echo commit"),
+        ("git -c commit.x tag", "git -c commit.gpgsign=false tag -a v1 -m 'x'"),
+        ("git -C commit log", "git -C commit log -m 'x'"),
     ]:
         check(
             f"not a commit: {label}",
@@ -849,12 +884,16 @@ def test_wrapped_code_span() -> None:
         len(found) == 1 and found[0].startswith("t line 2:") and '"colour"' in found[0],
         f"got {found!r}",
     )
-    three = "Use `one\ntwo\nthree` and then the colour red.\n"
+    strays = (
+        "Type a single ` to open a span.\n"
+        "This prose has the colour red in it.\n"
+        "Close it with another ` later.\n"
+    )
+    found = [v for v in lo.lint_text(strays, "t", check_local_paths=False)]
     check(
-        "span over three lines keeps the line count",
-        [v.split(":")[0] for v in lo.lint_text(three, "t", check_local_paths=False)]
-        == ["t line 3"],
-        f"got {lo.lint_text(three, 't', check_local_paths=False)!r}",
+        "two backticks more than one line break apart are strays",
+        len(found) == 1 and found[0].startswith("t line 2:") and "colour" in found[0],
+        f"got {found!r}",
     )
     stray = "A stray ` tick and `code`\nthen the colour of `x` here.\n"
     check(

@@ -105,15 +105,16 @@ CMD_SUBST_PREFIX_RE = re.compile(r"^\$[\(\{]")
 
 # Git accepts global options between `git` and the subcommand, so
 # `git -C <dir> commit` and `git -c k=v commit` are commits too. Every token
-# in between must look like a flag or a known flag's value, which keeps
-# `git -C <dir> log --grep commit` out. `(?![-\w])` keeps `git commit-graph`
+# in between must look like a flag or a known flag's value, and `-c`/`-C`
+# always take a value, which keeps `git -C <dir> log --grep commit` and
+# `git -c commit.gpgsign=false tag` out. `(?![-\w])` keeps `git commit-graph`
 # from reading as a commit. Same pattern as lint-outbound.py.
 GIT_GLOBAL_OPT = (
     r"-[cC](?:=|\s+)\S+"
     r"|--(?:git-dir|work-tree|namespace|exec-path|config-env|super-prefix)"
     r"(?:=|\s+)\S+"
     r"|--[\w-]+(?:=\S+)?"
-    r"|-[A-Za-z]+"
+    r"|-(?![cC]\s)[A-Za-z]+"
 )
 GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w])")
 GH_COMMAND_RE = re.compile(r"\bgh\s+(?:pr|issue)\s+\w+|\bgh\s+api\b")
@@ -153,16 +154,22 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
 # `< file`, `$(cat file)`).
 HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
 FILE_READER_RE = re.compile(
-    r"(?:(?:^|\s)(?:-F|--file|--body-file|--input)[=\s]+|=@|<\s*|\bcat\s+)"
+    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file|--input)[=\s]+"
+    r"|=@|<\s*|\bcat\s+)"
     r"([^\s;|&<>()]+)"
 )
+
+
+def file_name(token: str) -> str:
+    """Base name of a path token with its quotes dropped."""
+    return os.path.basename(token.strip("'\""))
 
 
 def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     """True when the heredoc at `heredoc_start` is `cat` output redirected
     into a file that nothing else in the command reads back. Files compare
-    by base name, so another spelling of the same path still counts as read
-    back and the heredoc stays a payload."""
+    by base name. A name held in a variable cannot be compared, so when the
+    command reads any file back the heredoc stays a payload."""
     segment = re.split(r"[|;&\n]|\$\(", command[:heredoc_start])[-1]
     words = segment.split()
     if not words or words[0] != "cat":
@@ -170,9 +177,11 @@ def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     target = HEREDOC_REDIRECT_RE.search(segment)
     if target is None:
         return False
-    name = os.path.basename(target.group(1).strip("'\""))
-    readers = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
-    return all(os.path.basename(r.strip("'\"")) != name for r in readers)
+    name = file_name(target.group(1))
+    found = FILE_READER_RE.findall(HEREDOC_RE.sub("", command))
+    readers = [r for r in map(file_name, found) if r != "-"]
+    opaque = any("$" in n or "`" in n for n in [name, *readers])
+    return name not in readers and not (opaque and readers)
 
 
 def _is_real_prose_value(value: str | None) -> bool:
