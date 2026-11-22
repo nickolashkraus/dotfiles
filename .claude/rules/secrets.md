@@ -79,8 +79,8 @@ Two rules hold even without it:
 
 - **Function Health service secrets**: Service-to-service credentials live in
   GCP Secret Manager. Fetch via
-  `gcloud secrets versions access latest --secret=<name>`. See
-  @rules/function-health.md.
+  `gcloud secrets versions access latest --secret=<name>`. See the `fh-auth`
+  skill.
 - **Ephemeral tokens**: Short-lived tokens (e.g.,
   `gcloud auth print-access-token`) should be generated inline, not cached. The
   one exception is `fh-dev-member-token`: an agent cannot sign in as a member,
