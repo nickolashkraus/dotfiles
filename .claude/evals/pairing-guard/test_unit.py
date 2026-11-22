@@ -48,23 +48,39 @@ def git(*args: str) -> str:
     ).stdout.strip()
 
 
-def run_hook(tool: str, tool_input: dict, cwd: Path) -> subprocess.CompletedProcess[str]:
+def run_hook(
+    tool: str, tool_input: dict, cwd: Path
+) -> subprocess.CompletedProcess[str]:
     payload = {"tool_name": tool, "tool_input": tool_input, "cwd": str(cwd)}
     return subprocess.run(
         [sys.executable, str(HOOK_PATH)],
         input=json.dumps(payload),
         capture_output=True,
         text=True,
+        check=False,
     )
 
 
 def run(root: Path) -> int:
-    paired, free, main_wt, linked = (root / n for n in ("paired", "free", "main", "linked"))
+    paired, free, main_wt, linked = (
+        root / n for n in ("paired", "free", "main", "linked")
+    )
     for repo in (paired, free, main_wt):
         git("init", "-q", str(repo))
         (repo / "file.txt").write_text("a\n")
-    git("-C", str(main_wt), "-c", "user.name=t", "-c", "user.email=t@t",
-        "commit", "-q", "--allow-empty", "-m", "init")
+    git(
+        "-C",
+        str(main_wt),
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@t",
+        "commit",
+        "-q",
+        "--allow-empty",
+        "-m",
+        "init",
+    )
     git("-C", str(main_wt), "worktree", "add", "-q", str(linked), "-b", "linked")
     (root / "link").symlink_to(paired)
 
@@ -74,7 +90,12 @@ def run(root: Path) -> int:
     P, F, O = paired, free, root
     bash_cases = [
         ("git commit in a paired cwd", "git commit -m x", P, True),
-        ("read-only git in a paired cwd", "git status && git diff && git log -1", P, False),
+        (
+            "read-only git in a paired cwd",
+            "git status && git diff && git log -1",
+            P,
+            False,
+        ),
         ("git -C paired push from a free cwd", f"git -C {P} push", F, True),
         ("git -C free commit from a paired cwd", f"git -C {F} commit -m x", P, False),
         ("cd into paired, then add", f"cd {P} && git add -A", F, True),
@@ -101,12 +122,38 @@ def run(root: Path) -> int:
         ("heredoc into paired", "cat > notes.md <<'EOF'\nit's here\nEOF", P, True),
         ("heredoc body is data", f"cat > {F}/x.md <<'EOF'\ngit commit\nEOF", P, False),
         ("sed -i on a paired file", f"sed -i '' 's/a/b/' {P}/file.txt", F, True),
-        ("sed -i on a free file from paired cwd", f"sed -i '' 's/a/b/' {F}/file.txt", P, False),
+        (
+            "sed -i on a free file from paired cwd",
+            f"sed -i '' 's/a/b/' {F}/file.txt",
+            P,
+            False,
+        ),
         ("sed without -i", f"sed 's/a/b/' {P}/file.txt", F, False),
         ("perl -pi", f"perl -pi -e 's/a/b/' {P}/file.txt", F, True),
         ("ruff format", "uv run ruff format .", P, True),
         ("ruff format --check", "uv run ruff format --check .", P, False),
         ("npm run format", "npm run format", P, True),
+        ("npm run lint:fix", "npm run lint:fix", P, True),
+        ("pnpm fix", "pnpm fix", P, True),
+        ("make fmt", "make fmt", P, True),
+        ("make lint-fix", "make lint-fix", P, True),
+        ("npm run autofix", "npm run autofix", P, True),
+        ("make reformat", "make reformat", P, True),
+        ("npm run formatAll", "npm run formatAll", P, True),
+        ("npm run format:check", "npm run format:check", P, False),
+        ("make gofmt", "make gofmt", P, True),
+        ("make rustfmt", "make rustfmt", P, True),
+        ("npm run lintfix", "npm run lintfix", P, True),
+        ("make fixall", "make fixall", P, True),
+        ("npm run fixup", "npm run fixup", P, True),
+        ("make fixes", "make fixes", P, True),
+        ("npm run formatter", "npm run formatter", P, True),
+        ("make formatting", "make formatting", P, True),
+        ("make gofmtx", "make gofmtx", P, False),
+        ("make fixtures", "make fixtures", P, False),
+        ("npm run test:fixtures", "npm run test:fixtures", P, False),
+        ("make information", "make information", P, False),
+        ("pnpm run prefix:build", "pnpm run prefix:build", P, False),
         ("rm in paired", f"rm -f {P}/file.txt", F, True),
         ("cp out of paired", f"cp {P}/file.txt {F}/copy.txt", F, False),
         ("cp into paired", f"cp {F}/file.txt {P}/copy.txt", F, True),
@@ -117,23 +164,73 @@ def run(root: Path) -> int:
         ("gh pr create", "gh pr create --fill", P, True),
         ("gh pr view", "gh pr view 12", P, False),
         ("deleting the flag", f"rm {P}/.git/{FLAG}", F, True),
-        ("deleting the flag via substitution", f'rm "$(git rev-parse --git-dir)/{FLAG}"', F, True),
+        (
+            "deleting the flag via substitution",
+            f'rm "$(git rev-parse --git-dir)/{FLAG}"',
+            F,
+            True,
+        ),
         ("deleting the Git directory", f"rm -rf {P}/.git", F, True),
         ("free repo unaffected", "git commit -m x && git push && echo x > f", F, False),
-        ("search naming the flag", f"grep -rn {FLAG} ~/.vimrc; ls ~/rm-notes", O, False),
+        (
+            "search naming the flag",
+            f"grep -rn {FLAG} ~/.vimrc; ls ~/rm-notes",
+            O,
+            False,
+        ),
         ("rg alternation naming the flag", f"rg -n '{FLAG}|unlink' {P}/.git", O, False),
         ("rg alternation in a paired cwd", f"rg -n '{FLAG}|unlink' .git", P, False),
-        ("find naming the flag without deleting", f"find {P}/.git -name {FLAG}", F, False),
+        (
+            "find naming the flag without deleting",
+            f"find {P}/.git -name {FLAG}",
+            F,
+            False,
+        ),
         ("find deleting the flag", f"find {O} -name {FLAG} -delete", O, True),
-        ("find -exec deleting the flag", f"find {O} -name {FLAG} -exec rm {{}} \\;", O, True),
-        ("deleting the flag via cd", f'cd "$(git -C {P} rev-parse --git-dir)" && rm {FLAG}', O, True),
-        ("deleting the flag via unquoted substitution", f"rm $(git rev-parse --git-dir)/{FLAG}", O, True),
-        ("python one-liner deleting the flag", f"python3 -c \"import os; os.remove('.git/{FLAG}')\"", O, True),
-        ("perl one-liner deleting the flag", f"perl -e 'unlink \".git/{FLAG}\"'", O, True),
-        ("python one-liner naming the flag", f"python3 -c \"print('{FLAG}')\"", O, False),
+        (
+            "find -exec deleting the flag",
+            f"find {O} -name {FLAG} -exec rm {{}} \\;",
+            O,
+            True,
+        ),
+        (
+            "deleting the flag via cd",
+            f'cd "$(git -C {P} rev-parse --git-dir)" && rm {FLAG}',
+            O,
+            True,
+        ),
+        (
+            "deleting the flag via unquoted substitution",
+            f"rm $(git rev-parse --git-dir)/{FLAG}",
+            O,
+            True,
+        ),
+        (
+            "python one-liner deleting the flag",
+            f"python3 -c \"import os; os.remove('.git/{FLAG}')\"",
+            O,
+            True,
+        ),
+        (
+            "perl one-liner deleting the flag",
+            f"perl -e 'unlink \".git/{FLAG}\"'",
+            O,
+            True,
+        ),
+        (
+            "python one-liner naming the flag",
+            f"python3 -c \"print('{FLAG}')\"",
+            O,
+            False,
+        ),
         ("cp with an fd redirect", f"cp file.txt {O}/out.txt 2>/dev/null", P, False),
         ("cp with an fd dup", f"cp file.txt {O}/out.txt 2>&1", P, False),
-        ("cp into paired with an fd redirect", f"cp {F}/file.txt copy.txt 2>/dev/null", P, True),
+        (
+            "cp into paired with an fd redirect",
+            f"cp {F}/file.txt copy.txt 2>/dev/null",
+            P,
+            True,
+        ),
         ("perl -M is not -i", f"perl -Mstrict -e 'print 1' {P}/file.txt", F, False),
         ("ruby -r is not -i", f"ruby -rdigest -e 'p 1' {P}/file.txt", F, False),
         ("perl -lpi", f"perl -lpi -e 's/a/b/' {P}/file.txt", F, True),
@@ -148,18 +245,31 @@ def run(root: Path) -> int:
     for name, cmd, cwd, expect in bash_cases:
         r = run_hook("Bash", {"command": cmd}, cwd)
         blocked = r.returncode == 2
-        check(name, blocked == expect, f"exit {r.returncode}, expected {'2' if expect else '0'}: {r.stderr.strip()[:200]}")
+        check(
+            name,
+            blocked == expect,
+            f"exit {r.returncode}, expected {'2' if expect else '0'}: {r.stderr.strip()[:200]}",
+        )
 
     file_cases = [
         ("Edit in paired", "Edit", {"file_path": f"{P}/file.txt"}, False),
-        ("Write a new file in paired", "Write", {"file_path": f"{P}/new/dir/x.md"}, False),
+        (
+            "Write a new file in paired",
+            "Write",
+            {"file_path": f"{P}/new/dir/x.md"},
+            False,
+        ),
         ("Write the flag", "Write", {"file_path": f"{P}/.git/{FLAG}"}, True),
         ("Write inside paired .git", "Write", {"file_path": f"{P}/.git/HEAD"}, True),
         ("Write inside free .git", "Write", {"file_path": f"{F}/.git/config"}, False),
     ]
     for name, tool, tool_input, expect in file_cases:
         r = run_hook(tool, tool_input, F)
-        check(name, (r.returncode == 2) == expect, f"exit {r.returncode}: {r.stderr.strip()[:200]}")
+        check(
+            name,
+            (r.returncode == 2) == expect,
+            f"exit {r.returncode}: {r.stderr.strip()[:200]}",
+        )
 
     r = run_hook("Bash", {"command": "git commit -m x"}, P)
     check("message names the worktree", str(P) in r.stderr, r.stderr[:200])

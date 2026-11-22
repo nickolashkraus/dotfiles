@@ -130,7 +130,13 @@ IN_PLACE_FLAG = {
 }
 
 SHELLS = frozenset({"bash", "dash", "sh", "zsh"})
-FIX_SCRIPT_RE = re.compile(r"fmt|format|fix")
+# A script or target named for a formatter as a whole name segment (`fix`,
+# `lint:fix`, `formatAll`), with the usual prefixes and endings (`autofix`,
+# `gofmt`, `formatter`, `fixup`), not as part of a word (`fixtures`).
+FIX_SCRIPT_RE = re.compile(
+    r"(?<![A-Za-z])(?:auto|re|go|rust|lint)?(?:fmt|format|fix)"
+    r"(?:all|up|es|ter|ting)?(?![a-z])"
+)
 CHECK_FLAGS = frozenset(
     {"--check", "--diff", "--check-only", "-check", "-diff", "-write=false"}
 )
