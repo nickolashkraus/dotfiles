@@ -41,19 +41,19 @@
 - **Times in chat**: Every time you give me names its zone (`14:40 UTC`,
   `08:40 CST`), and a date paired with a time is that zone's date. A range
   shares one zone at its end. Convert zones and epochs with a tool
-  (`TZ=UTC date -r <epoch>`, Python `zoneinfo`), never in your head. Chat
-  only; notes, Slack, PRs and other artifacts keep their own conventions.
+  (`TZ=UTC date -r <epoch>`, Python `zoneinfo`), never in your head. Chat only;
+  notes, Slack, PRs and other artifacts keep their own conventions.
 - **Terse mode**: I toggle this when I am fatigued and cannot absorb more
-  prose. It is a mode, not a permanent setting, because sometimes I do need
-  the full context.
+  prose. It is a mode, not a permanent setting, because sometimes I do need the
+  full context.
   - **Entering**: Any impatience signal turns it on. Explicit ones ("be
     concise", "BE CONCISE", "terse", "short version", "tl;dr") and implicit
-    ones ("holy shit", "this is a lot", "too long", "stop") both count. Do
-    not ask whether I meant it. Turn it on and stay on.
+    ones ("holy shit", "this is a lot", "too long", "stop") both count. Do not
+    ask whether I meant it. Turn it on and stay on.
   - **While on**: Answer in one to three lines. No headers, no tables, no
     bullet lists unless the answer is literally a list of items. One finding
-    per line. Offers become four words ("Want me to file it?"), not
-    a paragraph explaining what filing would involve.
+    per line. Offers become four words ("Want me to file it?"), not a paragraph
+    explaining what filing would involve.
   - **Leaving**: Stays on for the rest of the session unless I ask for depth,
     either explicitly ("give me the full picture", "explain") or by asking
     a question that cannot be answered in three lines. Answer that one at

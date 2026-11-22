@@ -28,8 +28,7 @@ the Login Keychain is unlocked.
 ## Inventory
 
 Each Purpose is the entry's Keychain comment (`-j`) word for word, so change
-both together. New entries follow the creation template in the `secrets`
-skill.
+both together. New entries follow the creation template in the `secrets` skill.
 
 ### `function-health`
 
@@ -68,13 +67,13 @@ skill.
 
 Header shapes, key scopes and the procedure for adding a secret live in the
 `secrets` skill. Invoke it before the first call to ConductorOne, Statsig,
-Stripe, DevHub or Datadog with one of these keys, and before adding an
-entry. Two rules hold even without it:
+Stripe, DevHub or Datadog with one of these keys, and before adding an entry.
+Two rules hold even without it:
 
 - `stripe-prod` is read-only. Never use it for write operations.
-- The Live write keys (`stripe-prod-webhooks` and
-  `stripe-prod-limited-write`) are narrowly scoped. Confirm the target
-  objects and the intended end state before every call.
+- The Live write keys (`stripe-prod-webhooks` and `stripe-prod-limited-write`)
+  are narrowly scoped. Confirm the target objects and the intended end state
+  before every call.
 
 ## When Not to Use the Keychain
 
@@ -83,6 +82,6 @@ entry. Two rules hold even without it:
   `gcloud secrets versions access latest --secret=<name>`. See
   @rules/function-health.md.
 - **Ephemeral tokens**: Short-lived tokens (e.g.,
-  `gcloud auth print-access-token`) should be generated inline, not cached.
-  The one exception is `fh-dev-member-token`: an agent cannot sign in as
-  a member, so Nickolas caches that token for it (see the `fh-auth` skill).
+  `gcloud auth print-access-token`) should be generated inline, not cached. The
+  one exception is `fh-dev-member-token`: an agent cannot sign in as a member,
+  so Nickolas caches that token for it (see the `fh-auth` skill).

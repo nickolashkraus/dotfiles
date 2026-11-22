@@ -47,8 +47,8 @@
   Three things are exempt, because changing them would be wrong rather than
   pedantic:
 
-  - **Identifiers and literals keep their own spelling.** A column, field,
-    enum member, function or env var named the British way stays that way in
+  - **Identifiers and literals keep their own spelling.** A column, field, enum
+    member, function or env var named the British way stays that way in
     backticks and in code, and so does a third-party API field. Write "the
     `cancelled` column" rather than renaming it in prose.
   - **Quoted material is reproduced verbatim.** Documentation excerpts, log
@@ -58,13 +58,13 @@
     titles.
 
   This applies wherever @rules/general.md already sends typography: source,
-  comments, docstrings, commit messages, PR descriptions, Linear issues,
-  Notion pages, Slack messages and chat. It does not license rewriting
-  existing prose you were not otherwise editing.
+  comments, docstrings, commit messages, PR descriptions, Linear issues, Notion
+  pages, Slack messages and chat. It does not license rewriting existing prose
+  you were not otherwise editing.
 - Always write "ID" (capitalized) in prose: "session ID", "the agent's ID".
-  Never "id" or "Id". It is an abbreviation of "identifier", and lowercase
-  "id" reads as the Freudian term. When referring to a literal field, column,
-  or variable, use backticks with the verbatim casing (`id`, `user_id`,
+  Never "id" or "Id". It is an abbreviation of "identifier", and lowercase "id"
+  reads as the Freudian term. When referring to a literal field, column, or
+  variable, use backticks with the verbatim casing (`id`, `user_id`,
   `session.id`, `userId`). The colon-capitalization rule does not force
   a backticked `id` to `Id`; code spans are exempt.
 - Do not add periods to the end of bulleted list items by default. Add a period

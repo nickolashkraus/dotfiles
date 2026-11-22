@@ -11,13 +11,13 @@ Proxy), `fh-databricks`, `fh-datadog`, `fh-kubernetes` (GKE kubeconfig) and
 ## Reading Prod Data
 
 When a question needs a service's own Prod rows (whether a migration ran,
-a catalog or mapping row, an order count), read that service's Postgres. Do
-not send the question to Databricks, and do not stop at "no Prod read path".
+a catalog or mapping row, an order count), read that service's Postgres. Do not
+send the question to Databricks, and do not stop at "no Prod read path".
 
 - **Request read-only through ConductorOne (C1)**: If my account cannot
   connect, request the instance's `ro` group with `cone`, following the
-  `fh-database` skill. A read-only request needs no separate yes from me.
-  Say what was requested, then carry on while an owner approves.
+  `fh-database` skill. A read-only request needs no separate yes from me. Say
+  what was requested, then carry on while an owner approves.
 - **Never more than `ro`**: An `rw` or `adm` request needs my yes for that
   request.
 - **A refused request is not a detour sign**: Report it. Do not reach for

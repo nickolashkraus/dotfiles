@@ -25,18 +25,18 @@ individual piece of it is defensible.
 ### Treat the ticket as evidence, not the definition
 
 A ticket is one person's first-pass guess at the shape of the work, often
-written before anyone read the code. Its scope is a hypothesis to check
-against the goal, so read what the requester actually needs and what the code
-already does, then say plainly when the ticket asks for more than that.
-Implementing a ticket faithfully is not the same as solving the problem.
+written before anyone read the code. Its scope is a hypothesis to check against
+the goal, so read what the requester actually needs and what the code already
+does, then say plainly when the ticket asks for more than that. Implementing
+a ticket faithfully is not the same as solving the problem.
 
 ### State the null option
 
 Answer "what happens if we change nothing?" before proposing anything, and put
-the answer in the plan. Often the honest answer is "most of this already
-works, except X", and X is then the entire scope. A plan that proposes doing
-almost nothing looks like insufficient work and is frequently correct, so
-never discard the null option because it seems too small to offer.
+the answer in the plan. Often the honest answer is "most of this already works,
+except X", and X is then the entire scope. A plan that proposes doing almost
+nothing looks like insufficient work and is frequently correct, so never
+discard the null option because it seems too small to offer.
 
 ### Own only the difference from the platform
 
@@ -48,14 +48,14 @@ drift from it.
 
 ### Name the alternative you are rejecting
 
-Before writing integration code against a system you do not own, write down
-the option you are not taking and why: "I considered adding an endpoint to X
-and rejected it because Y." If Y comes out empty, that is the answer, and the
-work belongs on the other side of the boundary.
+Before writing integration code against a system you do not own, write down the
+option you are not taking and why: "I considered adding an endpoint to X and
+rejected it because Y." If Y comes out empty, that is the answer, and the work
+belongs on the other side of the boundary.
 
 This has to produce an artifact rather than ask for wider thinking. Verifying
-a claim once it is in front of me is reliable; choosing what to put in front
-of me is the weak half. A rule that says "consider the alternatives" does not
+a claim once it is in front of me is reliable; choosing what to put in front of
+me is the weak half. A rule that says "consider the alternatives" does not
 fire. A rule that demands a written-down rejected option does, because the
 absence of a reason is visible on the page.
 
@@ -64,24 +64,23 @@ exposes, then state whether the question you are asking should be one call
 there instead of N calls here.
 
 **A ticket that undersells the work turns the scoping check off.** This is the
-inverse of the failure above, and the more dangerous one, because nothing
-feels wrong. BYB-5354 said "the endpoint already exists, so this is the client
-call, not wholly new code". I read membership-service's routes, found that
-`/entitlements/active` answered half the question (granted, but not whether
-any capacity was left), and built a per-key `/{key}/access` fan-out around it
+inverse of the failure above, and the more dangerous one, because nothing feels
+wrong. BYB-5354 said "the endpoint already exists, so this is the client call,
+not wholly new code". I read membership-service's routes, found that
+`/entitlements/active` answered half the question (granted, but not whether any
+capacity was left), and built a per-key `/{key}/access` fan-out around it
 instead of asking whether the endpoint should exist. The right change was one
-new endpoint in membership-service composing two services it already had.
-I had been handed a review finding for that same N+1 shape, inside the same
-service, an hour earlier. Small tickets need this check more than large ones,
-not less.
+new endpoint in membership-service composing two services it already had. I had
+been handed a review finding for that same N+1 shape, inside the same service,
+an hour earlier. Small tickets need this check more than large ones, not less.
 
 ### Verify an external contract before asserting it
 
 Never name a third-party API field, method, or guarantee from recall. Read it
 from the installed SDK, the type stubs, or the vendor docs, and do it before
-the name reaches code, a PR body, a review reply, or operator instructions.
-The SDK is almost always already in the project's virtualenv, which makes the
-check cheap and the excuse thin.
+the name reaches code, a PR body, a review reply, or operator instructions. The
+SDK is almost always already in the project's virtualenv, which makes the check
+cheap and the excuse thin.
 
 A plausible field name is the dangerous case, because nothing downstream
 questions it. Asserting a nonexistent `max_redemptions_per_customer` on
@@ -95,8 +94,8 @@ on a field that did not exist.
 A one-line design choice can carry a hundred lines of consequence. Any choice
 that means owning a computation (an amount, a schedule, a piece of state)
 commits you to every edge it touches: units, rounding, currency, overflow,
-staleness, concurrency. Count those before accepting the choice. A long list
-is the signal to look for a design where the list is empty.
+staleness, concurrency. Count those before accepting the choice. A long list is
+the signal to look for a design where the list is empty.
 
 ### Read review volume as a design signal
 
@@ -104,9 +103,8 @@ Repeated rounds of legitimate review findings on the same code mean the shape
 is wrong, and each fix enlarges the surface that produces the next finding.
 A sound design converges in one or two rounds. When it does not, stop fixing
 and re-ask the three scoping questions. Tooling that catches findings raises
-the floor on execution and says nothing about whether the work should exist,
-so good review can keep a bad design alive well past the point of rejecting
-it.
+the floor on execution and says nothing about whether the work should exist, so
+good review can keep a bad design alive well past the point of rejecting it.
 
 ## Clarifying Before Implementing
 
@@ -129,8 +127,8 @@ redirect before the wrong shape is locked into commit history or PR review.
 
 Trivial tasks (single-file fix, obvious rename, mechanical refactor) do not
 need this gate. Do not interpret a prior "go" as covering every downstream
-micro-decision; restate the next load-bearing assumption when one surfaces.
-The complementary rule is to not ask multiple-choice questions on low-stakes
+micro-decision; restate the next load-bearing assumption when one surfaces. The
+complementary rule is to not ask multiple-choice questions on low-stakes
 choices you should just make and surface.
 
 ## Production-Scale by Default
@@ -190,13 +188,13 @@ measure it.
   `# Get the user` above `get_user()`).
 - Never add trailing comments that narrate what a line does (e.g., `x
   = 1  # set x to 1`).
-- A docstring is for the caller, not the reviewer. Four to six lines is
-  plenty for a non-trivial function: what it returns, and the one or two
-  caveats a caller gets wrong otherwise. Design rationale, rejected
-  alternatives, comparisons to sibling functions and anything a ticket or
-  PR body already says do not go here. If a docstring runs past about ten
-  lines, the surplus is almost always PR-body material; see the "One fact,
-  one surface" rule in @rules/writing.md.
+- A docstring is for the caller, not the reviewer. Four to six lines is plenty
+  for a non-trivial function: what it returns, and the one or two caveats
+  a caller gets wrong otherwise. Design rationale, rejected alternatives,
+  comparisons to sibling functions and anything a ticket or PR body already
+  says do not go here. If a docstring runs past about ten lines, the surplus is
+  almost always PR-body material; see the "One fact, one surface" rule in
+  @rules/writing.md.
 
 ## Testing
 
@@ -216,28 +214,28 @@ measure it.
 ## Testing Changes
 
 For any non-trivial fix, reproduce the failure locally and verify the fix
-locally before opening or updating a PR. CI passing is not the same as the
-fix actually working at runtime. This applies especially to:
+locally before opening or updating a PR. CI passing is not the same as the fix
+actually working at runtime. This applies especially to:
 
 - Startup or lifespan bugs (run the app, watch it boot).
 - Middleware-ordering bugs (run a real request through the stack).
 - Async or concurrency bugs (exercise the actual code path).
 - Anything where the deploy log says "container failed to start".
 
-The procedure: run the failing code path, confirm the failure reproduces,
-apply the fix, run the path again, confirm it now succeeds. Only then push.
-If you cannot reproduce locally, say so explicitly in the PR body (e.g.,
-"Could not reproduce locally because <reason>; please verify in <env>")
-rather than presenting an unverified guess as a fix.
+The procedure: run the failing code path, confirm the failure reproduces, apply
+the fix, run the path again, confirm it now succeeds. Only then push. If you
+cannot reproduce locally, say so explicitly in the PR body (e.g., "Could not
+reproduce locally because <reason>; please verify in <env>") rather than
+presenting an unverified guess as a fix.
 
 ## Migrations
 
 Before writing, editing or reviewing a migration or backfill, read
-`~/.claude/rules/migrations.md` and follow it. It loads on its own when
-a file under `alembic/` or `migrations/` is opened. The short version:
-separate DDL from DML, chunk every `UPDATE` and `DELETE`, set `lock_timeout`
-and `statement_timeout` on DDL, build indexes `CONCURRENTLY`, and measure
-backfill runtime against Prod row counts before merging.
+`~/.claude/rules/migrations.md` and follow it. It loads on its own when a file
+under `alembic/` or `migrations/` is opened. The short version: separate DDL
+from DML, chunk every `UPDATE` and `DELETE`, set `lock_timeout` and
+`statement_timeout` on DDL, build indexes `CONCURRENTLY`, and measure backfill
+runtime against Prod row counts before merging.
 
 ## Docker
 

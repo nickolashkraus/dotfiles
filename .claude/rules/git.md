@@ -234,9 +234,9 @@ If any bot (CodeRabbit, Cursor Bugbot, Cursor Security Review, Seer Code
 Review, sre-terraform-review-bot, etc.) has posted a review with state
 `CHANGES_REQUESTED` or has left unresolved review comments with actionable
 suggestions, do not merge. Address the comment or file a follow-up and note
-inline why it is being deferred. CI rollup being green is not a substitute.
-The "no-human-review-intra-stack" rule applies only to human reviewers; bot
-reviews still gate the merge.
+inline why it is being deferred. CI rollup being green is not a substitute. The
+"no-human-review-intra-stack" rule applies only to human reviewers; bot reviews
+still gate the merge.
 
 ### General Rules
 
@@ -269,8 +269,8 @@ For any non-trivial PR body, write the Markdown to a temp file (e.g.,
 `gh pr edit <N> --body-file`. Do not inline the body via
 `--body "$(cat <<'EOF' ... EOF)"`. Defensive escapes inside an inline heredoc
 have a way of leaking through as literal `` \` `` and `\$` in the rendered
-description. The same rule applies to `gh issue create` and `gh pr comment`
-for any body longer than a single short line.
+description. The same rule applies to `gh issue create` and `gh pr comment` for
+any body longer than a single short line.
 
 #### Trivial Changes
 

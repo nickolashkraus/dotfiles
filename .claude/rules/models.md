@@ -9,12 +9,11 @@ moved off Fable on 2026-11-18 because it was using up my plan.
   a script. Cost and speed are not reasons to drop below Opus. A harness check
   that needs to be faster lowers `--effort`, not the model.
 - **Fable**: Only in a session I switch to it with `/model`. Never choose it
-  for a subagent, workflow or script on your own. Say in one line why the
-  work needs it and wait for my yes, then start the prompt or command with
+  for a subagent, workflow or script on your own. Say in one line why the work
+  needs it and wait for my yes, then start the prompt or command with
   `# user-approved:` (or put `// user-approved:` in a workflow script).
 - **Subagents**: Name `opus` on every `Agent` call and workflow, whatever the
-  session runs on. A subagent with no model named inherits the session's
-  model.
+  session runs on. A subagent with no model named inherits the session's model.
 - **Scope**: This governs how we work, not what we build. A product's own model
   choice follows that product's requirements.
 

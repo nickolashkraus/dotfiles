@@ -9,8 +9,8 @@
   had. Only accept when there is a real active response to run.
 - incident.io rejects a direct Triage to Closed transition
   (`triage_not_resolvable`). From Triage, the terminal options are Declined
-  ("doesn't need incident response") or Canceled ("false alarm"), both of
-  which take a summary.
+  ("doesn't need incident response") or Canceled ("false alarm"), both of which
+  take a summary.
 - When asked to close out a stale incident sitting in Triage, set the summary
   and move straight to Declined in one `incident_update` call. If Declined or
   Canceled seems wrong for the situation, surface the lifecycle constraint and
