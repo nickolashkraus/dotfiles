@@ -23,7 +23,7 @@ a `master` worktree:
 - **agent-os**: `~/nickolashkraus/agent-os/master/.claude/` (project
   rules and skills)
 - **bash-scripts**: `~/nickolashkraus/bash-scripts/master/` (shell
-  helpers such as `claude-wip`, `system-update`, `fh-sync`)
+  helpers such as `system-update`, `fh-sync`)
 
 The deliverable is a short Markdown report of 2-5 highest-value
 candidates, ranked by impact-per-effort. Follow every step in order.
