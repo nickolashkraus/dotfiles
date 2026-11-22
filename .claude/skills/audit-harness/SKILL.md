@@ -60,8 +60,8 @@ window ending today).
    agent-os projects:
 
    ```
-   ~/.claude/projects/-Users-nickolas-nickolashkraus-dotfiles/memory/
-   ~/.claude/projects/-Users-nickolas-nickolashkraus-agent-os/memory/
+   ~/.claude/projects/*-nickolashkraus-dotfiles/memory/
+   ~/.claude/projects/*-nickolashkraus-agent-os/memory/
    ```
 
 4. The previous `harness-audit-*.md` report in the dotfiles memory directory,
@@ -132,7 +132,7 @@ Keep the top 2-5. Discard the rest.
 Write the report to:
 
 ```
-~/.claude/projects/-Users-nickolas-nickolashkraus-dotfiles/memory/harness-audit-YYYY-MM-DD.md
+~/.claude/projects/*-nickolashkraus-dotfiles/memory/harness-audit-YYYY-MM-DD.md
 ```
 
 Use this structure:
