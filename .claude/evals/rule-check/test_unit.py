@@ -457,6 +457,17 @@ def test_load_rules_smoke() -> None:
         check("returns empty when no rules dir", text == "", f"got {len(text)} chars")
 
 
+def test_prompt_quotes_rules_verbatim() -> None:
+    section("build_prompt: sentences quoted from rules/git.md exist in it")
+    prompt = rc.build_prompt("", "GitHub PR", "")
+    git_md = (HOOK_PATH.parents[1] / "rules" / "git.md").read_text()
+    line = next(ln for ln in prompt.splitlines() if "explicitly permits" in ln)
+    quoted = [s for s in line.split('"')[1::2] if s.endswith(".")]
+    check("two trivial-body examples quoted", len(quoted) == 2, f"got {quoted!r}")
+    for sentence in quoted:
+        check(f"`{sentence}` is in rules/git.md", sentence in git_md, "not found")
+
+
 def test_interpreter_heredoc_skipped() -> None:
     section("extract_bash_payloads: interpreter heredocs are not prose")
     cmd = (
@@ -756,6 +767,7 @@ TESTS = [
     test_gated_mcp_matches,
     test_extract_payloads_dispatch,
     test_load_rules_smoke,
+    test_prompt_quotes_rules_verbatim,
     test_interpreter_heredoc_skipped,
     test_file_heredoc_is_not_the_message,
     test_git_global_options_before_commit,

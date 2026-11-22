@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single source of truth for the AI-slop catalogue from rules/general.md.
+"""Single source of truth for the AI-slop catalog from rules/general.md.
 
 `lint-outbound.py` imports `AI_SLOP_PATTERNS` from here for its deterministic
 pass. The prose bullets under "do not speak like an LLM" in rules/general.md

@@ -417,8 +417,8 @@ Two hard constraints on YOUR findings:
 
 Pay particular attention to these common drift modes:
 
-- Linear slugs (pattern `[A-Z]{{2,5}}-\\d+` like `BYB-1234` or `EPD-987`) appearing in source-code comments, docstrings, test names, or any code-evergreen surface. Forbidden by rules/git.md unless absolutely necessary. PR descriptions, commit messages, branch names, and Linear/Notion/Slack content are the right places.
-- Internal or local-only paths leaking into external content: `~/nickolashkraus/`, `agent-os/`, `/Users/nickolas/`, references to private repos, daily-log paths, scratch notes. Forbidden by rules/general.md. Inline a summary instead.
+- Linear slugs (pattern `[A-Z]{{2,10}}-\\d+` like `BYB-1234` or `EPD-987`) appearing in source-code comments, docstrings, test names, or any code-evergreen surface. Forbidden by rules/git.md unless absolutely necessary. PR descriptions, commit messages, branch names, and Linear/Notion/Slack content are the right places.
+- Internal or local-only paths leaking into external content: `~/nickolashkraus/`, `agent-os/`, `/Users/<name>/`, references to private repos, daily-log paths, scratch notes. Forbidden by rules/general.md. Inline a summary instead.
 - Linear issue references in PR `## References` blocks: titles after the colon must be VERBATIM Linear titles, not paraphrases or abbreviations. Rule in rules/git.md.
 - Forbidden tokens in commit/PR contexts: em dashes, smart quotes (rules/typography.md), `Co-Authored-By:` in commits (rules/git.md), `Closes:`/`Fixes:`/`Resolves:` in PR descriptions (rules/git.md).
 - Bare Linear-slug references that should be Markdown links (`[BYB-1234](url)`) in rendered Markdown surfaces (PR descriptions, review comments). Rule in rules/git.md. Bare slugs ARE correct in chat replies, commit messages, branch names, and source code.
@@ -434,10 +434,10 @@ Surface-specific lens:
 - `git commit message`: The imperative-mood and no-terminal-period rules apply ONLY to the subject, which is the FIRST line of the payload. Everything after the first blank line is the commit body: it is ordinary prose, so declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT there and must NOT be flagged. Subject rules: imperative subject, no terminal period, no Co-Authored-By; bare Linear slug in subject is correct. Subject length and body wrap width are enforced deterministically elsewhere; do NOT count characters. When the subject matches `SLUG: Exact Issue Title` (e.g., `BYB-1345: Membership Upgrade Creates Duplicate Active Subscriptions in Stripe`), that rule supersedes the generic subject rules; it has NO length cap and keeps the issue title's capitalization. Conventional Commits carve-out (rules/git.md): when the subject matches `type(scope): description` with a lowercase type (feat, fix, docs, test, chore, refactor, etc.), the repo convention wins. The lowercase type, lowercase description, and lowercase-after-colon form are all CORRECT; do not flag any of them and do not demand `Fix(...)` capitalization.
 - `git commit message body`: This payload is a commit-message BODY paragraph (a later `-m` value), never the subject. The subject-only rules do NOT apply: declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT here; do NOT flag imperative mood or a trailing period. Only typography and content rules apply to the body: no em dashes, no smart quotes, backtick code identifiers, capitalize the first word after a label-ending colon, and no Co-Authored-By / internal paths.
 - `GitHub PR` body or comment: single line per paragraph (no hard wraps), Markdown links for Linear refs, verbatim Linear titles in References, no Closes/Fixes/Resolves, no internal paths. A PR title (`--title`) is NOT a commit subject: it has no length limit and no imperative-mood requirement beyond rules/git.md's own PR-title rules. Never flag Markdown table padding or column alignment (deterministic linter territory).
-- Trivial PR bodies are allowed to be a single declarative sentence (rules/git.md explicitly permits "Service should not be publicly available." or "Routine version bump to pick up upstream type fixes." as valid trivial bodies). Do NOT demand a leading verb on these. Only flag the "lead with a declarative verb" rule for longer PR bodies and for openers like `This PR adds...` or `In this PR, I...`.
+- Trivial PR bodies are allowed to be a single declarative sentence (rules/git.md explicitly permits "Service should not be publicly available." or "Determines document upload status from Google Cloud Storage." as valid trivial bodies). Do NOT demand a leading verb on these. Only flag the "lead with a declarative verb" rule for longer PR bodies and for openers like `This PR adds...` or `In this PR, I...`.
 - `Linear issue` (`save_issue`): standard sections (Overview, Acceptance Criteria, Implementation Details, References), Title Case for issue titles, no extra newlines for human readability.
 - `Notion page`: same prose conventions; references via real links.
-- `Slack message`: typography rules; tabular data should be TSV.
+- `Slack message`: typography rules; a table pasted as plain-text TSV does not render (rules/slack.md).
 
 Return ONLY a JSON object matching this exact shape:
 
@@ -456,7 +456,7 @@ If the payload is compliant, return `{{"verdict": "pass", "violations": []}}`. O
 
 
 def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
-    """Spawn `claude --bare` to evaluate payload. Returns (verdict, violations)."""
+    """Spawn `claude --print` to evaluate payload. Returns (verdict, violations)."""
     if len(payload) > MAX_PAYLOAD_CHARS:
         payload = payload[:MAX_PAYLOAD_CHARS] + "\n\n[... truncated ...]"
 

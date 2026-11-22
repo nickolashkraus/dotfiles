@@ -52,7 +52,7 @@ EM_DASH = "—"
 EN_DASH = "–"
 
 # AI-slop phraseology per rules/general.md ("do not speak like an LLM").
-# The catalogue lives in ai_slop.py so the regexes here and the prose
+# The catalog lives in ai_slop.py so the regexes here and the prose
 # bullets in rules/general.md cannot drift apart; see that module's
 # --sync-rules. rule-check.py's LLM pass still owns the structural
 # patterns (rule-of-three reflex, fake-balance framing, novel antithesis
@@ -64,7 +64,7 @@ from ai_slop import AI_SLOP_CONTEXT, AI_SLOP_PATTERNS
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
 
 # British spellings, per rules/typography.md. Only forms with no American
-# homograph are listed, so a hit is always wrong rather than a judgement call.
+# homograph are listed, so a hit is always wrong rather than a judgment call.
 # Fenced blocks and inline code spans are already stripped before this runs,
 # which is what exempts identifiers, API fields and log output. "towards" is
 # left out on purpose: both it and "toward" are acceptable American usage, so
