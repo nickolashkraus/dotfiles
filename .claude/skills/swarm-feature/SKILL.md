@@ -178,8 +178,8 @@ implementation agent in the code worktree with:
   completion.
 
 The implementation agent works independently. If the spec is ambiguous, it
-should make a judgment call and document the decision in a code comment, not
-stop and ask.
+should make a judgment call and record the decision in its report for the PR
+body, not stop and ask.
 
 When the implementation agent completes, read the diff to verify all work items
 are present and the acceptance criteria are covered by tests.
