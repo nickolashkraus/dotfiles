@@ -27,7 +27,8 @@ moved off Fable on 2026-11-18 because it was using up my plan.
   Sonnet.
 - **`hooks/model-policy.py`**: Blocks a below-Opus or unapproved Fable model
   named by `Agent`, a workflow or `claude --model`, and an `Agent` call that
-  names no model. A workflow script that names no model is not caught.
+  names no model. A fork is exempt, since it always runs on the session's
+  model. A workflow script that names no model is not caught.
 
 `claude --setting-sources ""`, which `pr-body` uses, skips `settings.json`, so
 those callers have to name `opus` themselves.
