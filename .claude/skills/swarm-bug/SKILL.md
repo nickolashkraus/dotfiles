@@ -60,8 +60,8 @@ will investigate. Exception: If the cwd is not a service codebase (e.g., you
 were invoked from `~/nickolashkraus/agent-os` itself), do not point agents at
 it. Derive the codebase from the bug content (the failing system, resource IDs,
 owning team) and set `{repo_path}` to that repo's default-branch worktree
-(e.g., `~/Function-Health/transaction-service/dev`). Confirm the repo exists
-before spawning. If the codebase is ambiguous from the bug, ask the user.
+(e.g., `~/Function-Health/ppp-service/main`). Confirm the repo exists before
+spawning. If the codebase is ambiguous from the bug, ask the user.
 
 Create a new agent-os worktree for artifacts:
 

@@ -59,8 +59,8 @@ Per `rules/general.md`, external content must never reference internal or
 local-only documents. Before sending, scan the cleaned draft and remove any of
 the following:
 
-- Paths under `~/nickolashkraus/` or `agent-os/` (e.g., `tasks/009...md`,
-  `investigations/...`, `notes/daily/...`, `final.md`).
+- Paths under `~/nickolashkraus/` or `agent-os/` (e.g., `tasks/open.md`,
+  `tasks/daily/...`, `investigations/...`, `notes/daily/...`, `final.md`).
 - File paths that are not in a shared repo readers can open (private scratch
   notes, working docs, manifests).
 - Bare references like "the runbook" or "the spec" that only resolve to an
