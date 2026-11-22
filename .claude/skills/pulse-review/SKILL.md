@@ -155,7 +155,7 @@ counted ADDED lines exceed 4,000 (strict `>`; excludes come from configured
 globs). Check the count before pushing:
 
 ```bash
-git diff <base>...HEAD --numstat | cut -f1 | paste -sd+ - | bc
+git diff origin/<base>...HEAD --numstat | cut -f1 | paste -sd+ - | bc
 ```
 
 (No awk positional field here: the skill loader substitutes a dollar-one in
