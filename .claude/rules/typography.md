@@ -20,7 +20,7 @@
   label or color
   (`pr-body: checking spelling and facts (Opus call)...`,
   `pr-body: push this description to #12? [y/N]`).
-- Bulleted/numbered list items use `**Element**: Description.` Never use ` - `
+- Bulleted/numbered list items use `**Element**: Description`. Never use ` - `
   or ` — ` as the lead-in separator.
 - Write "ID" in prose, never "id" or "Id". Code references in backticks keep
   their verbatim casing (`id`, `user_id`, `userId`).
