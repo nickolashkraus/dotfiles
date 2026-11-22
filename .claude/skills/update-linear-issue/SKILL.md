@@ -26,9 +26,10 @@ strip); in Step 6 use `save_comment` instead of `save_issue`.
 **Metadata-only updates**: When the update touches no description text (state,
 labels, team or project moves, assignee, PR link attachments via `links`), skip
 Steps 2 to 4 and go straight to Steps 5 to 7. Notes for those updates: the
-rule-check hook enforces Title Case on `links[].title`; moving an issue to
-another team renumbers it (the old identifier still resolves); `labels`
-replaces the full set, so pass the remaining labels (or `[]` to clear).
+rule-check hook reviews a `links[].title` of 20 or more characters as prose,
+but names Title Case only for issue titles; moving an issue to another team
+renumbers it (the old identifier still resolves); `labels` replaces the full
+set, so pass the remaining labels (or `[]` to clear).
 
 ## Step 2: Draft the issue body
 
