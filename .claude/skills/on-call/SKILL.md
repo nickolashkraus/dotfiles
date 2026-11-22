@@ -31,8 +31,8 @@ argument-hint: "[--role leader|follower] [--dry-run] [--off-shift] [--path <esca
 # On-Call
 
 Phase one of the on-call agent: watch, ack, classify, and page Nickolas when it
-matters. It posts nothing to Slack or incident.io beyond the ack. The spec, the
-decisions, and the shift records live in
+matters. It posts nothing to Slack or incident.io beyond the ack and the notify
+to his own Slack DM. The spec, the decisions, and the shift records live in
 `~/nickolashkraus/agent-os/master/domains/function/projects/on-call/`.
 
 ## Usage
