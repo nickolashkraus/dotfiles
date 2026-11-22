@@ -4,7 +4,6 @@ description: >
   Fix CI failures on a pull request by fetching check results, diagnosing the
   issues, and applying fixes. TRIGGER when: `gh pr checks` shows failures, user
   says "fix CI on PR N", user pastes failing check name or deploy log error.
-  SKIP: only bot review comments to address (use `fix-bot-reviews`).
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
 argument-hint: "[--in-place] [--re-review [all | unresolved]] [pr-ref]"

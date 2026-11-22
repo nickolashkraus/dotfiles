@@ -8,9 +8,8 @@ description: >
   balance with PRs. TRIGGER when: user says "xp harvesting", "harvest some
   XP", "PR sweep", "open easy PRs", "PRs that will get a Pulse approval",
   "quick wins across my repos", "review the PRs requesting my review".
-  SKIP: a single known fix
-  (use `ship` or `rip`); bot findings on an existing PR (use
-  `fix-bot-reviews`).
+  SKIP: a single known fix (use `ship` or `rip`); bot findings on an existing
+  PR (use `fix-ci`).
 disable-model-invocation: false
 allowed-tools: Agent, SendMessage, Bash, Read, Grep, Glob
 argument-hint: "[count] [repo ...]"
