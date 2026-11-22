@@ -71,8 +71,8 @@ then push again. Stop here.
 
 Otherwise push the branch and open the PR with `gh pr create`. Scale the body
 to the change: a trivial change gets a single declarative sentence, and
-anything with a non-obvious reason gets that reason plus a `## References` link
-to the Linear issue. Use `--body-file` for anything longer than one line.
+anything with a non-obvious reason gets that reason. Use `--body-file` for
+anything longer than one line.
 
 **Never merge.** Invoking `rip` approves the push and the PR, nothing beyond
 that.
