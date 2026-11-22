@@ -33,37 +33,176 @@ a security boundary, and it sees only this harness's Bash calls.
 
 from __future__ import annotations
 
+import bisect
 import json
 import os
 import re
 import sys
 
-HEREDOC_RE = re.compile(
-    r"<<[-]?\s*['\"]?(\w+)['\"]?\s*\n(.*?)\n\s*\1\b",
-    re.DOTALL,
-)
+# The body is whole lines up to the first line that opens with the tag, so an
+# empty heredoc ends on the line after its opener, as it does in the shell.
+HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?\s*\n((?:[^\n]*\n)*?)\s*\1\b")
+# Single quotes have no escapes: the value ends at the next quote.
 FLAG_VALUE_RE = re.compile(
     r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
-    r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
+    r"(\"((?:[^\"\\]|\\.)*)\"|'([^']*)')",
 )
 TEXT_PASSING_RE = re.compile(
     r"\b(git\s+commit|gh\s+(pr|issue)\s+(create|edit|comment))\b"
 )
+# `-m "$(cat <<'EOF' ... EOF)"`: the heredoc is the flag's whole value.
+CAT_HEREDOC_VALUE_RE = re.compile(
+    r"(?:^|\s)--?(?:m|message|body|title)[=\s]+"
+    r"\"\$\(\s*cat\s*(<<-?\s*['\"]?(\w+)['\"]?\s*\n)((?:[^\n]*\n)*?)\s*\2\b\s*\)\""
+)
+# A `$(` or backtick the shell will run: one after an even count of
+# backslashes.
+SUBSTITUTION_RE = re.compile(r"(?<!\\)(?:\\\\)*(?:\$\(|`)")
+# A `&` that is part of a redirect (`2>&1`, `&>file`) starts no command.
+COMMAND_BREAK_RE = re.compile(r"[|;\n(`]|(?<!>)&(?!>)")
+# An escaped character, a quoted stretch or a comment, read left to right as
+# the shell reads them. A break character inside one starts no command.
+SHELL_TOKEN_RE = re.compile(
+    r"\\.|\$'(?:[^'\\]|\\.)*'|'[^']*'|\"(?:[^\"\\]|\\.)*\"|(?<![^\s;|&()])#[^\n]*",
+    re.DOTALL,
+)
+HEREDOC_OPENER_RE = re.compile(r"(?<!<)<<(?!<)")
+# The command reads its message from stdin: `-F -`, `--file=-`, `--body-file -`.
+STDIN_TEXT_RE = re.compile(
+    r"(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file)(?:=|\s*)-(?:\s|$)"
+)
+BLANKS_RE = re.compile(r"[ \t]*")
+# The command opens an editor on its message, and an earlier command may have
+# set the editor to a shell (`export GIT_EDITOR=sh`).
+EDITOR_FLAG_RE = re.compile(
+    r"(?:^|\s)(?:-[A-Za-z]*e[A-Za-z]*|--edit(?:or)?)(?=[\s=]|$)"
+)
+# Fill for text the shell does not read as commands. A private-use code
+# point, so no command holds it by accident.
+MASKED = "\ue000"
+
+
+def heredoc_is_inert(opener: str, body: str) -> bool:
+    """Return whether the shell leaves a heredoc body alone: its tag is
+    quoted, or the body holds no command substitution."""
+    return bool(re.search(r"['\"\\]", opener)) or not SUBSTITUTION_RE.search(body)
+
+
+def opens_alone(cmd: str, pos: int) -> bool:
+    """Return whether no other heredoc opens on the logical line before
+    `pos`. Bodies of heredocs opened on one line follow each other, and the
+    patterns here cannot tell whose body is whose."""
+    start = cmd.rfind("\n", 0, pos)
+    while start > 0 and cmd[start - 1] == "\\":
+        start = cmd.rfind("\n", 0, start - 1)
+    return not HEREDOC_OPENER_RE.search(cmd, start + 1, pos)
+
+
+def overwrite(text: str, spans: list[tuple[int, int, str]]) -> str:
+    """Return `text` with each `(start, end, fill)` span replaced by `fill`
+    repeated to the same length. Spans are in order and do not overlap."""
+    parts: list[str] = []
+    last = 0
+    for start, end, fill in spans:
+        parts += [text[last:start], fill * (end - start)]
+        last = end
+    return "".join([*parts, text[last:]])
+
+
+class ShellView:
+    """One left-to-right read of a command. Heredoc bodies, quoted stretches,
+    escapes and comments are overwritten in place, so positions match the
+    command and a break character inside one starts no command."""
+
+    def __init__(self, cmd: str) -> None:
+        bodies = [(*m.span(2), MASKED) for m in HEREDOC_RE.finditer(cmd)]
+        text = overwrite(cmd, bodies)
+        tokens = [
+            (*m.span(), "E" if m.group(0).startswith("\\") else MASKED)
+            for m in SHELL_TOKEN_RE.finditer(text)
+        ]
+        self.cmd = cmd
+        self.bare = overwrite(text, tokens)
+        open_quote = re.search(r"['\"]", self.bare)
+        self.open_quote = open_quote.start() if open_quote else len(cmd)
+        self.breaks = [m.end() for m in COMMAND_BREAK_RE.finditer(self.bare)]
+        self.owners: dict[int, bool] = {}
+
+    def owner(self, pos: int) -> int | None:
+        """Return where the `git commit` or `gh pr|issue` command that owns
+        the text at `pos` starts. None when the text belongs to another
+        command, sits in a heredoc body, a comment or a quoted stretch,
+        follows a quote left open, or the command opens an editor."""
+        if pos >= self.open_quote or self.bare[pos] == MASKED:
+            return None
+        brk = bisect.bisect_right(self.breaks, pos) - 1
+        start = self.breaks[brk] if brk >= 0 else 0
+        if start not in self.owners:
+            begin = BLANKS_RE.match(self.bare, start).end()
+            command = TEXT_PASSING_RE.match(self.bare, begin)
+            more = brk + 1 < len(self.breaks)
+            end = self.breaks[brk + 1] if more else len(self.bare)
+            editor = EDITOR_FLAG_RE.search(self.bare, begin, end)
+            self.owners[start] = bool(command) and not editor
+        return start if self.owners[start] else None
+
+    def reads_stdin(self, start: int, pos: int) -> bool:
+        """Return whether the command from `start` to `pos` takes its message
+        from stdin."""
+        return bool(STDIN_TEXT_RE.search(self.bare, start, pos))
+
+
+def strip_owned(pattern: re.Pattern[str], cmd: str, inert) -> str:
+    """Remove each match of `pattern` that a text command owns and `inert`
+    accepts. `inert` gets the match, the command's view and the owner's
+    start."""
+    view = ShellView(cmd)
+    kept: list[str] = []
+    last = 0
+    for m in pattern.finditer(cmd):
+        owner = view.owner(m.start())
+        if owner is not None and inert(m, view, owner):
+            kept.append(cmd[last : m.start()])
+            last = m.end()
+    return "".join([*kept, cmd[last:]])
 
 
 def strip_text_payloads(cmd: str) -> str:
     """
-    Strip heredoc bodies and `-m` / `--body` flag values from text-passing
-    commands so risky-pattern literals embedded in commit messages or PR
-    bodies do not trip the hook. Only applied when the outer command is
-    `git commit`, `gh pr ...`, or `gh issue ...`; interpreter heredocs
-    like `bash <<EOF ... EOF` are left intact.
+    Strip message text from `git commit` and `gh pr|issue` commands so risky
+    literals in a commit message or PR body do not trip the hook.
+
+    Only text that such a command owns and the shell will not run is
+    stripped: a flag value with no command substitution, a `$(cat <<EOF)`
+    heredoc that is a message flag's whole value, and a heredoc on stdin
+    when the command reads its message there (`-F -`). Everything else stays
+    in the scan, such as `bash <<EOF`, `-m "$(download | sh)"` and a flag of
+    another command.
     """
     if not TEXT_PASSING_RE.search(cmd):
         return cmd
-    cmd = HEREDOC_RE.sub("", cmd)
-    cmd = FLAG_VALUE_RE.sub("", cmd)
-    return cmd
+    cmd = strip_owned(
+        FLAG_VALUE_RE,
+        cmd,
+        lambda m, _view, _owner: not SUBSTITUTION_RE.search(m.group(4) or ""),
+    )
+    cmd = strip_owned(
+        CAT_HEREDOC_VALUE_RE,
+        cmd,
+        lambda m, view, _owner: (
+            opens_alone(view.cmd, m.start())
+            and heredoc_is_inert(m.group(1), m.group(3))
+        ),
+    )
+    return strip_owned(
+        HEREDOC_RE,
+        cmd,
+        lambda m, view, owner: (
+            view.reads_stdin(owner, m.start())
+            and opens_alone(view.cmd, m.start())
+            and heredoc_is_inert(m.group(0)[: m.start(1) - m.start()], m.group(2))
+        ),
+    )
 
 
 RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
