@@ -41,7 +41,9 @@ incorrect code, obvious typo), abort the swarm and write a one-line verdict.
 Parse `$ARGUMENTS` for the verification target and optional `--source` flag
 identifying where the claim originated. The target is either a file path or
 inline text. If it is a URL (Slack, Notion, Google Doc, GitHub), fetch its
-contents. If it is a file path, read it. If it is inline text, use it directly.
+contents; read a Google Doc with `gws` after invoking the `gws` skill, per
+`rules/gws.md`. If it is a file path, read it. If it is inline text, use it
+directly.
 
 Derive `{slug}` (kebab-case): a short summary of the claim
 ("max-doc-eligibility-feed", "stripe-webhook-idempotency").
