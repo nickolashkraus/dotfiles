@@ -59,9 +59,11 @@ GIT_GLOBAL_OPT = (
 # The body is whole lines up to the first line that opens with the tag, so an
 # empty heredoc ends on the line after its opener, as it does in the shell.
 HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?\s*\n((?:[^\n]*\n)*?)\s*\1\b")
-# Single quotes have no escapes: the value ends at the next quote.
+# Single quotes have no escapes: the value ends at the next quote. The
+# value is on the flag's line: after a newline the shell reads a new command,
+# and a quoted word there is that command's name.
 FLAG_VALUE_RE = re.compile(
-    r"(?:^|\s)(--?)(m|message|body|title|body-file)[=\s]+"
+    r"(?:^|\s)(--?)(m|message|body|title|body-file)[= \t]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'([^']*)')",
 )
 TEXT_PASSING_RE = re.compile(
@@ -69,7 +71,7 @@ TEXT_PASSING_RE = re.compile(
 )
 # `-m "$(cat <<'EOF' ... EOF)"`: the heredoc is the flag's whole value.
 CAT_HEREDOC_VALUE_RE = re.compile(
-    r"(?:^|\s)--?(?:m|message|body|title)[=\s]+"
+    r"(?:^|\s)--?(?:m|message|body|title)[= \t]+"
     r"\"\$\(\s*cat\s*(<<-?\s*['\"]?(\w+)['\"]?\s*\n)((?:[^\n]*\n)*?)\s*\2\b\s*\)\""
 )
 # A `$(` or backtick the shell will run: one after an even count of
