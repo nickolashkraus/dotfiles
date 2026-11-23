@@ -172,9 +172,8 @@ Over the limit, the bot skips review entirely and its standing
 `CHANGES_REQUESTED` blocks the PR. Get under it by trimming added prose in the
 new files, or split into stacked PRs along a seam in the change.
 
-Then re-run the repo's standard local verification (ruff, pyright, pytest for
-the touched files) since the fixes changed code after the last verification
-pass.
+Then re-run the repo's full local CI, per "Pushing" in @~/.claude/rules/git.md,
+since the fixes changed code after the last verification pass.
 
 Report the final state in a few lines: the bugs fixed (one line each) and the
 count left for the PR with a one-line reason each.
