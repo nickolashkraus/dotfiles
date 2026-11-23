@@ -19,6 +19,3 @@
 # Set the theme for syntax highlighting. Use '--list-themes' to see all
 # available themes.
 --theme="gruvbox-dark"
-
-# Map a glob pattern to an existing syntax name. The glob pattern is matched on
-# the full path and the filename.
