@@ -162,7 +162,7 @@ Run this in the background for each PR verified in Step 3, with the approval
 prefix on the first line so the hook sees the merge command:
 
 ```bash
-# user-approved: gh pr merge <PR> -R Function-Health/<repo> --squash --delete-branch=false
+# user-approved: gh pr merge <PR> -R Function-Health/<repo> --squash --delete-branch=false --match-head-commit <head>
 R=Function-Health/<repo>; PR=<PR>
 for attempt in 1 2 3; do
   [ "$(gh pr view $PR -R $R --json mergeStateStatus -q .mergeStateStatus)" = "BEHIND" ] && { gh pr update-branch $PR -R $R --rebase >/dev/null 2>&1; sleep 30; }
@@ -171,7 +171,12 @@ for attempt in 1 2 3; do
     out=$(gh pr view $PR -R $R --json statusCheckRollup,mergeStateStatus,headRefOid)
     [ "$(printf '%s\n' "$out" | jq -r .headRefOid)" != "$head" ] && break
     pending=$(printf '%s\n' "$out" | jq '[.statusCheckRollup[]|select((.status // "COMPLETED")!="COMPLETED" or (.state // "")=="PENDING")]|length')
-    bad=$(printf '%s\n' "$out" | jq '[.statusCheckRollup[]|select(((.name // .context)|test("pr-plan-prod")) and (.conclusion=="ACTION_REQUIRED")|not)|select((.conclusion // .state) as $c|["FAILURE","ERROR","CANCELLED","TIMED_OUT","ACTION_REQUIRED"]|index($c))]|length')
+    # Allow list: a completed check passes only at SUCCESS, SKIPPED or NEUTRAL;
+    # anything else (FAILURE, STARTUP_FAILURE, STALE, an EXPECTED status, ...)
+    # is bad, so a new conclusion fails closed. A PENDING status is not bad,
+    # it is still running (counted above). The one exception is
+    # a `*-pr-plan-prod` check at ACTION_REQUIRED, a manual gate.
+    bad=$(printf '%s\n' "$out" | jq '[.statusCheckRollup[]|select(((.name // .context)|test("pr-plan-prod")) and (.conclusion=="ACTION_REQUIRED")|not)|select((.status // "COMPLETED")=="COMPLETED" and (.state // "")!="PENDING")|select((.conclusion // .state) as $c|["SUCCESS","SKIPPED","NEUTRAL"]|index($c)|not)]|length')
     pulse=$(printf '%s\n' "$out" | jq -r '[.statusCheckRollup[]|select((.name // .context)=="pulse-review")|(.conclusion // .state)]|first // "none"')
     ms=$(printf '%s\n' "$out" | jq -r .mergeStateStatus)
     [ "$bad" != "0" ] && { echo "attempt $attempt: failing checks"; printf '%s\n' "$out" | jq -r '.statusCheckRollup[]|"\(.name // .context)=\(.conclusion // .state)"'; exit 1; }
@@ -181,37 +186,47 @@ for attempt in 1 2 3; do
       # A green pulse-review check is necessary but not an fh-pulse approval:
       # the check also reads SUCCESS for a human owner-approval and a
       # path-owners review (Pulse's owner gate), which the standing approval
-      # does not cover. Gate the merge on the review it names: an fh-pulse
-      # review APPROVED on this exact head, no review bot whose latest decision
-      # review (any commit; comment-only and pending reviews ignored, since
-      # a later COMMENTED review does not clear a change request) requests
-      # changes, no unresolved review thread (outdated or not), and no PR-level
-      # comment from a review bot. Anything short
-      # stops and reports; it never merges. A review bot is an author whose
-      # GraphQL `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer),
-      # or whose login is fh-pulse or sre-terraform-review-bot. GraphQL serves
+      # does not cover. Gate the merge on the review it names: a review from
+      # the fh-pulse bot (login exactly `fh-pulse`, `__typename` `Bot`) in
+      # state APPROVED on this exact head; no reviewer, bot or human, whose
+      # latest decision review (any commit; comment-only and pending reviews
+      # ignored, since a later COMMENTED review does not clear a change
+      # request) requests changes; no unresolved review thread (outdated or
+      # not); and no PR-level comment from a review bot. If any of the three
+      # node lists has another page, judge nothing. Anything short stops and
+      # reports; it never merges, and the merge pins the head it judged with
+      # --match-head-commit. A review bot is an author whose GraphQL
+      # `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer), or
+      # whose login is fh-pulse or sre-terraform-review-bot; GraphQL serves
       # a Bot's login without the `[bot]` suffix REST adds, so match on
       # `__typename`, not the suffix.
       data=$(gh api graphql -F o=Function-Health -F n=<repo> -F p=$PR -f query='
         query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){
-          reviews(last:100){nodes{author{login __typename} state commit{oid}}}
-          reviewThreads(first:100){nodes{isResolved}}
-          comments(first:100){nodes{author{login __typename}}}}}}' --jq '.data.repository.pullRequest')
+          reviews(last:100){pageInfo{hasPreviousPage} nodes{author{login __typename} state commit{oid}}}
+          reviewThreads(first:100){pageInfo{hasNextPage} nodes{isResolved}}
+          comments(first:100){pageInfo{hasNextPage} nodes{author{login __typename}}}}}}' --jq '.data.repository.pullRequest')
       printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
       printf '%s' "$data" | jq -r '"PR-level comments: " + ([.comments.nodes[]|"\(.author.login)[\(.author.__typename)]"]|join(", "))'
       verdict=$(printf '%s' "$data" | jq -r --arg h "$head" '
-        def isbot: .__typename=="Bot" or (.login|test("^(fh-pulse|sre-terraform-review-bot)$")) or (.login|test("\\[bot\\]$"));
-        [.reviews.nodes[]|select((.author.login|test("^fh-pulse")) and .commit.oid==$h)|.state] as $pulse
-        | ([.reviews.nodes[]|select((.author|isbot) and (.state=="APPROVED" or .state=="CHANGES_REQUESTED" or .state=="DISMISSED"))]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
-        | [.reviewThreads.nodes[]|select(.isResolved|not)] as $threads
-        | [.comments.nodes[]|select(.author|isbot)] as $botc
-        | if ($pulse|last) != "APPROVED" then "no fh-pulse approval found on the current head"
-          elif ($cr|length) > 0 then "a review bot's latest review requests changes: \($cr|map(.author.login)|join(", "))"
-          elif ($threads|length) > 0 then "unresolved review threads: \($threads|length)"
-          elif ($botc|length) > 0 then "PR-level comments from a review bot: \($botc|length)"
-          else "merge" end')
+        def isbot: . != null and (.__typename=="Bot" or ((.login // "")|test("^(fh-pulse|sre-terraform-review-bot)$")) or ((.login // "")|test("\\[bot\\]$")));
+        if (.reviews.pageInfo.hasPreviousPage or .reviewThreads.pageInfo.hasNextPage or .comments.pageInfo.hasNextPage)
+        then "more than 100 reviews, threads or comments; run this PR down by hand"
+        elif ([.reviews.nodes[].author, .comments.nodes[].author]|any(. == null))
+        then "a review or comment has no author; run this PR down by hand"
+        else
+          ([.reviews.nodes[]|select((.author.login=="fh-pulse" or .author.login=="fh-pulse[bot]") and .author.__typename=="Bot" and .commit.oid==$h)|.state]) as $pulse
+          | ([.reviews.nodes[]|select(.state=="APPROVED" or .state=="CHANGES_REQUESTED" or .state=="DISMISSED")]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
+          | [.reviewThreads.nodes[]|select(.isResolved|not)] as $threads
+          | [.comments.nodes[]|select(.author|isbot)] as $botc
+          | if ($pulse|last) != "APPROVED" then "no fh-pulse approval found on the current head"
+            elif ($cr|length) > 0 then "a reviewer has a standing change request: \($cr|map(.author.login)|join(", "))"
+            elif ($threads|length) > 0 then "unresolved review threads: \($threads|length)"
+            elif ($botc|length) > 0 then "PR-level comments from a review bot: \($botc|length)"
+            else "merge" end
+        end')
+      [ -z "$verdict" ] && verdict="could not read the reviews"
       [ "$verdict" != "merge" ] && { echo "attempt $attempt: $verdict"; exit 1; }
-      gh pr merge $PR -R $R --squash --delete-branch=false && { gh pr view $PR -R $R --json state,mergedAt,mergeCommit --jq '"\(.state) \(.mergedAt) \(.mergeCommit.oid[:9])"'; exit 0; }
+      gh pr merge $PR -R $R --squash --delete-branch=false --match-head-commit "$head" && { gh pr view $PR -R $R --json state,mergedAt,mergeCommit --jq '"\(.state) \(.mergedAt) \(.mergeCommit.oid[:9])"'; exit 0; }
       echo "attempt $attempt: merge rejected"; break
     fi
     sleep 20
@@ -242,9 +257,10 @@ What the loop encodes:
   fh-pulse bot approves and when a human owner-approves or a path-owners review
   stands in for it, and the standing approval covers only the first. So a green
   check is not an approval. The gate requires an fh-pulse review in state
-  `APPROVED` whose commit is the current head, no review bot requesting changes
-  on that head, no unresolved review thread, and no PR-level comment from
-  a review bot; anything short stops the loop and reports, and never merges.
+  `APPROVED` whose commit is the current head, no reviewer (bot or human) whose
+  latest decision review on any commit requests changes, no unresolved review
+  thread, and no PR-level comment from a review bot; anything short stops the
+  loop and reports, and never merges.
   The gate's shape (the fh-pulse login, the review commit, the bot logins) was
   written from GitHub's documented review API and has not yet been run against
   a live Function Health PR, because the org refuses this machine's classic
