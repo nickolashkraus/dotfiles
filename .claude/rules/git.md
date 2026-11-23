@@ -223,6 +223,12 @@ when the PR targets a deployment branch and merging would trigger the deploy.
 Ask first. Merging is hard to reverse, fires deploy webhooks, and collapses the
 commit history; do not infer it from adjacent instructions.
 
+**Exception**: The `xp-harvesting` skill squash-merges a PR its own sweep
+opened without asking, once all checks pass, `fh-pulse` has approved and no bot
+review comment is open. I gave it that standing approval on 2026-11-23. It
+covers no other skill and no other PR. `gh pr close`, a merge with a failing
+check and a PR the sweep did not open still need my yes.
+
 Before merging any PR, including an intra-stack one that does not need human
 review, check for open bot reviews and bot review comments. Run:
 

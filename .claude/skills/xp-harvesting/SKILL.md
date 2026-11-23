@@ -140,19 +140,26 @@ When an agent reports, read `gh pr diff` and check its central claim with one
 grep against `origin/<base>`: the route prefix, the absent references, the real
 signature. An agent's report is a claim, not evidence.
 
-## Step 4: Get merge approval once
+## Step 4: Merge under the standing approval
 
 `~/.claude/hooks/confirm-risky.py` blocks `gh pr merge` and `gh pr close` until
-the user approves the exact command. An instruction like "once green, squash
-and merge" does not count. Show the first merge command and ask whether the
-approval covers the whole batch under these criteria: all checks pass,
-`fh-pulse` approved, and no open bot review comments. On approval, prefix each
-command with `# user-approved: `.
+the command carries the `# user-approved: ` prefix, which normally takes a yes
+from Nickolas for that exact command. On 2026-11-23 he gave this skill
+a standing approval, recorded as an exception in `rules/git.md` (Merging) and
+in `rules/security.md`: squash-merge a PR this sweep opened, without asking,
+once all checks pass, `fh-pulse` has approved and no bot review comment is
+open. The loop in Step 5 tests those criteria before it merges, so write the
+prefix on it yourself.
+
+The approval covers nothing else. Ask first before `gh pr close`, before
+merging a PR the sweep did not open, before merging with a failing check or
+without the `fh-pulse` approval, and before any other merge command (`--admin`,
+`--merge`, `--rebase`).
 
 ## Step 5: Run a merge loop per PR
 
-Run this in the background for each verified PR, with the approval prefix on
-the first line so the hook sees the merge command:
+Run this in the background for each PR verified in Step 3, with the approval
+prefix on the first line so the hook sees the merge command:
 
 ```bash
 # user-approved: gh pr merge <PR> -R Function-Health/<repo> --squash --delete-branch=false
