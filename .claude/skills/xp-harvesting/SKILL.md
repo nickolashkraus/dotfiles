@@ -182,9 +182,11 @@ for attempt in 1 2 3; do
       # the check also reads SUCCESS for a human owner-approval and a
       # path-owners review (Pulse's owner gate), which the standing approval
       # does not cover. Gate the merge on the review it names: an fh-pulse
-      # review APPROVED on this exact head, no review bot whose latest review
-      # (on any commit) requests changes, no unresolved review thread (outdated
-      # or not), and no PR-level comment from a review bot. Anything short
+      # review APPROVED on this exact head, no review bot whose latest decision
+      # review (any commit; comment-only and pending reviews ignored, since
+      # a later COMMENTED review does not clear a change request) requests
+      # changes, no unresolved review thread (outdated or not), and no PR-level
+      # comment from a review bot. Anything short
       # stops and reports; it never merges. A review bot is an author whose
       # GraphQL `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer),
       # or whose login is fh-pulse or sre-terraform-review-bot. GraphQL serves
@@ -196,10 +198,11 @@ for attempt in 1 2 3; do
           reviewThreads(first:100){nodes{isResolved}}
           comments(first:100){nodes{author{login __typename}}}}}}' --jq '.data.repository.pullRequest')
       printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
+      printf '%s' "$data" | jq -r '"PR-level comments: " + ([.comments.nodes[]|"\(.author.login)[\(.author.__typename)]"]|join(", "))'
       verdict=$(printf '%s' "$data" | jq -r --arg h "$head" '
         def isbot: .__typename=="Bot" or (.login|test("^(fh-pulse|sre-terraform-review-bot)$")) or (.login|test("\\[bot\\]$"));
         [.reviews.nodes[]|select((.author.login|test("^fh-pulse")) and .commit.oid==$h)|.state] as $pulse
-        | ([.reviews.nodes[]|select(.author|isbot)]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
+        | ([.reviews.nodes[]|select((.author|isbot) and (.state=="APPROVED" or .state=="CHANGES_REQUESTED" or .state=="DISMISSED"))]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
         | [.reviewThreads.nodes[]|select(.isResolved|not)] as $threads
         | [.comments.nodes[]|select(.author|isbot)] as $botc
         | if ($pulse|last) != "APPROVED" then "no fh-pulse approval found on the current head"
@@ -248,6 +251,10 @@ What the loop encodes:
   token. Until it has, a stop with "no fh-pulse approval found" on a PR Pulse
   did approve means the login or shape is wrong, not that the PR is unapproved:
   read the printed `login=state` line and fix the gate, do not merge by hand.
+  A stop on "PR-level comments from a review bot" can be a status bot (the
+  Linear linkback, a deploy or coverage bot) rather than a reviewer; the
+  printed PR-comment authors with their typename show which, and the fix is an
+  exempt list that Nickolas confirms from that line, not a merge by hand.
 - **Approved with a should-fix**: Pulse can approve and still leave an inline
   should-fix comment, so the loop checks review threads rather than trusting
   the approval. Fix it with an amended commit and resolve the thread
