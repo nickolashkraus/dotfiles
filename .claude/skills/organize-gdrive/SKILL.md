@@ -26,8 +26,7 @@ Two tools, two jobs. Do not substitute one for the other.
   `GWS_PROFILE=personal` for `nickolashkraus@gmail.com`.
 - **Mutate**: The Google Drive MCP connector. `gws` on the `function` profile
   runs on an ADC token scoped `drive.readonly` and every write 403s. Do not try
-  to widen that scope; see @~/.claude/rules/function-health.md and the standing
-  memory. The connector is bound to the FH account and does write.
+  to widen that scope. The connector is bound to the FH account and does write.
 
 `gws` is a shell function that wraps the `gws` binary on `PATH`. Call it from
 Bash. A Python `subprocess` call to `gws` skips the wrapper, authenticates as
