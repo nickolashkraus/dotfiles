@@ -4,17 +4,17 @@ PreToolUse hook: backstop for genuinely risky Bash commands. The system
 prompt asks the model to seek confirmation before destructive actions,
 but model judgment is fallible. This hook is the deterministic floor.
 
-Blocks (exit 2) when the command matches any pattern below, with a
-message that tells the model what to do: pause, surface the command to
-the user verbatim, and only retry after explicit approval.
+Blocks (exit 2) when the command matches any pattern below, with a message that
+tells the model what to do: pause, surface the command to the user verbatim,
+and only retry after explicit approval.
 
-Patterns are intentionally narrow. `git push --force-with-lease` is
-allowed; `git push --force` is not. `gh pr merge --merge --auto` (the
-"queue and let CI gate" flow) is allowed; bare `gh pr merge` is not.
+Patterns are intentionally narrow. `git push --force-with-lease` is allowed;
+`git push --force` is not. `gh pr merge --merge --auto` (the "queue and let CI
+gate" flow) is allowed; bare `gh pr merge` is not.
 
-Allowlist: when the input command starts with `# user-approved:` (a
-literal comment), the hook lets it through. The model uses this prefix
-on the retry after the user has explicitly approved the action.
+Allowlist: when the input command starts with `# user-approved:` (a literal
+comment), the hook lets it through. The model uses this prefix on the retry
+after the user has explicitly approved the action.
 
 Text-passing carve-out: `git commit -m "..."`, `gh pr create --body
 "..."`, and similar commands often embed risky-pattern literals in
@@ -25,10 +25,10 @@ tool. Interpreter heredocs (`bash <<EOF ... EOF`) are left intact so
 their contents are still scanned.
 
 Untrusted code (@rules/security.md): Also blocks piping a download into
-a shell, cloning outside the trusted owners, installing packages from a
-URL or an unknown tap, and running project code outside the trusted
-roots. This catches agent mistakes and injected instructions. It is not
-a security boundary, and it sees only this harness's Bash calls.
+a shell, cloning outside the trusted owners, installing packages from a URL or
+an unknown tap, and running project code outside the trusted roots. This
+catches agent mistakes and injected instructions. It is not a security
+boundary, and it sees only this harness's Bash calls.
 """
 
 from __future__ import annotations
@@ -101,15 +101,15 @@ MASKED = "\ue000"
 
 
 def heredoc_is_inert(opener: str, body: str) -> bool:
-    """Return whether the shell leaves a heredoc body alone: its tag is
-    quoted, or the body holds no command substitution."""
+    """Return whether the shell leaves a heredoc body alone: its tag is quoted,
+    or the body holds no command substitution."""
     return bool(re.search(r"['\"\\]", opener)) or not SUBSTITUTION_RE.search(body)
 
 
 def opens_alone(cmd: str, pos: int) -> bool:
-    """Return whether no other heredoc opens on the logical line before
-    `pos`. Bodies of heredocs opened on one line follow each other, and the
-    patterns here cannot tell whose body is whose."""
+    """Return whether no other heredoc opens on the logical line before `pos`.
+    Bodies of heredocs opened on one line follow each other, and the patterns
+    here cannot tell whose body is whose."""
     start = cmd.rfind("\n", 0, pos)
     while start > 0 and cmd[start - 1] == "\\":
         start = cmd.rfind("\n", 0, start - 1)
@@ -147,10 +147,10 @@ class ShellView:
         self.owners: dict[int, bool] = {}
 
     def owner(self, pos: int) -> int | None:
-        """Return where the `git commit` or `gh pr|issue` command that owns
-        the text at `pos` starts. None when the text belongs to another
-        command, sits in a heredoc body, a comment or a quoted stretch,
-        follows a quote left open, or the command opens an editor."""
+        """Return where the `git commit` or `gh pr|issue` command that owns the
+        text at `pos` starts. None when the text belongs to another command,
+        sits in a heredoc body, a comment or a quoted stretch, follows a quote
+        left open, or the command opens an editor."""
         if pos >= self.open_quote or self.bare[pos] == MASKED:
             return None
         brk = bisect.bisect_right(self.breaks, pos) - 1
@@ -190,12 +190,11 @@ def strip_text_payloads(cmd: str) -> str:
     Strip message text from `git commit` and `gh pr|issue` commands so risky
     literals in a commit message or PR body do not trip the hook.
 
-    Only text that such a command owns and the shell will not run is
-    stripped: a flag value with no command substitution, a `$(cat <<EOF)`
-    heredoc that is a message flag's whole value, and a heredoc on stdin
-    when the command reads its message there (`-F -`). Everything else stays
-    in the scan, such as `bash <<EOF`, `-m "$(download | sh)"` and a flag of
-    another command.
+    Only text that such a command owns and the shell will not run is stripped:
+    a flag value with no command substitution, a `$(cat <<EOF)` heredoc that is
+    a message flag's whole value, and a heredoc on stdin when the command reads
+    its message there (`-F -`). Everything else stays in the scan, such as
+    `bash <<EOF`, `-m "$(download | sh)"` and a flag of another command.
     """
     if not TEXT_PASSING_RE.search(cmd):
         return cmd
@@ -452,8 +451,8 @@ def untrusted_brew(cmd: str) -> bool:
 
 
 def expand_dir(path: str) -> str | None:
-    """Return `path` with `~` and `$HOME` expanded, or None when only the
-    shell knows it."""
+    """Return `path` with `~` and `$HOME` expanded, or None when only the shell
+    knows it."""
     path = path.replace("${HOME}", "~").replace("$HOME", "~")
     if "$" in path or "`" in path or path == "-":
         return None

@@ -2,14 +2,14 @@
 """
 Unit tests for ~/.claude/hooks/pairing-guard.py.
 
-Builds throwaway Git repositories (a paired one, a free one, and a repo
-whose linked worktree is paired while its main worktree is not), then
-feeds the hook PreToolUse payloads and checks which ones it blocks.
+Builds throwaway Git repositories (a paired one, a free one, and a repo whose
+linked worktree is paired while its main worktree is not), then feeds the hook
+PreToolUse payloads and checks which ones it blocks.
 
 Run: python3 .claude/evals/pairing-guard/test_unit.py [HOOK_PATH]
 
-HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken
-copy to confirm the tests catch the break.
+HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken copy to
+confirm the tests catch the break.
 """
 
 from __future__ import annotations

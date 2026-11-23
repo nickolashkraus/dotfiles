@@ -15,8 +15,7 @@ command that names:
   script, which has to begin with its `meta` export.
 
 Also blocks an `Agent` call that names no model, since the subagent would
-inherit the session's. A fork is exempt: it always runs on the session's
-model.
+inherit the session's. A fork is exempt: it always runs on the session's model.
 """
 
 from __future__ import annotations

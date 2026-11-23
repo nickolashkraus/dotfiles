@@ -2,23 +2,23 @@
 """
 Eval harness for ~/.claude/hooks/rule-check.py.
 
-Feeds curated tool-call payloads to the hook subprocess, captures exit code
-and stderr, and reports precision/recall/F1 plus per-case outcomes. Each
-case asserts an expected verdict (pass|fail) and, when fail, the rule files
-the violation should cite.
+Feeds curated tool-call payloads to the hook subprocess, captures exit code and
+stderr, and reports precision/recall/F1 plus per-case outcomes. Each case
+asserts an expected verdict (pass|fail) and, when fail, the rule files the
+violation should cite.
 
 Run: python3 .claude/evals/rule-check/eval.py [--parallel N] [--filter sub]
 
-Tests are isolated to the deep layer (rule-check.py) only; the cheap
-regex layer (lint-outbound.py) is bypassed by invoking rule-check.py
-directly via stdin, so we measure the deep layer in isolation. The
-hook's verdict cache is also bypassed (CLAUDE_RULE_CHECK_NO_CACHE=1) so
-every case exercises a live model call, not a cached verdict.
+Tests are isolated to the deep layer (rule-check.py) only; the cheap regex
+layer (lint-outbound.py) is bypassed by invoking rule-check.py directly via
+stdin, so we measure the deep layer in isolation. The hook's verdict cache is
+also bypassed (CLAUDE_RULE_CHECK_NO_CACHE=1) so every case exercises a live
+model call, not a cached verdict.
 
-The `regr_` cases are regressions for the 2026-07-06 false-positive
-batch: character-arithmetic findings (table padding, subject length,
-PR-title length) now belong exclusively to lint-outbound.py, so the
-deep layer must PASS payloads whose only "violation" is countable.
+The `regr_` cases are regressions for the 2026-07-06 false-positive batch:
+character-arithmetic findings (table padding, subject length, PR-title length)
+now belong exclusively to lint-outbound.py, so the deep layer must PASS
+payloads whose only "violation" is countable.
 """
 
 from __future__ import annotations
@@ -48,10 +48,10 @@ def mcp(tool: str, **inp) -> dict:
 
 
 def padded_table(header: list[str], rows: list[list[str]]) -> str:
-    """Build a Markdown table padded to equal SOURCE width per column
-    (the rules/typography.md format). Guarantees the fixture is
-    correctly padded even when cells hold code spans or links, whose
-    rendered width differs from their source width."""
+    """Build a Markdown table padded to equal SOURCE width per column (the
+    rules/typography.md format). Guarantees the fixture is correctly padded
+    even when cells hold code spans or links, whose rendered width differs from
+    their source width."""
     all_rows = [header] + rows
     widths = [max(len(r[i]) for r in all_rows) for i in range(len(header))]
     lines = [

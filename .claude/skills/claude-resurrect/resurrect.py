@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Retrieve interactive Claude Code sessions for a given date and emit a
-resume table plus a tmux rebuild script.
+"""Retrieve interactive Claude Code sessions for a given date and emit a resume
+table plus a tmux rebuild script.
 
 Filters to real interactive sessions: those with activity on the target date
 and at least one genuine user turn in the transcript, so a session still

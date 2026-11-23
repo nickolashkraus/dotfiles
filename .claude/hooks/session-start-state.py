@@ -86,10 +86,10 @@ def repo_name(cwd):
 def candidate_dirs(cwd, repo):
     """Directory names whose log entries belong to this repo.
 
-    The compact log keys each entry on `basename(cwd)`, which in a
-    bare-plus-worktrees layout is the worktree name rather than the repo.
-    Every sibling worktree counts, so a session opened in one worktree
-    still sees what the last session did in another.
+    The compact log keys each entry on `basename(cwd)`, which in
+    a bare-plus-worktrees layout is the worktree name rather than the repo.
+    Every sibling worktree counts, so a session opened in one worktree still
+    sees what the last session did in another.
     """
     names = {os.path.basename(os.path.abspath(cwd)), repo}
     root = os.path.dirname(os.path.abspath(cwd))
@@ -116,8 +116,8 @@ def recent_log_files(limit=8):
 def log_entries(names, repo):
     """The newest compact-log entries written from these directories.
 
-    An entry under a directory name that several repos share only counts
-    when its body names this repo, since the heading alone cannot tell
+    An entry under a directory name that several repos share only counts when
+    its body names this repo, since the heading alone cannot tell
     `member-journey-services/main` from `membership-service/main`.
     """
     wanted = []

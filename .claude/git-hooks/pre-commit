@@ -8,17 +8,17 @@ Catches:
     [foo] [bar]` flow-sequence trap that broke 7 skills before it was
     isolated).
   - Missing or empty `description:` in skill frontmatter.
-  - `description:` in inline plain `"..."` form when the description
-    contains inner double quotes (silently breaks YAML, registry falls
-    back to body opener).
+  - `description:` in inline plain `"..."` form when the description contains
+    inner double quotes (silently breaks YAML, registry falls back to body
+    opener).
   - JSON parse errors in `settings.json` and `*.json`.
   - Python syntax errors in `hooks/*.py`.
   - Smart quotes, `**X** -` list lead-ins, and `[label][]` reference-link
-    shorthand in any staged `.md` file (in-repo typography rules; mirrors
-    the `lint-outbound.py` checks with the in-repo carve-out).
+    shorthand in any staged `.md` file (in-repo typography rules; mirrors the
+    `lint-outbound.py` checks with the in-repo carve-out).
 
-The `SKILL.md` YAML, description and name checks need PyYAML. Without it
-the hook prints a warning, skips them and still runs the rest.
+The `SKILL.md` YAML, description and name checks need PyYAML. Without it the
+hook prints a warning, skips them and still runs the rest.
 
 Install once per clone:
 

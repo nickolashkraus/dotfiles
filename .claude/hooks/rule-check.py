@@ -7,8 +7,8 @@ the tool call on any violation.
 
 This is the heavier complement to lint-outbound.py: cheap regexes catch the
 deterministic typography and leak patterns; this catches the semantic stuff
-(paraphrased Linear titles, inline-summarized internal context, drifted
-TODO formats, missed conventions).
+(paraphrased Linear titles, inline-summarized internal context, drifted TODO
+formats, missed conventions).
 
 Gated tools: prose surfaces only.
 
@@ -22,25 +22,25 @@ Gated tools: prose surfaces only.
 Source-code Edit/Write is intentionally NOT in this hook; lint-outbound.py's
 regex layer handles the deterministic source-code rules at zero latency.
 
-Override: include `<!-- rule-check: skip reason="..." -->` (HTML comment)
-or `# rule-check: skip reason="..."` (line comment) anywhere in the
-payload to bypass. Logged to ~/.claude/rule-check.log for audit.
+Override: include `<!-- rule-check: skip reason="..." -->` (HTML comment) or
+`# rule-check: skip reason="..."` (line comment) anywhere in the payload to
+bypass. Logged to ~/.claude/rule-check.log for audit.
 
 Reliability posture:
 
-- Timeouts and subprocess failures fail OPEN (allow, log). A broken or
-  slow linter must never block a correct payload.
+- Timeouts and subprocess failures fail OPEN (allow, log). A broken or slow
+  linter must never block a correct payload.
 - Verdicts are cached by (rules, surface, payload) hash in
-  ~/.claude/rule-check-cache.json so identical payloads always get
-  identical verdicts despite the LLM being non-deterministic.
-- Findings that hinge on character arithmetic (table padding, subject
-  length, wrap width) are mechanically discarded; lint-outbound.py
-  enforces those deterministically on the source text.
+  ~/.claude/rule-check-cache.json so identical payloads always get identical
+  verdicts despite the LLM being non-deterministic.
+- Findings that hinge on character arithmetic (table padding, subject length,
+  wrap width) are mechanically discarded; lint-outbound.py enforces those
+  deterministically on the source text.
 
 Subprocess invocation uses `claude --print --allowed-tools ""` so the
-subprocess cannot make tool calls, which means PreToolUse hooks never
-fire inside it: no recursion risk. The rules + payload travel inline as
-the prompt; the model returns a schema-validated JSON verdict.
+subprocess cannot make tool calls, which means PreToolUse hooks never fire
+inside it: no recursion risk. The rules + payload travel inline as the prompt;
+the model returns a schema-validated JSON verdict.
 """
 
 from __future__ import annotations
@@ -108,8 +108,8 @@ CAT_FILE_SUBST_RE = re.compile(rf"\$\(\s*(?:cat\s+|<\s*){PATH_TOKEN}\s*\)")
 
 
 def read_file(token: str) -> str:
-    """Text of the file a path token names, or an empty string when it
-    cannot be read."""
+    """Text of the file a path token names, or an empty string when it cannot
+    be read."""
     try:
         return Path(os.path.expanduser(token.strip("'\""))).read_text()
     except (OSError, UnicodeDecodeError):
@@ -162,8 +162,8 @@ SEPARATOR_RE = re.compile(r"[;|\n]|(?<![<>])&")
 
 def command_owners(command: str) -> list[tuple[int, int, int, str]]:
     """Start, end, end of its simple command, and kind of every `git commit`
-    and `gh` command in `command`, in order. The kind is `commit`, `gh-text`
-    (a subcommand in `GH_TEXT_SUBCOMMANDS`) or `gh`."""
+    and `gh` command in `command`, in order. The kind is `commit`, `gh-text` (a
+    subcommand in `GH_TEXT_SUBCOMMANDS`) or `gh`."""
     masked = QUOTED_RE.sub(
         lambda m: " " * len(m.group(0)), command.replace("\\\n", "  ")
     )
@@ -192,8 +192,8 @@ def flag_owner(
 
 def flag_kind(flag: str, owner: str) -> str:
     """What a `FLAG_VALUE_RE` value is under the command that owns it:
-    `message`, `body`, `title`, or an empty string when that command gives
-    the flag another meaning (`git commit -t` names a template)."""
+    `message`, `body`, `title`, or an empty string when that command gives the
+    flag another meaning (`git commit -t` names a template)."""
     name = flag.lstrip("-")
     if name in ("m", "message"):
         return "message"
@@ -295,14 +295,14 @@ def heredoc_args(command: str, heredoc_start: int) -> list[str]:
 
 
 def heredoc_feeds_data_consumer(command: str, heredoc_start: int) -> bool:
-    """True when the program reading the heredoc at `heredoc_start` is
-    a loop terminator or a text filter."""
+    """True when the program reading the heredoc at `heredoc_start` is a loop
+    terminator or a text filter."""
     return heredoc_program(command, heredoc_start) in DATA_CONSUMERS
 
 
 def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
-    """True when the program reading the heredoc at `heredoc_start` is
-    a code interpreter, versioned (`python3.12`) or not."""
+    """True when the program reading the heredoc at `heredoc_start` is a code
+    interpreter, versioned (`python3.12`) or not."""
     program = heredoc_program(command, heredoc_start)
     return (
         program in CODE_INTERPRETERS
@@ -312,8 +312,8 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
 
 def heredoc_feeds_shell(command: str, heredoc_start: int) -> bool:
     """True when the heredoc at `heredoc_start` is the script a shell runs
-    (`bash <<'EOF'`, `sh -s x <<'EOF'`), not the input of a script named on
-    the command line (`bash run.sh <<'EOF'`)."""
+    (`bash <<'EOF'`, `sh -s x <<'EOF'`), not the input of a script named on the
+    command line (`bash run.sh <<'EOF'`)."""
     if heredoc_program(command, heredoc_start) not in SHELLS:
         return False
     args = heredoc_args(command, heredoc_start)
@@ -339,11 +339,11 @@ def file_name(token: str) -> str:
 
 
 def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
-    """True when the heredoc at `heredoc_start` is `cat` output redirected
-    into a file, or `tee` input written to files, that nothing else in the
-    command reads back. Files compare by base name. A name held in
-    a variable cannot be compared, so when the command reads any file back
-    the heredoc stays a payload."""
+    """True when the heredoc at `heredoc_start` is `cat` output redirected into
+    a file, or `tee` input written to files, that nothing else in the command
+    reads back. Files compare by base name. A name held in a variable cannot be
+    compared, so when the command reads any file back the heredoc stays
+    a payload."""
     program = heredoc_program(command, heredoc_start)
     if program not in ("cat", "tee"):
         return False
@@ -727,12 +727,12 @@ DASH_RULE_RE = re.compile(r"\be[mn][ -]?dash", re.IGNORECASE)
 
 
 def _is_dash_violation(v: dict, payload: str) -> bool:
-    """Drop model findings against em or en dashes. No rule forbids them,
-    but the model flags them from habit and from any stale mention in a rule
-    file. A finding counts when its `rule_quote` names the dash, or when it
-    mentions a dash the payload does not contain. A list lead-in finding
-    whose fix mentions a real dash is kept, and a quote that also names
-    smart quotes is left to `_is_phantom_char_violation`."""
+    """Drop model findings against em or en dashes. No rule forbids them, but
+    the model flags them from habit and from any stale mention in a rule file.
+    A finding counts when its `rule_quote` names the dash, or when it mentions
+    a dash the payload does not contain. A list lead-in finding whose fix
+    mentions a real dash is kept, and a quote that also names smart quotes is
+    left to `_is_phantom_char_violation`."""
     quote = str(v.get("rule_quote", "")).lower()
     if any(kw in quote for kw in SMART_QUOTE_KEYWORDS):
         return False
@@ -760,10 +760,10 @@ def _is_width_arithmetic_violation(v: dict) -> bool:
     padding, subject length, wrap width). lint-outbound.py enforces those
     deterministically on the raw source text; the model's arithmetic is
     unreliable (it measures rendered width, miscounts by one, and gives
-    different answers for the same payload) and was the dominant
-    false-positive class. Only the model's own prose is inspected, not
-    payload_excerpt, so a finding ABOUT a table (e.g., a bare slug in a
-    cell) is not swallowed by the table's dashes."""
+    different answers for the same payload) and was the dominant false-positive
+    class. Only the model's own prose is inspected, not payload_excerpt, so
+    a finding ABOUT a table (e.g., a bare slug in a cell) is not swallowed by
+    the table's dashes."""
     blob = " ".join(str(v.get(k, "")) for k in ("rule_quote", "suggested_fix"))
     return bool(WIDTH_ARITHMETIC_RE.search(blob))
 
@@ -799,12 +799,12 @@ def cache_key(rules_digest: str, surface: str, payload: str) -> str:
 
 
 def _is_phantom_char_violation(v: dict, payload: str) -> bool:
-    """Drop model findings about forbidden characters that the payload does
-    not actually contain. The deep-check prompt primes the model to hunt for
-    smart quotes, and it occasionally hallucinates them in straight-quoted
-    text, re-rendering the excerpt with the curly characters it imagined.
-    Character presence is mechanically checkable, so the model's claim is
-    only accepted when the codepoints exist in the raw payload."""
+    """Drop model findings about forbidden characters that the payload does not
+    actually contain. The deep-check prompt primes the model to hunt for smart
+    quotes, and it occasionally hallucinates them in straight-quoted text,
+    re-rendering the excerpt with the curly characters it imagined. Character
+    presence is mechanically checkable, so the model's claim is only accepted
+    when the codepoints exist in the raw payload."""
     blob = " ".join(
         str(v.get(k, "")) for k in ("rule_quote", "payload_excerpt", "suggested_fix")
     ).lower()

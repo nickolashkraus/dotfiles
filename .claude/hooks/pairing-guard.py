@@ -4,29 +4,29 @@ PreToolUse hook: the pairing guard. When the user and Claude work in the
 same worktree, the user turns the guard on, and Claude can no longer
 change the worktree's Git state or write its files from the shell.
 
-The guard is on for a worktree while `<git-dir>/claude-pairing` exists,
-where `<git-dir>` is what `git rev-parse --absolute-git-dir` prints there,
-so each linked worktree has its own switch. `<Space>cg` in Vim toggles it
-for the current buffer's worktree.
+The guard is on for a worktree while `<git-dir>/claude-pairing` exists, where
+`<git-dir>` is what `git rev-parse --absolute-git-dir` prints there, so each
+linked worktree has its own switch. `<Space>cg` in Vim toggles it for the
+current buffer's worktree.
 
 While it is on, the hook blocks (exit 2):
 
-- Git commands that change the index, the checked-out branch, the working
-  tree, history or a remote (`GIT_WRITES`, plus the write forms of
-  `stash`, `worktree`, `submodule` and `branch`).
+- Git commands that change the index, the checked-out branch, the working tree,
+  history or a remote (`GIT_WRITES`, plus the write forms of `stash`,
+  `worktree`, `submodule` and `branch`).
 - `gh` commands that check out, create, merge or sync from it.
-- Shell writes into it: redirects, `tee`, `rm`, `mv`, `cp`, `touch`,
-  `sed -i`, `perl -i`, `find -delete`, and formatters that fix in place.
+- Shell writes into it: redirects, `tee`, `rm`, `mv`, `cp`, `touch`, `sed -i`,
+  `perl -i`, `find -delete`, and formatters that fix in place.
 - Anything that could switch the guard off: deleting the flag, or writing
   inside the Git directory from the shell or the file tools.
 
 The Edit, Write and NotebookEdit tools stay allowed in the worktree. They
-refuse a file that changed on disk since Claude last read it, which is
-what keeps the user's saved work from being overwritten.
+refuse a file that changed on disk since Claude last read it, which is what
+keeps the user's saved work from being overwritten.
 
-Detection parses the shell command; it is not a sandbox. A program that
-opens files itself (`python3 -c "open(...)"`) is not seen, and a path
-built from a variable set in an earlier Bash call cannot be resolved.
+Detection parses the shell command; it is not a sandbox. A program that opens
+files itself (`python3 -c "open(...)"`) is not seen, and a path built from
+a variable set in an earlier Bash call cannot be resolved.
 """
 
 from __future__ import annotations

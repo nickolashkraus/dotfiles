@@ -3,16 +3,16 @@
 PreToolUse hook: lints content destined for external platforms (Linear,
 Notion, Slack, Gmail, GitHub, Git) against ~/.claude/rules/typography.md.
 
-Reads the Claude Code hook payload on stdin, extracts text fields from the
-tool input, scans for typography violations, and exits with code 2 (blocking
-the tool call) when any are found. Stderr is shown to Claude so it can fix
-the content and retry.
+Reads the Claude Code hook payload on stdin, extracts text fields from the tool
+input, scans for typography violations, and exits with code 2 (blocking the
+tool call) when any are found. Stderr is shown to Claude so it can fix the
+content and retry.
 
-Skips content inside fenced code blocks and inline code spans to avoid
-false positives on legitimate code.
+Skips content inside fenced code blocks and inline code spans to avoid false
+positives on legitimate code.
 
-Every gated invocation is appended to ~/.claude/lint-outbound.log
-(mirroring rule-check.py's log) so blocks are auditable across sessions.
+Every gated invocation is appended to ~/.claude/lint-outbound.log (mirroring
+rule-check.py's log) so blocks are auditable across sessions.
 
 This hook also owns every check that requires counting characters
 (commit-subject length, commit-body wrap, Markdown table column padding),
@@ -243,12 +243,12 @@ def _starts_with_identifier(rest: str) -> bool:
 
 def autofix_label_colon_line(raw: str) -> str | None:
     """If `raw` is a deterministic label-colon violation (bold/link/code-span
-    label, line-initial link label, or Title-Case plain label followed by a
-    lowercase word), return the line with that word's first letter
+    label, line-initial link label, or Title-Case plain label followed by
+    a lowercase word), return the line with that word's first letter
     capitalized. Otherwise None. Only the cases the detectors flag with zero
     false positives are touched; the ambiguous lowercase-tail plain label is
-    left for the semantic check. An identifier after the colon is left
-    unfixed so the block asks for backticks instead."""
+    left for the semantic check. An identifier after the colon is left unfixed
+    so the block asks for backticks instead."""
     for fix_re in (
         LOWERCASE_AFTER_BOLD_COLON_FIX_RE,
         LOWERCASE_AFTER_LINK_COLON_FIX_RE,
@@ -474,13 +474,13 @@ def split_table_row(line: str) -> list[str]:
 
 
 def detect_table_padding(text: str) -> list[str]:
-    """Flag Markdown tables whose columns are not padded to equal SOURCE
-    width per rules/typography.md. Width is measured on the raw source
-    text: code spans and links count at their full character length,
-    matching how a monospace editor aligns the table (GitHub renders any
-    valid table regardless, so source width is the only width that
-    matters). Tables whose rows disagree on column count are skipped
-    rather than flagged: malformed structure is not a padding problem."""
+    """Flag Markdown tables whose columns are not padded to equal SOURCE width
+    per rules/typography.md. Width is measured on the raw source text: code
+    spans and links count at their full character length, matching how
+    a monospace editor aligns the table (GitHub renders any valid table
+    regardless, so source width is the only width that matters). Tables whose
+    rows disagree on column count are skipped rather than flagged: malformed
+    structure is not a padding problem."""
     violations: list[str] = []
     in_code = False
     block: list[tuple[int, str]] = []
@@ -685,15 +685,15 @@ def lint_text(
     """
     Return a list of violation strings for the given text.
 
-    `field` is included in each message so the caller knows which field of
-    the tool input tripped the rule. `is_pr_body` enables the
-    `Closes:`/`Fixes:`/`Resolves:` check, which is scoped to PR bodies
-    only per rules/git.md. `check_local_paths` enables the local-path
-    check AND the hard-wrap check; both apply only to outbound content
-    (Bash heredocs / MCP payloads), not to in-repo dotfiles Markdown.
-    `existing` holds the stripped lines already in the file being edited;
-    word-level checks skip them so content edited in place keeps its
-    wording, while punctuation checks still apply.
+    `field` is included in each message so the caller knows which field of the
+    tool input tripped the rule. `is_pr_body` enables the
+    `Closes:`/`Fixes:`/`Resolves:` check, which is scoped to PR bodies only per
+    rules/git.md. `check_local_paths` enables the local-path check AND the
+    hard-wrap check; both apply only to outbound content (Bash heredocs / MCP
+    payloads), not to in-repo dotfiles Markdown. `existing` holds the stripped
+    lines already in the file being edited; word-level checks skip them so
+    content edited in place keeps its wording, while punctuation checks still
+    apply.
     """
     violations: list[str] = []
 
@@ -967,14 +967,14 @@ def heredoc_args(command: str, heredoc_start: int) -> list[str]:
 
 
 def heredoc_feeds_data_consumer(command: str, heredoc_start: int) -> bool:
-    """True when the program reading the heredoc at `heredoc_start` is
-    a loop terminator or a text filter."""
+    """True when the program reading the heredoc at `heredoc_start` is a loop
+    terminator or a text filter."""
     return heredoc_program(command, heredoc_start) in DATA_CONSUMERS
 
 
 def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
-    """True when the program reading the heredoc at `heredoc_start` is
-    a code interpreter, versioned (`python3.12`) or not."""
+    """True when the program reading the heredoc at `heredoc_start` is a code
+    interpreter, versioned (`python3.12`) or not."""
     program = heredoc_program(command, heredoc_start)
     return (
         program in CODE_INTERPRETERS
@@ -984,8 +984,8 @@ def heredoc_feeds_interpreter(command: str, heredoc_start: int) -> bool:
 
 def heredoc_feeds_shell(command: str, heredoc_start: int) -> bool:
     """True when the heredoc at `heredoc_start` is the script a shell runs
-    (`bash <<'EOF'`, `sh -s x <<'EOF'`), not the input of a script named on
-    the command line (`bash run.sh <<'EOF'`)."""
+    (`bash <<'EOF'`, `sh -s x <<'EOF'`), not the input of a script named on the
+    command line (`bash run.sh <<'EOF'`)."""
     if heredoc_program(command, heredoc_start) not in SHELLS:
         return False
     args = heredoc_args(command, heredoc_start)
@@ -1011,11 +1011,11 @@ def file_name(token: str) -> str:
 
 
 def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
-    """True when the heredoc at `heredoc_start` is `cat` output redirected
-    into a file, or `tee` input written to files, that nothing else in the
-    command reads back. Files compare by base name. A name held in
-    a variable cannot be compared, so when the command reads any file back
-    the heredoc stays a payload."""
+    """True when the heredoc at `heredoc_start` is `cat` output redirected into
+    a file, or `tee` input written to files, that nothing else in the command
+    reads back. Files compare by base name. A name held in a variable cannot be
+    compared, so when the command reads any file back the heredoc stays
+    a payload."""
     program = heredoc_program(command, heredoc_start)
     if program not in ("cat", "tee"):
         return False
@@ -1046,8 +1046,8 @@ CAT_FILE_SUBST_RE = re.compile(rf"\$\(\s*(?:cat\s+|<\s*){PATH_TOKEN}\s*\)")
 
 
 def read_file(token: str) -> str:
-    """Text of the file a path token names, or an empty string when it
-    cannot be read."""
+    """Text of the file a path token names, or an empty string when it cannot
+    be read."""
     try:
         return Path(os.path.expanduser(token.strip("'\""))).read_text()
     except (OSError, UnicodeDecodeError):
@@ -1101,8 +1101,8 @@ SEPARATOR_RE = re.compile(r"[;|\n]|(?<![<>])&")
 
 def command_owners(command: str) -> list[tuple[int, int, int, str]]:
     """Start, end, end of its simple command, and kind of every `git commit`
-    and `gh` command in `command`, in order. The kind is `commit`, `gh-text`
-    (a subcommand in `GH_TEXT_SUBCOMMANDS`) or `gh`."""
+    and `gh` command in `command`, in order. The kind is `commit`, `gh-text` (a
+    subcommand in `GH_TEXT_SUBCOMMANDS`) or `gh`."""
     masked = QUOTED_RE.sub(
         lambda m: " " * len(m.group(0)), command.replace("\\\n", "  ")
     )
@@ -1131,8 +1131,8 @@ def flag_owner(
 
 def flag_kind(flag: str, owner: str) -> str:
     """What a `FLAG_VALUE_RE` value is under the command that owns it:
-    `message`, `body`, `title`, or an empty string when that command gives
-    the flag another meaning (`git commit -t` names a template)."""
+    `message`, `body`, `title`, or an empty string when that command gives the
+    flag another meaning (`git commit -t` names a template)."""
     name = flag.lstrip("-")
     if name in ("m", "message"):
         return "message"
@@ -1172,12 +1172,12 @@ def extract_bash_content(
     Extract text payloads from `git commit` and `gh {pr,issue} ...` commands.
 
     Returns a list of (field_label, text, is_commit, is_pr_body,
-    is_full_commit). `is_commit` toggles the Co-Authored-By check;
-    `is_pr_body` enables the `Closes:`/`Fixes:`/`Resolves:` check (PR
-    bodies only per rules/git.md); `is_full_commit` enables the
-    deterministic subject-length and body-wrap checks, so it is set only
-    when the field is unambiguously an entire commit message. The `-m`
-    values of one commit form one field, joined the way git joins them.
+    is_full_commit). `is_commit` toggles the Co-Authored-By check; `is_pr_body`
+    enables the `Closes:`/`Fixes:`/`Resolves:` check (PR bodies only per
+    rules/git.md); `is_full_commit` enables the deterministic subject-length
+    and body-wrap checks, so it is set only when the field is unambiguously an
+    entire commit message. The `-m` values of one commit form one field, joined
+    the way git joins them.
     """
     if not OUTBOUND_COMMAND_RE.search(command):
         return []
@@ -1331,8 +1331,8 @@ def extract_markdown_heredocs(command: str) -> list[tuple[str, str, str]]:
     Return (field_label, text, path) for each heredoc a Bash command writes
     into a Markdown file (`cat >> f.md <<'EOF'`, `tee -a f.md <<EOF`).
 
-    Only the heredoc body is returned, so a shared file's earlier entries
-    are not linted. Targets held in shell variables are skipped.
+    Only the heredoc body is returned, so a shared file's earlier entries are
+    not linted. Targets held in shell variables are skipped.
     """
     fields: list[tuple[str, str, str]] = []
     for m, raw in _markdown_heredoc_matches(command):
@@ -1366,10 +1366,10 @@ def autofix_markdown_heredocs(command: str) -> str:
 
 
 def is_bypass_value(value: str) -> str | None:
-    """Return a reason string if `value` is a lint-bypassing reference
-    (bare `$var` expansion), or None if it's a real string. A bare
-    expansion reaches `lint_text` as the literal `$var`, not as its
-    expanded content, so the body text is never actually inspected."""
+    """Return a reason string if `value` is a lint-bypassing reference (bare
+    `$var` expansion), or None if it's a real string. A bare expansion reaches
+    `lint_text` as the literal `$var`, not as its expanded content, so the body
+    text is never actually inspected."""
     if BARE_VAR_RE.match(value):
         return (
             "body argument is a bare shell-variable expansion; the hook "
@@ -1488,8 +1488,8 @@ def existing_file_lines(tool_name: str, tool_input: dict) -> frozenset[str]:
 
 
 def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
-    """Run every lint over the tool's outbound fields and return the flat
-    list of violation strings."""
+    """Run every lint over the tool's outbound fields and return the flat list
+    of violation strings."""
     violations: list[str] = []
     existing = existing_file_lines(tool_name, tool_input)
     for (
@@ -1524,9 +1524,9 @@ def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
 def try_autofix_input(tool_name: str, tool_input: dict) -> dict | None:
     """Return a modified tool_input with label-colon violations auto-fixed, or
     None when nothing safe to fix applies. Scoped to Markdown content (Edit,
-    Write, and Bash heredocs written into a `.md` file), where capitalizing
-    the word after a label colon is an unambiguous fix; Bash commit/PR bodies
-    are left to block so their quoting is never rewritten."""
+    Write, and Bash heredocs written into a `.md` file), where capitalizing the
+    word after a label colon is an unambiguous fix; Bash commit/PR bodies are
+    left to block so their quoting is never rewritten."""
     if tool_name == "Bash":
         command = tool_input.get("command")
         if not isinstance(command, str):

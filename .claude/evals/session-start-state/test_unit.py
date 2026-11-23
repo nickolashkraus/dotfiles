@@ -4,13 +4,12 @@ Unit tests for ~/.claude/hooks/session-start-state.py.
 
 Builds a throwaway `domains/` tree of project manifests and checks which
 project `find_project` picks for a repo, then runs the hook end to end with
-`HOME` pointed at a throwaway directory, so the real notes repo is never
-read.
+`HOME` pointed at a throwaway directory, so the real notes repo is never read.
 
 Run: python3 .claude/evals/session-start-state/test_unit.py [HOOK_PATH]
 
-HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken
-copy to confirm the tests catch the break.
+HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken copy to
+confirm the tests catch the break.
 """
 
 from __future__ import annotations

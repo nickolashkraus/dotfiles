@@ -45,8 +45,8 @@ def section(title: str) -> None:
 
 
 def build_padded_table(rows: list[list[str] | None]) -> str:
-    """Pad a two-column table to equal SOURCE width, the way an editor
-    (and rules/typography.md) aligns it."""
+    """Pad a two-column table to equal SOURCE width, the way an editor (and
+    rules/typography.md) aligns it."""
     widths = [max(len(r[i]) for r in rows if r is not None) for i in range(2)]
     lines = []
     for r in rows:

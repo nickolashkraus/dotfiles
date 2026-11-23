@@ -6,8 +6,8 @@ Feeds the hook PreToolUse payloads and checks which ones it blocks.
 
 Run: python3 .claude/evals/model-policy/test_unit.py [HOOK_PATH]
 
-HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken
-copy to confirm the tests catch the break.
+HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken copy to
+confirm the tests catch the break.
 """
 
 from __future__ import annotations

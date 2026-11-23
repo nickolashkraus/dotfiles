@@ -2,10 +2,10 @@
 """
 Deterministic unit tests for ~/.claude/hooks/rule-check.py.
 
-Covers the parts that don't spawn Opus: payload extraction from Bash and
-MCP tool inputs, the override sentinel regex, the body-file resolver, and
-the load_rules concatenation. These run in milliseconds, cost nothing, and
-catch the bugs CI is actually good at catching.
+Covers the parts that don't spawn Opus: payload extraction from Bash and MCP
+tool inputs, the override sentinel regex, the body-file resolver, and the
+load_rules concatenation. These run in milliseconds, cost nothing, and catch
+the bugs CI is actually good at catching.
 
 Run: python3 .claude/evals/rule-check/test_unit.py
 
@@ -106,8 +106,8 @@ def sandbox(rules: str = "Never use smart quotes.\n"):
 
 
 def run_main(payload: dict | str) -> tuple[int, str]:
-    """Run the hook's main() with `payload` on stdin; return the exit code
-    and stderr."""
+    """Run the hook's main() with `payload` on stdin; return the exit code and
+    stderr."""
     stdin = payload if isinstance(payload, str) else json.dumps(payload)
     saved = sys.stdin, sys.stderr
     sys.stdin, sys.stderr = io.StringIO(stdin), io.StringIO()

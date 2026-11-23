@@ -2,15 +2,15 @@
 """
 Unit tests for .claude/git-hooks/pre-commit.
 
-Stages files in a throwaway Git repository, runs the hook there and checks
-its exit code and stderr. A `yaml.py` on `PYTHONPATH` stands in for PyYAML,
-either raising `ImportError` or parsing `key: value` lines, so the tests do
-not depend on what the interpreter has installed.
+Stages files in a throwaway Git repository, runs the hook there and checks its
+exit code and stderr. A `yaml.py` on `PYTHONPATH` stands in for PyYAML, either
+raising `ImportError` or parsing `key: value` lines, so the tests do not depend
+on what the interpreter has installed.
 
 Run: python3 .claude/evals/pre-commit/test_unit.py [HOOK_PATH]
 
-HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken
-copy to confirm the tests catch the break.
+HOOK_PATH defaults to the hook in this repo. Pass a deliberately broken copy to
+confirm the tests catch the break.
 """
 
 from __future__ import annotations
