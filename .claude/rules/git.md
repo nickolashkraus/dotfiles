@@ -224,10 +224,11 @@ Ask first. Merging is hard to reverse, fires deploy webhooks, and collapses the
 commit history; do not infer it from adjacent instructions.
 
 **Exception**: The `xp-harvesting` skill squash-merges a PR its own sweep
-opened without asking, once all checks pass, `fh-pulse` has approved and no bot
-review comment is open. A `*-pr-plan-prod` check waiting at `ACTION_REQUIRED`
-is a manual gate and does not count as failing. I gave it that standing
-approval on 2026-11-23. It covers no other skill and no other PR.
+opened without asking, once every check passes, `fh-pulse` has approved and no
+bot review comment is open. A `*-pr-plan-prod` check waiting at
+`ACTION_REQUIRED` is a manual gate, not a failed check, and does not block the
+merge; every other check must pass. I gave it that standing approval on
+2026-11-23. It covers no other skill and no other PR.
 `gh pr close`, a merge with a failing check and a PR the sweep did not open
 still need my yes.
 

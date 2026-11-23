@@ -178,9 +178,36 @@ for attempt in 1 2 3; do
     if [ "$pending" = "0" ] && [ "$pulse" = "SUCCESS" ]; then
       [ "$ms" = "BEHIND" ] && { echo "attempt $attempt: behind at green"; break; }
       sleep 30
-      open=$(gh api graphql -F o=Function-Health -F n=<repo> -F p=$PR -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:50){nodes{isResolved isOutdated}}}}}' --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select((.isResolved|not) and (.isOutdated|not))]|length')
-      [ "$open" != "0" ] && { echo "open review threads on current head: $open"; exit 1; }
-      gh pr view $PR -R $R --json reviews --jq '[.reviews[]|"\(.author.login)=\(.state)"]|join(", ")'
+      # A green pulse-review check is necessary but not an fh-pulse approval:
+      # the check also reads SUCCESS for a human owner-approval and a
+      # path-owners review (Pulse's owner gate), which the standing approval
+      # does not cover. Gate the merge on the review it names: an fh-pulse
+      # review APPROVED on this exact head, no review bot whose latest review
+      # (on any commit) requests changes, no unresolved review thread (outdated
+      # or not), and no PR-level comment from a review bot. Anything short
+      # stops and reports; it never merges. A review bot is an author whose
+      # GraphQL `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer),
+      # or whose login is fh-pulse or sre-terraform-review-bot. GraphQL serves
+      # a Bot's login without the `[bot]` suffix REST adds, so match on
+      # `__typename`, not the suffix.
+      data=$(gh api graphql -F o=Function-Health -F n=<repo> -F p=$PR -f query='
+        query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){
+          reviews(last:100){nodes{author{login __typename} state commit{oid}}}
+          reviewThreads(first:100){nodes{isResolved}}
+          comments(first:100){nodes{author{login __typename}}}}}}' --jq '.data.repository.pullRequest')
+      printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
+      verdict=$(printf '%s' "$data" | jq -r --arg h "$head" '
+        def isbot: .__typename=="Bot" or (.login|test("^(fh-pulse|sre-terraform-review-bot)$")) or (.login|test("\\[bot\\]$"));
+        [.reviews.nodes[]|select((.author.login|test("^fh-pulse")) and .commit.oid==$h)|.state] as $pulse
+        | ([.reviews.nodes[]|select(.author|isbot)]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
+        | [.reviewThreads.nodes[]|select(.isResolved|not)] as $threads
+        | [.comments.nodes[]|select(.author|isbot)] as $botc
+        | if ($pulse|last) != "APPROVED" then "no fh-pulse approval found on the current head"
+          elif ($cr|length) > 0 then "a review bot's latest review requests changes: \($cr|map(.author.login)|join(", "))"
+          elif ($threads|length) > 0 then "unresolved review threads: \($threads|length)"
+          elif ($botc|length) > 0 then "PR-level comments from a review bot: \($botc|length)"
+          else "merge" end')
+      [ "$verdict" != "merge" ] && { echo "attempt $attempt: $verdict"; exit 1; }
       gh pr merge $PR -R $R --squash --delete-branch=false && { gh pr view $PR -R $R --json state,mergedAt,mergeCommit --jq '"\(.state) \(.mergedAt) \(.mergeCommit.oid[:9])"'; exit 0; }
       echo "attempt $attempt: merge rejected"; break
     fi
@@ -208,11 +235,24 @@ What the loop encodes:
   review body. Never add `/pulse:skip-review` to get past it. Report the risk
   rationale, check it against the code, and let the user choose between getting
   an owner's approval and closing the PR.
-- **Approved with a should-fix**: Pulse can approve and still leave an
-  inline should-fix comment, so the loop checks for open review threads
-  rather than trusting the approval. Fix it with an amended commit; the old
-  thread goes outdated and the loop ignores it, but resolve it anyway
-  (`resolveReviewThread`). An outdated, unresolved thread kept
+- **The approval gate**: The `pulse-review` check reads `SUCCESS` both when the
+  fh-pulse bot approves and when a human owner-approves or a path-owners review
+  stands in for it, and the standing approval covers only the first. So a green
+  check is not an approval. The gate requires an fh-pulse review in state
+  `APPROVED` whose commit is the current head, no review bot requesting changes
+  on that head, no unresolved review thread, and no PR-level comment from
+  a review bot; anything short stops the loop and reports, and never merges.
+  The gate's shape (the fh-pulse login, the review commit, the bot logins) was
+  written from GitHub's documented review API and has not yet been run against
+  a live Function Health PR, because the org refuses this machine's classic
+  token. Until it has, a stop with "no fh-pulse approval found" on a PR Pulse
+  did approve means the login or shape is wrong, not that the PR is unapproved:
+  read the printed `login=state` line and fix the gate, do not merge by hand.
+- **Approved with a should-fix**: Pulse can approve and still leave an inline
+  should-fix comment, so the loop checks review threads rather than trusting
+  the approval. Fix it with an amended commit and resolve the thread
+  (`resolveReviewThread`): the loop stops on any unresolved thread, outdated or
+  not, so one left behind blocks the merge. An outdated, unresolved thread kept
   transaction-service #2286 `BLOCKED` ("base branch policy prohibits the
   merge") for four days, though no visible rule requires resolution. The
   `sleep 30` gives Pulse time to post inline comments after its check
