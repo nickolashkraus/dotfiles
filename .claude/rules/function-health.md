@@ -112,9 +112,10 @@ composable across multiple calls in one transaction.
 
 - `typing.Final` for all constants; immutable collections only (`tuple`,
   `frozenset`), never `list` or `set`.
-- TODO format: `# TODO(username): Description.` with a Linear issue on the next
-  line (`# FUN-123`). Use `NOBUG-1` for untracked items. `FIXME` is reserved
-  for known bugs.
+- TODO format: Follow @rules/git.md. The exception is a repo whose ruff config
+  selects the `TD` rules: there the line after the TODO carries the Linear
+  issue (`# FUN-123`), or `NOBUG-1` when there is none. `FIXME` is reserved for
+  known bugs.
 
 ### Testing
 
