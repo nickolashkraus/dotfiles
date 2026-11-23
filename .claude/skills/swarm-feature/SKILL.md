@@ -228,7 +228,8 @@ remain, surface them to the user.
 
 In the **code worktree**: squash commits, write the commit message (subject
 `SLUG: Exact Issue Title`, the verbatim Linear issue title, per rules/git.md),
-push the branch, and create the PR using `gh pr create`.
+push the branch, and create the PR using `gh pr create`, putting the
+implementation agent's recorded judgment calls in the PR body.
 
 In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
 push the branch. The subject follows rules/git.md, with no `swarm-feature:`

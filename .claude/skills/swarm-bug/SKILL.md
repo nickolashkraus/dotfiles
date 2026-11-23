@@ -260,7 +260,8 @@ Rebasing and squashing can shift line numbers and trigger different lint
 diagnostics, and staging mistakes (e.g., a `git stash`/`pop` that left
 modifications unstaged) can produce a partial commit. Run `ruff` / `pyright` /
 the test suite once more and verify the diff includes every changed file before
-`git push`. Then create the PR using `gh pr create`.
+`git push`. Then create the PR using `gh pr create`, putting the implementation
+agent's recorded judgment calls in the PR body.
 
 In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
 push the branch. The subject follows rules/git.md, with no `swarm:` prefix (see
