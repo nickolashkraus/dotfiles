@@ -116,7 +116,7 @@ a Linear ticket), do not start writing code immediately. First write back
 a tight plan that surfaces:
 
 - The branch, base, and scope of the work.
-- Every load-bearing assumption (schema fields, ordering, predicates,
+- Every assumption the work rests on (schema fields, ordering, predicates,
   contracts).
 - The one or two clarifying questions whose answers unblock the work.
 
@@ -127,9 +127,9 @@ redirect before the wrong shape is locked into commit history or PR review.
 
 Trivial tasks (single-file fix, obvious rename, mechanical refactor) do not
 need this gate. Do not interpret a prior "go" as covering every downstream
-micro-decision; restate the next load-bearing assumption when one surfaces. The
-complementary rule is to not ask multiple-choice questions on low-stakes
-choices you should just make and surface.
+micro-decision; restate the next assumption the work rests on when one
+surfaces. The complementary rule is to not ask multiple-choice questions on
+low-stakes choices you should just make and surface.
 
 ## Production-Scale by Default
 

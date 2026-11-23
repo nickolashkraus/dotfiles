@@ -8,9 +8,9 @@ everything else.
 ## Density
 
 The rubric is "informative but tight," not minimal. A reviewer or future reader
-needs the *why* and the load-bearing context. Stripping the contract from an
-ADR or the failure-mode bullets from a PR body loses real value. "Less verbose"
-never means "strip everything".
+needs the *why* and the context the change depends on. Stripping the contract
+from an ADR or the failure-mode bullets from a PR body loses real value. "Less
+verbose" never means "strip everything".
 
 - **PR bodies**: Scale with the diff, and err far shorter than feels natural.
   A one-line change gets one sentence: what it does, and why it matters if that

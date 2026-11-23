@@ -48,7 +48,7 @@
   needs to understand or audit the change. That usually means the primary
   Linear issue, the umbrella or parent if the work is part of a larger
   initiative, the direct predecessor PRs whose contracts this change depends
-  on, and any spec or design doc that is load-bearing. Do not pad the list with
+  on, and any spec or design doc the change rests on. Do not pad the list with
   every adjacent ticket, every sibling phase, or every issue mentioned in
   passing. A long reference list dilutes the important links and signals that
   the body did not do the work of identifying what actually matters. The bar

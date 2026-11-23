@@ -13,11 +13,10 @@
 - When a claim I published turns out to be wrong, correct it everywhere it was
   published, not only in chat. Trace where it went: PR descriptions, review
   replies, Linear issues, Slack messages, code comments. A wrong claim that
-  was load-bearing for a decision needs the correction attached to that
-  decision, since a reader who finds the dismissal without the correction has
-  no way to know it was withdrawn. Telling me privately and leaving the
-  artifact standing is a half-correction, and the artifact is what other people
-  will read.
+  a decision rested on needs the correction attached to that decision, since
+  a reader who finds the dismissal without the correction has no way to know it
+  was withdrawn. Telling me privately and leaving the artifact standing is
+  a half-correction, and the artifact is what other people will read.
 - Never reference or link to internal or local-only documents (e.g., scratch
   notes under `~/nickolashkraus/agent-os/`, files on disk that are not in
   a public repo, private working docs) from external content (GitHub PRs,
