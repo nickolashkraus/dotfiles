@@ -100,7 +100,8 @@ Notes:
 ## Step 3: Fix the real bugs, then stop
 
 Read the output JSON. The shape mirrors the posted review: `findings`
-(each with tier, path, line, body) and a summary with tier counts and risk.
+(each with tier, path, line, body) and a summary with tier counts. It has no
+risk tier; only the bot's PR path assesses risk.
 
 **This gate exists to catch defects before they reach a reviewer, not to
 produce a clean Pulse result.** Fix the findings that name a defect: a wrong
@@ -136,10 +137,8 @@ Three reasons:
   `pulse/src/risk-assessment.ts`): zero criticals approves only at very-low,
   low or medium. At medium-high and above the check reports `failure` with
   "Owner approval required" and needs a named owner, however clean the findings
-  are. Read `summary.risk` in the JSON before spending anything on convergence.
-  The local JSON can omit `risk` entirely (observed on a clean zero-finding
-  run); then report the tier as unknown until the PR check posts it, rather
-  than inferring one.
+  are. The local JSON carries no tier, so it stays unknown until the PR check
+  posts it; do not infer one.
 - **Iterating generates work.** A local finding can ask for code that the CI
   run then flags as a violation of a different rule, so the fix is written and
   then removed. One rule pack does not know what another asked for, and a
@@ -177,8 +176,5 @@ Then re-run the repo's standard local verification (ruff, pyright, pytest for
 the touched files) since the fixes changed code after the last verification
 pass.
 
-Report the final state in a few lines: the bugs fixed (one line each), the
-count left for the PR with a one-line reason each, and the risk tier with
-whether it is above the auto-approve cut-line. Say the tier explicitly, since
-it tells the user up front whether an owner approval is needed regardless of
-what the findings say.
+Report the final state in a few lines: the bugs fixed (one line each) and the
+count left for the PR with a one-line reason each.
