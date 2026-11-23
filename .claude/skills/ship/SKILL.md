@@ -62,7 +62,8 @@ the committed diff.
 
 ## Step 4: Ship
 
-If `--no-pr` was passed: push to the current branch.
+If `--no-pr` was passed: run the repo's full local CI per "Pushing" in
+@~/.claude/rules/git.md, and once it passes, push to the current branch.
 
 ```
 git push
@@ -74,10 +75,11 @@ remote branch (never merge), resolve any conflicts, then push again.
 Stop here.
 
 Otherwise, invoke `Skill(skill: "pr", args: "<linear-issue>")` to create the
-branch (if needed), push, and open the pull request. If `--no-pulse` was
-passed, include it in the `pr` args (e.g., `"--no-pulse <linear-issue>"`) so
-the local Pulse gate is skipped there too. Do NOT pass `--worktree` to `pr`;
-the worktree was already set up in Step 1 and the commits already live there.
+branch (if needed), run local CI, push, open the pull request and run `/fix-ci`
+on it. If `--no-pulse` was passed, include it in the `pr` args (e.g.,
+`"--no-pulse <linear-issue>"`) so the local Pulse gate is skipped there too. Do
+NOT pass `--worktree` to `pr`; the worktree was already set up in Step 1 and
+the commits already live there.
 
 Print the pull request URL when `pr` returns.
 

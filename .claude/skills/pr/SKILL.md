@@ -42,6 +42,9 @@ Skip this step for non-Function-Health repos and for the pulse repo itself.
 
 ## Step 4: Create the branch and push
 
+Before any push, run the repo's full local CI per "Pushing" in
+@~/.claude/rules/git.md, and do not push until it passes.
+
 If already on a non-default branch, push it. Otherwise:
 
 1. Determine the branch name:
@@ -105,3 +108,8 @@ instead of through another round of instructions.
 
 This is not optional and does not need to be offered first. Skip it only when
 `$TMUX_PANE` is unset, which means there is no session to open a window in.
+
+## Step 7: Fix CI
+
+Invoke `Skill(skill: "fix-ci")` on the pull request and run it until every
+check passes, per "Pushing" in @~/.claude/rules/git.md.
