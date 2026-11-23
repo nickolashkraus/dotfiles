@@ -40,8 +40,8 @@ gcloud builds triggers describe <service>-deploy-prod \
 ```
 
 Verify it fires on `github.push.tag` and note `_MIGRATION_ENABLED`. Save the
-trigger `id` for build lookups later. If the trigger is branch-based, stop:
-this repo is not on the trunk-based flow (use the `release` skill).
+trigger `id` for build lookups later. If the trigger is branch-based, stop and
+report it: this repo is not on the trunk-based flow.
 
 ## Step 2: Determine the deployed Prod version
 
