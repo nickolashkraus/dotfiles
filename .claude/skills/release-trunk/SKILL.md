@@ -61,8 +61,8 @@ The image tag is `tf_<short-sha>`. Map it to a commit:
 git log -1 --format='%h %ad %s' --date=short <short-sha>
 ```
 
-**EasyDeploy-managed services** (e.g. ppp-service): EasyDeploy deploys the
-app, and the release tag still deploys the Terraform, for now. They serve an
+**EasyDeploy-managed services** (e.g. ppp-service): EasyDeploy deploys the app,
+and the release tag still deploys the Terraform, for now. They serve an
 EasyDeploy-owned image digest instead of `tf_<short-sha>`, so this mapping does
 not work.
 Determine the deployed version from the newest `release/*` tag whose Prod

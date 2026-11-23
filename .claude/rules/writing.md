@@ -48,8 +48,8 @@ them:
 Never paste one into another. Duplication costs the reader two copies to read
 and me an edit in every copy whenever one changes, and it is the main way these
 surfaces get bloated. `hooks/lint-outbound.py` rejects a PR body that shares
-a sentence of 12 or more words with its Linear issue, when the notes repo
-holds a mirror of that issue.
+a sentence of 12 or more words with its Linear issue, when the notes repo holds
+a mirror of that issue.
 
 Investigation evidence (row counts, grant quantities, the names of things found
 in a Dev database) belongs in the issue or in chat, not in a PR body and never
