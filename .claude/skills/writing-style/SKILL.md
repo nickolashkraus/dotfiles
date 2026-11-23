@@ -170,7 +170,8 @@ conventions when writing or editing blog posts, articles, and essays.
 - Use functional, understated transitions: "First,", "Next,", "However,",
   "Additionally,", "Furthermore,", "In addition,".
 - Use "This is where..." to pivot from problem to solution.
-- Use "It should be noted that..." for important qualifications.
+- State an important qualification plainly in its own sentence, without
+  a lead-in such as "It should be noted that...".
 - Use "Simply" to signal ease: "Simply pass the exception..."
 - Avoid decorative or flowery transitions.
 
