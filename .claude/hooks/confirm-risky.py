@@ -56,37 +56,37 @@ GIT_GLOBAL_OPT = (
     r"|-(?![cC]\s)[A-Za-z]+"
 )
 
-# The body is whole lines up to the first line that opens with the tag, so an
-# empty heredoc ends on the line after its opener, as it does in the shell.
-HEREDOC_RE = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?\s*\n((?:[^\n]*\n)*?)\s*\1\b")
-# Single quotes have no escapes: the value ends at the next quote. The
-# value is on the flag's line: after a newline the shell reads a new command,
-# and a quoted word there is that command's name.
-FLAG_VALUE_RE = re.compile(
-    r"(?:^|\s)(--?)(m|message|body|title|body-file)[= \t]+"
-    r"(\"((?:[^\"\\]|\\.)*)\"|'([^']*)')",
-)
 TEXT_PASSING_RE = re.compile(
     r"\b(git\s+commit|gh\s+(pr|issue)\s+(create|edit|comment))\b"
 )
+# A message flag and the blanks before its value, on the masked view. The
+# value is on the flag's line: after a newline the shell reads a new command,
+# and a quoted word there is that command's name.
+FLAG_RE = re.compile(r"(?:^|\s)--?(m|message|body|title|body-file)[= \t]+")
 # `-m "$(cat <<'EOF' ... EOF)"`: the heredoc is the flag's whole value.
-CAT_HEREDOC_VALUE_RE = re.compile(
-    r"(?:^|\s)--?(?:m|message|body|title)[= \t]+"
-    r"\"\$\(\s*cat\s*(<<-?\s*['\"]?(\w+)['\"]?\s*\n)((?:[^\n]*\n)*?)\s*\2\b\s*\)\""
-)
+CAT_OPEN_RE = re.compile(r"\"\$\(\s*cat\s*")
+CAT_CLOSE_RE = re.compile(r"\s*\)\"")
 # A `$(` or backtick the shell will run: one after an even count of
 # backslashes.
 SUBSTITUTION_RE = re.compile(r"(?<!\\)(?:\\\\)*(?:\$\(|`)")
 # A `&` that is part of a redirect (`2>&1`, `&>file`) starts no command.
 COMMAND_BREAK_RE = re.compile(r"[|;\n(`]|(?<!>)&(?!>)")
-# An escaped character, a quoted stretch or a comment, read left to right as
-# the shell reads them. A break character inside one starts no command.
-SHELL_TOKEN_RE = re.compile(
-    r"\\.|\$'(?:[^'\\]|\\.)*'|'[^']*'|\"(?:[^\"\\]|\\.)*\"|(?<![^\s;|&()])#[^\n]*",
-    re.DOTALL,
+# The characters at which the shell may stop reading plain command text, and
+# at which it may stop reading a double-quoted stretch.
+CODE_STOP_RE = re.compile(r"[\\'\"#\n<`$()]")
+QUOTED_STOP_RE = re.compile(r"[\\\"`$]")
+ANSI_C_RE = re.compile(r"\$'(?:[^'\\]|\\.)*'", re.DOTALL)
+# `${name}` with nothing in it that could quote or run: no quote, backslash,
+# `$` or backtick.
+PARAMETER_RE = re.compile(r"\$\{[^}\"'\\`$\n]*\}")
+# A heredoc opener whose tag is one plain word, bare or wholly quoted.
+HEREDOC_OPENER_RE = re.compile(
+    r"<<(-?)[ \t]*(?:(\w+)|'(\w+)'|\"(\w+)\")(?=[\s;|&()<>]|$)"
 )
-HEREDOC_OPENER_RE = re.compile(r"(?<!<)<<(?!<)")
-# The command reads its message from stdin: `-F -`, `--file=-`, `--body-file -`.
+# `case` patterns close a parenthesis they never opened.
+CASE_RE = re.compile(r"\b(?:case|esac)\b")
+# The command reads its message from stdin: `-F -`, `--file=-`,
+# `--body-file -`.
 STDIN_TEXT_RE = re.compile(
     r"(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file)(?:=|\s*)-(?:\s|$)"
 )
@@ -99,22 +99,36 @@ EDITOR_FLAG_RE = re.compile(
 # Fill for text the shell does not read as commands. A private-use code
 # point, so no command holds it by accident.
 MASKED = "\ue000"
+# Fill for a backslash and the character it escapes: a letter, so the pair
+# neither splits a word nor starts a command.
+ESCAPED = "E"
+# A `$(` nested deeper than this inside quotes is not read.
+MAX_DEPTH = 40
 
 
-def heredoc_is_inert(opener: str, body: str) -> bool:
-    """Return whether the shell leaves a heredoc body alone: its tag is quoted,
-    or the body holds no command substitution."""
-    return bool(re.search(r"['\"\\]", opener)) or not SUBSTITUTION_RE.search(body)
+class Unreadable(Exception):
+    """The scan met shell syntax it does not read."""
 
 
-def opens_alone(cmd: str, pos: int) -> bool:
-    """Return whether no other heredoc opens on the logical line before `pos`.
-    Bodies of heredocs opened on one line follow each other, and the patterns
-    here cannot tell whose body is whose."""
-    start = cmd.rfind("\n", 0, pos)
-    while start > 0 and cmd[start - 1] == "\\":
-        start = cmd.rfind("\n", 0, start - 1)
-    return not HEREDOC_OPENER_RE.search(cmd, start + 1, pos)
+class Heredoc:
+    """One `<<` opener and, once the scan reaches it, its body."""
+
+    def __init__(
+        self, start: int, tag_end: int, tag: str, quoted: bool, dash: bool, top: bool
+    ) -> None:
+        self.start = start
+        self.tag_end = tag_end
+        self.tag = tag
+        # A quoted tag: the shell expands nothing in the body.
+        self.quoted = quoted
+        # `<<-`: leading tabs are dropped from the body and the closing line.
+        self.dash = dash
+        # Opened by a command, not inside a quoted `$(`.
+        self.top = top
+        self.body = (0, 0)
+        # Where the line that closes the body ends.
+        self.end = 0
+        self.closed = False
 
 
 def overwrite(text: str, spans: list[tuple[int, int, str]]) -> str:
@@ -129,40 +143,209 @@ def overwrite(text: str, spans: list[tuple[int, int, str]]) -> str:
 
 
 class ShellView:
-    """One left-to-right read of a command. Heredoc bodies, quoted stretches,
-    escapes and comments are overwritten in place, so positions match the
-    command and a break character inside one starts no command."""
+    """
+    One left-to-right read of a command, the way the shell reads it. Quoted
+    stretches, escapes, comments and heredoc bodies are overwritten in `bare`,
+    so positions match the command and a break character inside one starts no
+    command.
+
+    The read covers a subset of shell syntax and stops at the first thing
+    outside it (a backtick, an open quote, an unusual heredoc tag). `limit` is
+    where it stopped, and nothing from there on is vouched for.
+    """
 
     def __init__(self, cmd: str) -> None:
-        bodies = [(*m.span(2), MASKED) for m in HEREDOC_RE.finditer(cmd)]
-        text = overwrite(cmd, bodies)
-        tokens = [
-            (*m.span(), "E" if m.group(0).startswith("\\") else MASKED)
-            for m in SHELL_TOKEN_RE.finditer(text)
-        ]
         self.cmd = cmd
-        self.bare = overwrite(text, tokens)
-        open_quote = re.search(r"['\"]", self.bare)
-        self.open_quote = open_quote.start() if open_quote else len(cmd)
-        self.breaks = [m.end() for m in COMMAND_BREAK_RE.finditer(self.bare)]
+        self.quotes: dict[int, int] = {}
+        self.heredocs: dict[int, Heredoc] = {}
         self.owners: dict[int, bool] = {}
+        self._spans: list[tuple[int, int, str]] = []
+        self._token = 0
+        try:
+            self.limit = self._code(0, 0)
+        except Unreadable:
+            self.limit = self._token
+        self.bare = overwrite(cmd, self._spans)
+        breaks = COMMAND_BREAK_RE.finditer(self.bare, 0, self.limit)
+        self.breaks = [m.end() for m in breaks]
+
+    def _code(self, pos: int, depth: int) -> int:
+        """Read command text from `pos` and return where it ends: the whole
+        command at depth 0, otherwise the inside of a `$(` within a
+        double-quoted stretch, up to its `)`."""
+        cmd, top = self.cmd, depth == 0
+        pending: list[Heredoc] = []
+        # Where the last escaped character ended. A `#` right after one
+        # continues a word and starts no comment.
+        glued = -1
+        parens = 1
+        while True:
+            stop = CODE_STOP_RE.search(cmd, pos)
+            gap_end = stop.start() if stop else len(cmd)
+            if not top and CASE_RE.search(cmd, pos, gap_end):
+                raise Unreadable
+            if stop is None:
+                if top:
+                    return len(cmd)
+                raise Unreadable
+            at, ch = stop.start(), stop.group()
+            if top:
+                self._token = at
+            pos = at + 1
+            if ch == "\\":
+                pos = min(at + 2, len(cmd))
+                if cmd.startswith("\n", at + 1):
+                    # The shell joins the lines. Only a join after a blank is
+                    # read, since any other can glue two characters into an
+                    # operator (`<` and `<`, `$` and `(`).
+                    if at == 0 or cmd[at - 1] not in " \t":
+                        raise Unreadable
+                else:
+                    glued = pos
+                if top:
+                    self._spans.append((at, pos, ESCAPED))
+            elif ch in "'\"" or cmd.startswith("$'", at):
+                pos = self._quoted(at, depth)
+                if pending and "\n" in cmd[at:pos]:
+                    raise Unreadable
+                if top:
+                    self._spans.append((at, pos, MASKED))
+                    if ch != "$":
+                        self.quotes[at] = pos
+            elif ch == "#":
+                if at != glued and (at == 0 or cmd[at - 1] in " \t\n;|&()<>"):
+                    if not top:
+                        raise Unreadable
+                    pos = cmd.find("\n", at)
+                    pos = len(cmd) if pos < 0 else pos
+                    self._spans.append((at, pos, MASKED))
+            elif ch == "\n":
+                if pending:
+                    pos = self._bodies(pos, pending, top)
+                    pending = []
+            elif ch == "<":
+                if cmd.startswith("<<<", at):
+                    pos = at + 3
+                elif cmd.startswith("<<", at):
+                    pos = self._opener(at, pending, top)
+            elif ch == "`":
+                raise Unreadable
+            elif ch == "$":
+                if cmd.startswith("${", at):
+                    pos = self._parameter(at)
+            else:
+                # Shells differ on where the body of a heredoc starts when
+                # a `$(` closes on the opener's line.
+                if pending:
+                    raise Unreadable
+                parens += 1 if ch == "(" else -1
+                if not top and not parens:
+                    return pos
+
+    def _quoted(self, at: int, depth: int) -> int:
+        """Return where the quoted stretch that opens at `at` ends."""
+        cmd = self.cmd
+        if cmd[at] == "'":
+            end = cmd.find("'", at + 1)
+            if end < 0:
+                raise Unreadable
+            return end + 1
+        if cmd[at] == "$":
+            ansi = ANSI_C_RE.match(cmd, at)
+            if not ansi:
+                raise Unreadable
+            return ansi.end()
+        pos = at + 1
+        while True:
+            stop = QUOTED_STOP_RE.search(cmd, pos)
+            if stop is None or stop.group() == "`":
+                raise Unreadable
+            pos = stop.start()
+            if stop.group() == '"':
+                return pos + 1
+            if stop.group() == "\\":
+                # A joined line could glue `$` to `(`.
+                if cmd.startswith("\n", pos + 1):
+                    raise Unreadable
+                pos += 2
+            elif cmd.startswith("$(", pos):
+                if depth >= MAX_DEPTH:
+                    raise Unreadable
+                pos = self._code(pos + 2, depth + 1)
+            elif cmd.startswith("${", pos):
+                pos = self._parameter(pos)
+            else:
+                pos += 1
+
+    def _parameter(self, at: int) -> int:
+        """Return where the `${...}` at `at` ends."""
+        parameter = PARAMETER_RE.match(self.cmd, at)
+        if not parameter:
+            raise Unreadable
+        return parameter.end()
+
+    def _opener(self, at: int, pending: list[Heredoc], top: bool) -> int:
+        """Record the heredoc that opens at `at` and return where its tag
+        ends. Its body starts after the next newline the shell reads as one."""
+        opener = HEREDOC_OPENER_RE.match(self.cmd, at)
+        if not opener:
+            raise Unreadable
+        dash, bare_tag, single, double = opener.groups()
+        heredoc = Heredoc(
+            start=at,
+            tag_end=opener.end(),
+            tag=bare_tag or single or double,
+            quoted=bare_tag is None,
+            dash=bool(dash),
+            top=top,
+        )
+        pending.append(heredoc)
+        self.heredocs[at] = heredoc
+        return opener.end()
+
+    def _bodies(self, pos: int, pending: list[Heredoc], top: bool) -> int:
+        """Read the bodies of the heredocs opened on one line, which follow
+        each other from `pos`, and return where the last one ends. A body ends
+        at a line that holds the tag and nothing else, or at the end of the
+        command."""
+        cmd = self.cmd
+        for heredoc in pending:
+            start = pos
+            while pos < len(cmd) and not heredoc.closed:
+                newline = cmd.find("\n", pos)
+                line_end = len(cmd) if newline < 0 else newline
+                line = cmd[pos:line_end]
+                if (line.lstrip("\t") if heredoc.dash else line) == heredoc.tag:
+                    heredoc.closed = True
+                    heredoc.body = (start, pos)
+                    heredoc.end = line_end
+                elif not heredoc.quoted and (len(line) - len(line.rstrip("\\"))) % 2:
+                    # The shell joins this line to the next, so the next
+                    # line cannot close the body, whatever it holds.
+                    raise Unreadable
+                pos = min(line_end + 1, len(cmd))
+            if not heredoc.closed:
+                heredoc.body = (start, len(cmd))
+                heredoc.end = len(cmd)
+            if top:
+                self._spans.append((start, heredoc.end, MASKED))
+        return pos
 
     def owner(self, pos: int) -> int | None:
         """Return where the `git commit` or `gh pr|issue` command that owns the
         text at `pos` starts. None when the text belongs to another command,
-        sits in a heredoc body, a comment or a quoted stretch, follows a quote
-        left open, or the command opens an editor."""
-        if pos >= self.open_quote or self.bare[pos] == MASKED:
-            return None
+        lies past what the scan read, or the command opens an editor."""
         brk = bisect.bisect_right(self.breaks, pos) - 1
         start = self.breaks[brk] if brk >= 0 else 0
         if start not in self.owners:
             begin = BLANKS_RE.match(self.bare, start).end()
             command = TEXT_PASSING_RE.match(self.bare, begin)
             more = brk + 1 < len(self.breaks)
-            end = self.breaks[brk + 1] if more else len(self.bare)
+            end = self.breaks[brk + 1] if more else self.limit
+            # A command the scan did not read to its end may hold anything.
+            whole = more or self.limit == len(self.cmd)
             editor = EDITOR_FLAG_RE.search(self.bare, begin, end)
-            self.owners[start] = bool(command) and not editor
+            self.owners[start] = bool(command) and whole and not editor
         return start if self.owners[start] else None
 
     def reads_stdin(self, start: int, pos: int) -> bool:
@@ -170,20 +353,27 @@ class ShellView:
         from stdin."""
         return bool(STDIN_TEXT_RE.search(self.bare, start, pos))
 
+    def inert(self, heredoc: Heredoc) -> bool:
+        """Return whether a heredoc is plain text for one command: it is
+        closed, its body starts on the line after its opener with nothing
+        between (no other command, no other heredoc's body), and the shell runs
+        nothing in the body (the tag is quoted, or the body holds no command
+        substitution)."""
+        opener_line = self.cmd[heredoc.tag_end : heredoc.body[0]]
+        return (
+            heredoc.closed
+            and opener_line.strip(" \t") == "\n"
+            and (heredoc.quoted or not SUBSTITUTION_RE.search(self.cmd, *heredoc.body))
+        )
 
-def strip_owned(pattern: re.Pattern[str], cmd: str, inert) -> str:
-    """Remove each match of `pattern` that a text command owns and `inert`
-    accepts. `inert` gets the match, the command's view and the owner's
-    start."""
-    view = ShellView(cmd)
-    kept: list[str] = []
-    last = 0
-    for m in pattern.finditer(cmd):
-        owner = view.owner(m.start())
-        if owner is not None and inert(m, view, owner):
-            kept.append(cmd[last : m.start()])
-            last = m.end()
-    return "".join([*kept, cmd[last:]])
+    def cat_heredoc(self, start: int, end: int) -> Heredoc | None:
+        """Return the heredoc when the double-quoted stretch from `start` to
+        `end` is `"$(cat <<TAG ... TAG)"` and nothing else."""
+        opener = CAT_OPEN_RE.match(self.cmd, start, end)
+        heredoc = self.heredocs.get(opener.end()) if opener else None
+        if heredoc and CAT_CLOSE_RE.fullmatch(self.cmd, heredoc.end, end):
+            return heredoc
+        return None
 
 
 def strip_text_payloads(cmd: str) -> str:
@@ -199,28 +389,28 @@ def strip_text_payloads(cmd: str) -> str:
     """
     if not TEXT_PASSING_RE.search(cmd):
         return cmd
-    cmd = strip_owned(
-        FLAG_VALUE_RE,
-        cmd,
-        lambda m, _view, _owner: not SUBSTITUTION_RE.search(m.group(4) or ""),
-    )
-    cmd = strip_owned(
-        CAT_HEREDOC_VALUE_RE,
-        cmd,
-        lambda m, view, _owner: (
-            opens_alone(view.cmd, m.start())
-            and heredoc_is_inert(m.group(1), m.group(3))
-        ),
-    )
-    return strip_owned(
-        HEREDOC_RE,
-        cmd,
-        lambda m, view, owner: (
-            view.reads_stdin(owner, m.start())
-            and opens_alone(view.cmd, m.start())
-            and heredoc_is_inert(m.group(0)[: m.start(1) - m.start()], m.group(2))
-        ),
-    )
+    view = ShellView(cmd)
+    cuts: list[tuple[int, int, str]] = []
+    for flag in FLAG_RE.finditer(view.bare):
+        start = flag.end()
+        end = view.quotes.get(start)
+        if end is None or view.owner(flag.start()) is None:
+            continue
+        if cmd[start] == "'" or not SUBSTITUTION_RE.search(cmd, start, end):
+            cuts.append((flag.start(), end, ""))
+            continue
+        heredoc = view.cat_heredoc(start, end)
+        if heredoc and flag.group(1) != "body-file" and view.inert(heredoc):
+            cuts.append((flag.start(), end, ""))
+    for heredoc in view.heredocs.values():
+        # `inert` goes first. At most one heredoc per line passes it, which
+        # keeps the stdin search linear in the command length.
+        if not heredoc.top or not view.inert(heredoc):
+            continue
+        owner = view.owner(heredoc.start)
+        if owner is not None and view.reads_stdin(owner, heredoc.start):
+            cuts.append((heredoc.start, heredoc.end, ""))
+    return overwrite(cmd, sorted(cuts))
 
 
 RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [

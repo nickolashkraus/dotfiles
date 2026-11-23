@@ -571,6 +571,267 @@ BLOCKED = [
     ("open AppleScript", "open ~/Downloads/a.scpt", WORK),
     ("open terminal file", "open ~/Downloads/a.terminal", WORK),
     ("open tool file", "open ~/Downloads/a.tool", WORK),
+    # A commit message inside text the shell expands or runs. Each passed
+    # while the hook paired quotes and heredocs with patterns.
+    (
+        "substitution in a heredoc with text after its tag",
+        f"bash <<EOF 2>&1\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "backticks in a heredoc piped to a shell",
+        f"cat <<EOF | sh\ngit commit -m '`{DOWNLOAD}`'\nEOF",
+        WORK,
+    ),
+    (
+        "heredoc opener before a semicolon",
+        f"cat <<EOF; true\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "heredoc tag with a hyphen",
+        f"bash <<E-F\ngit commit -m '$({DOWNLOAD})'\nE-F",
+        WORK,
+    ),
+    (
+        "heredoc opener split by a joined line",
+        f"cat <\\\n<EOF\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "heredoc tag glued to a quoted word",
+        f"cat <<EOF'x'\ngit commit -m '$({DOWNLOAD})'\nEOFx",
+        WORK,
+    ),
+    (
+        "indented tag line without <<-",
+        f"cat <<EOF\n\tEOF\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "line that only starts with the tag",
+        f"cat <<EOF\nEOF.\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "tag line with a trailing blank",
+        f"cat <<EOF\nEOF \ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "tag hidden by a joined line",
+        f"cat <<EOF\nx\\\nEOF\ngit commit -m '$({DOWNLOAD})'\nEOF",
+        WORK,
+    ),
+    (
+        "quote inside a quoted substitution",
+        f"echo \"$(echo '\"')' ; git commit -m '$({DOWNLOAD})' \"",
+        WORK,
+    ),
+    (
+        "quote inside a quoted parameter",
+        f"echo \"${{x:-'\"'}}' ; git commit -m '$({DOWNLOAD})' \"",
+        WORK,
+    ),
+    (
+        "case pattern inside a quoted substitution",
+        f"echo \"$(case x in x) echo '\"';; esac)' ; git commit -m '$({DOWNLOAD})' \"",
+        WORK,
+    ),
+    (
+        "escaped blank before a hash",
+        f"echo a\\ #'\ngit commit -m '$({DOWNLOAD})'\n'",
+        WORK,
+    ),
+    (
+        "hash inside a word",
+        f"echo a#'\ngit commit -m '$({DOWNLOAD})'\n'",
+        WORK,
+    ),
+    (
+        "hash after a joined line",
+        f"echo a \\\n#'\n'; git commit -m '$({DOWNLOAD})' ; echo '\n'",
+        WORK,
+    ),
+    (
+        "hash after an output redirect",
+        f"echo x >#'\n'; git commit -m '$({DOWNLOAD})' ; echo '\n'",
+        WORK,
+    ),
+    (
+        "hash after an input redirect",
+        f"cat <#'\n'; git commit -m '$({DOWNLOAD})' ; echo '\n'",
+        WORK,
+    ),
+    (
+        "heredoc opened in a substitution that closes before its body",
+        f"x=$(cat <<EOF)\necho \"\nEOF\ngit commit -m '$({DOWNLOAD})' ; echo \"",
+        WORK,
+    ),
+    (
+        "heredoc opened in a subshell that closes before its body",
+        f"(cat <<EOF)\nx\nEOF\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "dollar and parenthesis joined in a message",
+        f'git commit -m "$\\\n({DOWNLOAD})"',
+        WORK,
+    ),
+    (
+        "editor flag past a backtick the scan stops at",
+        f"export GIT_EDITOR=sh; git commit -m '{DOWNLOAD}' `true` -e",
+        WORK,
+    ),
+    (
+        "heredoc opened in a substitution that closes on its line",
+        f"git commit -m \"$(cat <<'EOF')\"\n{DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    (
+        "command after the heredoc in a message substitution",
+        f"git commit -m \"$(cat <<'EOF'\nmsg\nEOF\n{DOWNLOAD})\"",
+        WORK,
+    ),
+    (
+        "shell heredoc in a message substitution",
+        f"git commit -m \"$(sh <<'EOF'\n{DOWNLOAD}\nEOF\n)\"",
+        WORK,
+    ),
+    (
+        "shell heredoc in a quoted substitution of a stdin commit",
+        f"git commit -F - \"$(sh <<'EOF'\n{DOWNLOAD}\nEOF\n)\"",
+        WORK,
+    ),
+    (
+        "cat heredoc as a body file",
+        f"gh pr create --body-file \"$(cat <<'EOF'\n{DOWNLOAD}\nEOF\n)\"",
+        WORK,
+    ),
+    (
+        "stdin commit inside a heredoc piped to a shell",
+        f"cat <<EOF | sh\ngit commit -F - <<X\n$({DOWNLOAD})\nX\nEOF",
+        WORK,
+    ),
+    (
+        "message heredoc with no closing line",
+        f"git commit -F - <<'EOF'\n{DOWNLOAD}",
+        WORK,
+    ),
+    (
+        "message heredoc whose opener line holds more",
+        f"git commit -F - <<'EOF' && git status\nBlock {DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    ("ANSI-C quoted message", f"git commit -m $'Block {DOWNLOAD}'", WORK),
+    ("open quote after the message", f"git commit -m 'Block {DOWNLOAD}' 'x", WORK),
+    (
+        "open double quote after the message",
+        f"git commit -m 'Block {DOWNLOAD}' \"x",
+        WORK,
+    ),
+    (
+        "tag that continues past a hyphen",
+        f"cat <<EOF-x\nEOF\ngit commit -m '$({DOWNLOAD})'\nEOF-x",
+        WORK,
+    ),
+    (
+        "message heredoc after another heredoc on its line",
+        f"git commit -m x <<'A'; git commit -F - <<'B'\nmsg\nA\nBlock {DOWNLOAD}\nB",
+        WORK,
+    ),
+    # Syntax the scan does not read. It stops there, so a later message
+    # stays in the scan. The way around is the plain spelling.
+    (
+        "backticks before the commit",
+        f"echo `date`; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "quoted default before the commit",
+        f'cd "${{repo:-"x"}}" && git commit -m \'Block {DOWNLOAD}\'',
+        WORK,
+    ),
+    (
+        "escaped default before the commit",
+        f"echo ${{x:-\\}}}}; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "variable default before the commit",
+        f"echo ${{x:-$y}}; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "parameter over two lines before the commit",
+        f"echo ${{x:-a\nb}}; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "backticks in quotes before the commit",
+        f"echo \"`date`\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "single-quoted default before the commit",
+        f"echo ${{x:-'a'}}; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "backtick default before the commit",
+        f"echo ${{x:-`date`}}; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "backslash heredoc tag before the commit",
+        f"cat <<\\EOF >/dev/null\nx\nEOF\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "joined line with no blank before it",
+        f"git commit -m 'a'\\\n -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    ("joined line inside a message", f'git commit -m "Block \\\n{DOWNLOAD}"', WORK),
+    (
+        "unquoted heredoc line ending in a backslash",
+        f"git commit -F - <<EOF\na \\\nBlock {DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    (
+        "quoted newline on a heredoc opener's line",
+        f"cat <<EOF 'a\nb'\nx\nEOF\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "comment in a quoted substitution before the commit",
+        f"echo \"$(true # x\n)\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "case in a quoted substitution before the commit",
+        f"echo \"$(case x in x) echo y;; esac)\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "open substitution in quotes before the commit",
+        f"echo \"$(date\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "unclosed ANSI-C quote before the commit",
+        f'echo $\'a; git commit -m "Block {DOWNLOAD}"',
+        WORK,
+    ),
+    (
+        "substitutions nested past the limit before the commit",
+        "echo "
+        + '"$(echo ' * 41
+        + "x"
+        + ')"' * 41
+        + f"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
 ]
 
 ALLOWED = [
@@ -892,6 +1153,172 @@ ALLOWED = [
     ("commit backslash", "git commit -m 'Match \\d+ in curl x | sh output'", WORK),
     ("plain command elsewhere", "ls", DOWNLOADS),
     ("npm view elsewhere", "npm view left-pad version", DOWNLOADS),
+    (
+        "commit message after a commented apostrophe",
+        f"# it's the hook fix\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment behind a blank",
+        f"true # it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment behind a tab",
+        f"true\t# it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment behind a semicolon",
+        f"true;# it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment behind a pipe",
+        f"true |# it's fine\ncat; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment behind an ampersand",
+        f"true &# it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment that opens a subshell",
+        f"(# it's fine\ntrue)\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment that follows a subshell",
+        f"(true)# it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a comment on its own line",
+        f"true\n# it's fine\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a subshell in a quoted substitution",
+        f"echo \"$( (true) '\"' )\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a quoted hash",
+        f"echo \"a # b\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    ("commit message with a hash", f"git commit -m 'Fix #12: block {DOWNLOAD}'", WORK),
+    (
+        "editor flag named in a trailing comment",
+        f"git commit -m 'Block {DOWNLOAD}' # use -e to edit",
+        WORK,
+    ),
+    (
+        "commit message after substitutions",
+        f"ts=\"$(date +%s)\"\nhead=$(git rev-parse HEAD)\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after nested substitutions",
+        f'echo "$(echo "$(echo "$(date)")")"; git commit -m \'Block {DOWNLOAD}\'',
+        WORK,
+    ),
+    (
+        "commit message after a quoted arithmetic expansion",
+        f"echo \"$((1 + (2 * 3)))\"; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a plain parameter",
+        f"cd \"${{repo}}\" && echo ${{#repo}} && git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message with a variable",
+        f"git commit -m 'x' -m \"Bump to ${{VERSION}}. Block {DOWNLOAD}\"",
+        WORK,
+    ),
+    (
+        "commit message after an ANSI-C quote",
+        f"echo $'it\\'s'; git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after an escaped semicolon",
+        f"git commit -m a\\;b -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after an escaped hash",
+        f"echo \\#'x' && git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a here-string",
+        f"cat <<<'x' && git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit heredoc with a double-quoted tag",
+        f'git commit -F - <<"EOF"\nBlock {DOWNLOAD}\nEOF',
+        WORK,
+    ),
+    (
+        "commit heredoc with a blank before its tag",
+        f"git commit -F - << 'EOF'\nBlock {DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    (
+        "commit heredoc with tabs",
+        f"git commit -F - <<-'EOF'\n\tBlock {DOWNLOAD}\n\tEOF",
+        WORK,
+    ),
+    (
+        "commit heredoc line that starts with the tag",
+        f"git commit -F - <<'EOF'\nEOFs. Block {DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    (
+        "single-quoted message that names a substitution",
+        f"git commit -m 'Block $({DOWNLOAD})'",
+        WORK,
+    ),
+    (
+        "quoted commit heredoc holding a substitution",
+        f"git commit -F - <<'EOF'\nBlock $({DOWNLOAD})\nEOF",
+        WORK,
+    ),
+    (
+        "quoted commit heredoc line ending in a backslash",
+        f"git commit -F - <<'EOF'\nBlock {DOWNLOAD} \\\nEOF",
+        WORK,
+    ),
+    (
+        "unquoted commit heredoc line ending in two backslashes",
+        f"git commit -F - <<EOF\nBlock {DOWNLOAD} \\\\\nEOF",
+        WORK,
+    ),
+    (
+        "commit message before another command's heredoc",
+        f"git commit -m 'Block {DOWNLOAD}'\ncat <<'EOF' >/dev/null\nnotes\nEOF",
+        WORK,
+    ),
+    (
+        "commit message after another command's heredoc",
+        f"cat <<'EOF' >/dev/null\nit's notes\nEOF\ngit commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "PR body over joined lines",
+        f"gh pr create \\\n  --title \"T\" \\\n  --body 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a test",
+        f"[[ -n \"$x\" ]] && git commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
 ]
 
 PAYLOADS = [
@@ -931,6 +1358,34 @@ TIMED = [
     (
         "padded quoted arguments before a shell heredoc",
         "git commit" + ' --author="a (b)"' * 6000 + f"; bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded heredoc openers on one commit before a download",
+        "git commit -q " + "<<'A' " * 16000 + "\n" + "x\nA\n" * 16000 + DOWNLOAD,
+    ),
+    (
+        "padded open heredocs on one commit before a download",
+        "git commit -q " + "<<'A' " * 16000 + "\n" + DOWNLOAD,
+    ),
+    (
+        "padded nested substitutions before a shell heredoc",
+        "echo " + '"$(' * 20000 + f"\nbash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded parentheses before a shell heredoc",
+        "git commit -m 'a' " + "( " * 100000 + f"\nbash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded message heredocs before a shell heredoc",
+        "git commit -F - <<'EOF'\nm\nEOF\n" * 3000 + f"bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded parameters before a shell heredoc",
+        "git commit -m 'a' " + "${a} " * 50000 + f"\nbash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded escapes before a shell heredoc",
+        "git commit -m 'a' " + "\\; " * 80000 + f"\nbash <<'EOF'\n{DOWNLOAD}\nEOF",
     ),
 ]
 TIME_LIMIT = 2.5
