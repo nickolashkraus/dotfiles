@@ -105,10 +105,11 @@ enough.
 | State directory | `~/.local/state/on-call/`                |
 
 State is machine-local and never committed: `heartbeat` (one line, the last
-successful tick in RFC 3339), `pages.jsonl` (one line per page the machine has
-seen, with the action it took), and `control` (the current control verb).
-incident.io is the only cross-machine truth; never assume the other machine's
-state from local files.
+successful tick in RFC 3339), `pages.jsonl` (one line per action the machine
+took on a page), `control` (the current control verb), and two files only the
+script writes: `escalations/<id>.json` (the page as `--triage` reads it) and
+`triage.log` (the output of every headless run). incident.io is the only
+cross-machine truth; never assume the other machine's state from local files.
 
 ## Hard Limits
 
