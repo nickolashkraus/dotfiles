@@ -24,7 +24,10 @@ per action (max 50), which produces a slideshow, not a recording.
 Start from `record.example.mjs` in this skill's directory: copy it into the
 runner worktree as `record.tmp.mjs`, adapt the SECTIONS block, and run it from
 there (it needs the worktree's `node_modules` for `puppeteer-core`). Delete the
-copy when done. Key elements:
+copy when done. Set `WALKTHROUGH_OUT` to a scratchpad directory on the run
+(`WALKTHROUGH_OUT=<scratchpad>/walkthrough node record.tmp.mjs`); without it,
+the recording, `offsets.json` and the browser profile go to `/tmp/walkthrough`.
+Key elements:
 
 - Launch headless Chrome via `puppeteer-core` with
   `executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google
@@ -77,7 +80,7 @@ start `page.screencast`, so credentials never appear in the video. Tell the
 user a window is waiting for their login, and run the script with
 `run_in_background` since it blocks on them. The target repo may lack
 `node_modules`; any worktree with a recent `puppeteer-core` works as the runner
-(e.g. `admin-app-fe-next/dev`, v24+ for `page.screencast`).
+(e.g. an `admin-app-fe-next` checkout, v24+ for `page.screencast`).
 
 ## Step 2: Generate Narration
 

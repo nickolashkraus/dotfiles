@@ -5,8 +5,9 @@
 // SKILL.md and set `headless: true`.
 //
 // Run from a worktree whose node_modules has puppeteer-core v24+
-// (page.screencast), e.g. admin-app-fe-next/dev:
-//   node record.tmp.mjs
+// (page.screencast), e.g. an admin-app-fe-next checkout, with the output
+// directory in the scratchpad:
+//   WALKTHROUGH_OUT=<scratchpad>/walkthrough node record.tmp.mjs
 import fs from 'fs';
 import puppeteer from 'puppeteer-core';
 
