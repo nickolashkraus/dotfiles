@@ -1,9 +1,6 @@
 # Compiled Vim spell files generated from `.add` sources via `:mkspell`.
 *.spl
 
-# Codex-managed system directory, regenerated locally and not user-authored.
-.codex/skills/.system
-
 # Chrome's compiled theme cache, regenerated from `manifest.json`.
 Google Chrome/theme/Cached Theme.pak
 

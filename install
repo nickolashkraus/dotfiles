@@ -540,37 +540,6 @@ done
 run git -C "${dotfiles}" config core.hooksPath .claude/git-hooks
 
 ###############################################################################
-# Codex Configuration
-#
-# Required Files:
-#   * .codex/hooks/
-#   * .codex/rules/
-#   * .codex/skills/
-#   * .codex/AGENTS.md
-#   * .codex/config.toml
-#   * .codex/hooks.json
-###############################################################################
-check_dir_exists "${dotfiles}/.codex/hooks" || exit 1
-check_dir_exists "${dotfiles}/.codex/rules" || exit 1
-check_dir_exists "${dotfiles}/.codex/skills" || exit 1
-check_file_exists "${dotfiles}/.codex/AGENTS.md" || exit 1
-check_file_exists "${dotfiles}/.codex/config.toml" || exit 1
-check_file_exists "${dotfiles}/.codex/hooks.json" || exit 1
-mkdir -p "${HOME}/.codex"
-rm -rf "${HOME}/.codex/hooks" || true
-rm -rf "${HOME}/.codex/rules" || true
-rm -rf "${HOME}/.codex/skills" || true
-rm -f "${HOME}/.codex/AGENTS.md" || true
-rm -f "${HOME}/.codex/config.toml" || true
-rm -f "${HOME}/.codex/hooks.json" || true
-run ln -s "${dotfiles}/.codex/hooks" "${HOME}/.codex/hooks"
-run ln -s "${dotfiles}/.codex/rules" "${HOME}/.codex/rules"
-run ln -s "${dotfiles}/.codex/skills" "${HOME}/.codex/skills"
-run ln -s "${dotfiles}/.codex/AGENTS.md" "${HOME}/.codex/AGENTS.md"
-run ln -s "${dotfiles}/.codex/config.toml" "${HOME}/.codex/config.toml"
-run ln -s "${dotfiles}/.codex/hooks.json" "${HOME}/.codex/hooks.json"
-
-###############################################################################
 # Oh My Zsh Theme
 #
 # Required Files:
@@ -662,7 +631,6 @@ echo -e "${white}Installing and upgrading npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "npm" || exit 1
 run npm install -g @google/gemini-cli
-run npm install -g @openai/codex
 run npm install -g cspell
 run npm install -g eslint
 run npm install -g prettier
