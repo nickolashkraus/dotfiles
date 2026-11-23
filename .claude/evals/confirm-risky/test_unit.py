@@ -583,6 +583,349 @@ BLOCKED = [
     ("open AppleScript", "open ~/Downloads/a.scpt", WORK),
     ("open terminal file", "open ~/Downloads/a.terminal", WORK),
     ("open tool file", "open ~/Downloads/a.tool", WORK),
+    # Git options between `git` and `commit`. The command owns its message
+    # only for the listed options and only in a call that holds nothing but
+    # plain Git commands, `cd`, `echo` and output filters.
+    (
+        "commit with a hooks path from -c",
+        f"git -c core.hooksPath=~/h commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with an unsafe -c key after a safe one",
+        f"git -c user.name=x -c core.pager=sh commit -m 'x; {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with an editor from -c",
+        f"git -c core.editor=sh commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with a quoted -c key",
+        f"git -c 'user.name=x' commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -c=",
+        f"git -c=user.name=x commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with a -c key and no value",
+        f"git -c user.name commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with config from the environment",
+        f"git --config-env=user.name=NAME commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with spaced config from the environment",
+        f"git --config-env user.name=NAME commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with an exec path",
+        f"git --exec-path=/x commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit output paged by a shell",
+        f"export PAGER=sh; git -p commit -m 'x; {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit output paged",
+        f"git --paginate commit -m 'x; {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with an option outside the list",
+        f"git -C ~/repo --super-prefix=x commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C and no directory",
+        f"git -C commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit glued to git",
+        f"gitx -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "editor flag after -C",
+        f"git -C ~/repo commit -e -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "tag message after -c",
+        f"git -c commit.gpgsign=false tag -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "log in a directory named commit",
+        f"git -C commit log -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "log of a branch named commit",
+        f"git log commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit-graph after -C",
+        f"git -C ~/repo commit-graph write -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "risky command after a commit with -C",
+        "git -C ~/repo commit -m 'x' && terraform destroy",
+        WORK,
+    ),
+    (
+        "editor set earlier in a call with -C",
+        f"export GIT_EDITOR=sh; git -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "pager configured earlier in a call with -C",
+        f"git -C ~/repo config pager.commit sh; git -C ~/repo commit -m 'x; {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "assignment earlier in a call with -C",
+        f"x=1; git -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "git function defined before a commit with -C",
+        f"git() {{ sh -c \"$3\"; }}; git -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "test run before a commit with -C",
+        f"uv run pytest && git -C ~/repo commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "output of a commit with -C piped to a shell",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' | sh",
+        WORK,
+    ),
+    (
+        "output of a commit with -C piped to a shell with no blank",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' |sh",
+        WORK,
+    ),
+    (
+        "output of a commit with -C piped through a filter to a shell",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' | cat | sh",
+        WORK,
+    ),
+    (
+        "output and errors of a commit with -C piped to a shell",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' |& sh",
+        WORK,
+    ),
+    (
+        "output of a commit with -C written to a file",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' > out.sh",
+        WORK,
+    ),
+    (
+        "output of a commit with -C appended to a file",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' >> out.sh",
+        WORK,
+    ),
+    (
+        "output of a commit with -C written beside /dev/null",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' >/dev/null.sh",
+        WORK,
+    ),
+    (
+        "message of a commit with -C read back and run",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; git -C ~/repo log -1 --format=%B | sh",
+        WORK,
+    ),
+    (
+        "message of a commit with -C read back in quotes",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; echo \"$(git -C ~/repo log -1)\"",
+        WORK,
+    ),
+    (
+        "commit with -C inside a substitution",
+        f"echo $(git -C ~/repo commit -m 'x; {DOWNLOAD}')",
+        WORK,
+    ),
+    (
+        "commit with -C in a subshell",
+        f"(git -C ~/repo commit -m '{DOWNLOAD}')",
+        WORK,
+    ),
+    (
+        "commit with -C in a brace group",
+        f"{{ git -C ~/repo commit -m '{DOWNLOAD}'; }}",
+        WORK,
+    ),
+    (
+        "rebase with exec beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; git -C ~/repo rebase -x true HEAD~1",
+        WORK,
+    ),
+    (
+        "push that names a program beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' && git -C ~/repo push --receive-pack=x origin main",
+        WORK,
+    ),
+    (
+        "push that names an exec beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' && git -C ~/repo push --exec=x origin main",
+        WORK,
+    ),
+    (
+        "unknown command after a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; make",
+        WORK,
+    ),
+    (
+        "gh command outside the list after a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' && gh api repos/o/r",
+        WORK,
+    ),
+    (
+        "filter not after a pipe beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; cat a.md",
+        WORK,
+    ),
+    (
+        "substitution in an unquoted heredoc beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'\ngit -C ~/repo commit --amend -F - <<EOF\n$(date)\nEOF",
+        WORK,
+    ),
+    (
+        "open heredoc beside a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'\ngit -C ~/repo commit --amend -F - <<'EOF'\nx",
+        WORK,
+    ),
+    (
+        "backticks after a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}'; echo `date`",
+        WORK,
+    ),
+    (
+        "quoted editor flag after -C",
+        f"git -C ~/repo commit '-e' -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "double-quoted editor flag after -C",
+        f"git -C ~/repo commit \"-e\" -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "escaped editor flag after -C",
+        f"git -C ~/repo commit \\-e -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "flag from a variable after -C",
+        f"git -C ~/repo commit $FLAGS -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "flag from a parameter after -C",
+        f"git -C ~/repo commit ${{FLAGS}} -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "flag from a quoted variable after -C",
+        f"git -C ~/repo commit \"$FLAGS\" -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "quoted path after a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' -- 'a b.md'",
+        WORK,
+    ),
+    (
+        "directory from a quoted variable",
+        f"git -C \"$repo\" commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "directory from a variable",
+        f"git -C $HOME/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "work tree from a quoted variable",
+        f"git --work-tree=\"$x\" commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "quoted word between -C and commit",
+        f"git -C ~/repo 'x' commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "PR body flag on a commit with -C",
+        f"git -C ~/repo commit --body '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "cd with two blanks, -C and a commit word",
+        f"cd  -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "another command with -C and a commit word",
+        f"tar -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit output paged with -p",
+        f"git -p commit -m 'x; {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C= and a directory",
+        f"git -C=~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "editor flag from a brace expansion after -C",
+        f"git -C ~/repo commit -{{e,q}} -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "path glob on a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' -- *.md",
+        WORK,
+    ),
+    (
+        "single-character glob on a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' -- a?.md",
+        WORK,
+    ),
+    (
+        "bracket glob on a commit with -C",
+        f"git -C ~/repo commit -m '{DOWNLOAD}' -- [ab].md",
+        WORK,
+    ),
+    (
+        "quoted word before the option value it would need",
+        f"git 'x' -C ~/repo commit -m '{DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "output of a commit with -C duplicated to a file",
+        f"git -C ~/repo commit -m 'x; {DOWNLOAD}' >&out.sh",
+        WORK,
+    ),
     # A commit message inside text the shell expands or runs. Each passed
     # while the hook paired quotes and heredocs with patterns.
     (
@@ -1181,6 +1524,176 @@ ALLOWED = [
     ("plain command elsewhere", "ls", DOWNLOADS),
     ("npm view elsewhere", "npm view left-pad version", DOWNLOADS),
     (
+        "commit message after -C",
+        "git -C ~/repo commit -m 'Explain why terraform destroy is blocked'",
+        WORK,
+    ),
+    (
+        "commit message after a double-quoted -C",
+        f"git -C \"/quoted dir\" commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a single-quoted -C",
+        f"git -C '/quoted dir' commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after every safe -c key",
+        f"git -c user.name=a -c User.Email=b -c author.name=c -c author.email=d -c committer.name=e -c committer.email=f -c commit.gpgsign=false commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after a quoted -c value",
+        f"git -c user.name='A B' -c user.email=a@example.com commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after every flag option",
+        f"git --no-pager -P --no-optional-locks --literal-pathspecs --no-replace-objects commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit message after path options",
+        f"git --work-tree ~/repo --git-dir=.git --work-tree='/a b' commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit heredoc after -C and -c",
+        f"git -C ~/repo -c commit.gpgsign=false commit -F - <<'EOF'\nBlock {DOWNLOAD}\nEOF",
+        WORK,
+    ),
+    (
+        "message heredoc after -C",
+        f"git -C ~/repo commit -m \"$(cat <<'EOF'\nBlock {DOWNLOAD}\nEOF\n)\"",
+        WORK,
+    ),
+    (
+        "double-quoted message with a variable after -C",
+        f'git -C ~/repo commit -m "Bump ${{VERSION}}: block {DOWNLOAD}"',
+        WORK,
+    ),
+    (
+        "long message flag after -C",
+        f"git -C ~/repo commit --message='Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C beside add, push and log",
+        f"cd ~/repo && git -C ~/repo add a.md && git -C ~/repo commit -q -m 'Block {DOWNLOAD}' && git -C ~/repo push -u origin HEAD; git -C ~/repo log --oneline -1 | head -1; echo done",
+        WORK,
+    ),
+    (
+        "commit with -C piped to tail",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' 2>&1 | tail -3",
+        WORK,
+    ),
+    (
+        "commit with -C piped to grep with no blank",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' |grep master",
+        WORK,
+    ),
+    (
+        "commit with -C and its output discarded",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' >/dev/null 2>&1",
+        WORK,
+    ),
+    (
+        "commit with -C and its errors discarded",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' 2>> /dev/null",
+        WORK,
+    ),
+    (
+        "commit with -C and then a PR",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' && gh pr create --title 'Block {DOWNLOAD}' --body 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C over joined lines",
+        f"git -C ~/repo \\\n  commit \\\n  -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "message on the line joined after its flag",
+        f"git commit -m \\\n  'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "message heredoc on the line joined after its flag",
+        f"git -C ~/repo commit -m \\\n  \"$(cat <<'EOF'\nBlock {DOWNLOAD}\nEOF\n)\"",
+        WORK,
+    ),
+    (
+        "plain commit over a joined line",
+        f"git \\\n  commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C and paths",
+        f"git -C ~/repo commit -q --only -m 'Block {DOWNLOAD}' -- a.md b.md",
+        WORK,
+    ),
+    (
+        "commit with -C after a failed check",
+        f"git -C ~/repo diff --quiet || git -C ~/repo commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "two commits with -C",
+        f"git -C ~/a commit -m 'Block {DOWNLOAD}'; git -C ~/b commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C in the background",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' &",
+        WORK,
+    ),
+    (
+        "commit with -C beside plain Git commands",
+        f"git -C ~/repo status && git -C ~/repo checkout -b x && git -C ~/repo reset && git -C ~/repo restore a && git -C ~/repo rm b && git -C ~/repo mv c d && git -C ~/repo switch x && git -C ~/repo branch && git -C ~/repo diff && git -C ~/repo show && git -C ~/repo rev-parse HEAD && git -C ~/repo commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C beside a PR view",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' && gh pr view 12",
+        WORK,
+    ),
+    (
+        "quoted word in a command before a commit with -C",
+        f"echo 'start' && git -C ~/repo commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "commit with -C and everything discarded",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' &>/dev/null",
+        WORK,
+    ),
+    (
+        "commit with -C piped to cat",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' | cat",
+        WORK,
+    ),
+    (
+        "commit with -C piped to wc",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' | wc -l",
+        WORK,
+    ),
+    (
+        "commit with -C piped to head",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}' | head -2",
+        WORK,
+    ),
+    (
+        "commit with -C beside a PR edit and an issue comment",
+        f"git -C ~/repo commit -m 'Block {DOWNLOAD}'; gh pr edit 1 --body 'Block {DOWNLOAD}'; gh issue comment 2 --body 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
+        "comment line before a commit with -C",
+        f"# the hook fix\ngit -C ~/repo commit -m 'Block {DOWNLOAD}'",
+        WORK,
+    ),
+    (
         "commit message after a commented apostrophe",
         f"# it's the hook fix\ngit commit -m 'Block {DOWNLOAD}'",
         WORK,
@@ -1393,6 +1906,30 @@ TIMED = [
     (
         "padded open heredocs on one commit before a download",
         "git commit -q " + "<<'A' " * 16000 + "\n" + DOWNLOAD,
+    ),
+    (
+        "padded commits with -C before a shell heredoc",
+        "git -C x commit -m 'a'; " * 4000 + f"bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded messages on a commit with -C before a shell heredoc",
+        "git -C x commit" + " -m 'a'" * 8000 + f"; bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded Git options before a shell heredoc",
+        "git" + " -C x" * 20000 + f" commit -m 'a'; bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded quoted Git options before a shell heredoc",
+        "git" + " -C 'x'" * 20000 + f" commit -m 'a'; bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded digits beside a commit with -C before a shell heredoc",
+        "git -C x commit -m 'a' " + "1" * 200000 + f"; bash <<'EOF'\n{DOWNLOAD}\nEOF",
+    ),
+    (
+        "padded redirects beside a commit with -C before a shell heredoc",
+        "git -C x commit -m 'a'" + " 2>&1" * 40000 + f"; bash <<'EOF'\n{DOWNLOAD}\nEOF",
     ),
     (
         "padded nested substitutions before a shell heredoc",

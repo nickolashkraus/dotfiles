@@ -98,6 +98,67 @@ BLANKS_RE = re.compile(r"[ \t]*")
 EDITOR_FLAG_RE = re.compile(
     r"(?:^|\s)(?:-[A-Za-z]*e[A-Za-z]*|--edit(?:or)?)(?=[\s=]|$)"
 )
+# Global options that may stand between `git` and `commit` when the command
+# owns its message: these flags, a path option's value, and `-c` for a key
+# that cannot make Git run a program.
+GIT_PLAIN_FLAGS = frozenset(
+    {
+        "--literal-pathspecs",
+        "--no-optional-locks",
+        "--no-pager",
+        "--no-replace-objects",
+        "-P",
+    }
+)
+GIT_LONG_PATH_OPTIONS = frozenset({"--git-dir", "--work-tree"})
+GIT_PATH_OPTIONS = GIT_LONG_PATH_OPTIONS | {"-C"}
+SAFE_GIT_CONFIG = frozenset(
+    {
+        "author.email",
+        "author.name",
+        "commit.gpgsign",
+        "committer.email",
+        "committer.name",
+        "user.email",
+        "user.name",
+    }
+)
+# What a call may hold beside a `git <options> commit` that owns its message:
+# these commands, and these filters after a pipe. None of them runs text, sets
+# Git up to run it, or hands a command's output to something that does.
+PLAIN_COMMANDS = frozenset({"cd", "echo"})
+PLAIN_GIT_COMMANDS = frozenset(
+    {
+        "add",
+        "branch",
+        "checkout",
+        "commit",
+        "diff",
+        "log",
+        "mv",
+        "push",
+        "reset",
+        "restore",
+        "rev-parse",
+        "rm",
+        "show",
+        "status",
+        "switch",
+    }
+)
+PLAIN_GH_RE = re.compile(r"gh\s+(?:pr|issue)\s+(?:create|edit|comment|view)\b")
+OUTPUT_FILTERS = frozenset({"cat", "grep", "head", "tail", "wc"})
+# `git push` can name a program to run on the receiving side.
+PUSH_PROGRAM_RE = re.compile(r"exec|receive-pack")
+# A redirect that writes no file: `2>&1`, `>/dev/null`.
+# A run of digits is read once, from its first digit.
+SAFE_REDIRECT_RE = re.compile(
+    r"(?<!\d)\d*>&\d+|(?<!\d)\d*>>?[ \t]*/dev/null(?![\w./-])"
+)
+# Characters the shell expands in an unquoted word.
+EXPANSION_RE = re.compile(r"[$*?\[{]")
+WORD_RE = re.compile(r"[^ \t\n;|&()]+")
+BLANK_WORD_RE = re.compile(r"[ \t]+([^ \t\n;|&()]+)")
 # Fill for text the shell does not read as commands. A private-use code
 # point, so no command holds it by accident.
 MASKED = "\ue000"
@@ -146,10 +207,10 @@ def overwrite(text: str, spans: list[tuple[int, int, str]]) -> str:
 
 class ShellView:
     """
-    One left-to-right read of a command, the way the shell reads it. Quoted
-    stretches, escapes, comments and heredoc bodies are overwritten in `bare`,
-    so positions match the command and a break character inside one starts no
-    command.
+    One left-to-right read of a command, the way the shell reads it. In `bare`,
+    quoted stretches and escapes are overwritten and comments, heredoc bodies
+    and joined line ends are blanked, so positions match the command and
+    a break character inside one starts no command.
 
     The read covers a subset of shell syntax and stops at the first thing
     outside it (a backtick, an open quote, an unusual heredoc tag). `limit` is
@@ -161,7 +222,13 @@ class ShellView:
         self.quotes: dict[int, int] = {}
         self.heredocs: dict[int, Heredoc] = {}
         self.owners: dict[int, bool] = {}
+        # Double-quoted stretches that hold a `$(`, and whether the command
+        # holds a parenthesis outside quotes.
+        self.live: list[tuple[int, int]] = []
+        self.parens = False
         self._spans: list[tuple[int, int, str]] = []
+        self._escapes: list[int] = []
+        self._plain: bool | None = None
         self._token = 0
         try:
             self.limit = self._code(0, 0)
@@ -170,6 +237,9 @@ class ShellView:
         self.bare = overwrite(cmd, self._spans)
         breaks = COMMAND_BREAK_RE.finditer(self.bare, 0, self.limit)
         self.breaks = [m.end() for m in breaks]
+        self._quote_starts = list(self.quotes)
+        flags = FLAG_RE.finditer(self.bare)
+        self._messages = {m.end() for m in flags if m.group(1) in ("m", "message")}
 
     def _code(self, pos: int, depth: int) -> int:
         """Read command text from `pos` and return where it ends: the whole
@@ -196,7 +266,8 @@ class ShellView:
             pos = at + 1
             if ch == "\\":
                 pos = min(at + 2, len(cmd))
-                if cmd.startswith("\n", at + 1):
+                joined = cmd.startswith("\n", at + 1)
+                if joined:
                     # The shell joins the lines. Only a join after a blank is
                     # read, since any other can glue two characters into an
                     # operator (`<` and `<`, `$` and `(`).
@@ -205,7 +276,9 @@ class ShellView:
                 else:
                     glued = pos
                 if top:
-                    self._spans.append((at, pos, ESCAPED))
+                    self._spans.append((at, pos, " " if joined else ESCAPED))
+                    if not joined:
+                        self._escapes.append(at)
             elif ch in "'\"" or cmd.startswith("$'", at):
                 pos = self._quoted(at, depth)
                 if pending and "\n" in cmd[at:pos]:
@@ -214,13 +287,15 @@ class ShellView:
                     self._spans.append((at, pos, MASKED))
                     if ch != "$":
                         self.quotes[at] = pos
+                    if ch == '"' and SUBSTITUTION_RE.search(cmd, at, pos):
+                        self.live.append((at, pos))
             elif ch == "#":
                 if at != glued and (at == 0 or cmd[at - 1] in " \t\n;|&()<>"):
                     if not top:
                         raise Unreadable
                     pos = cmd.find("\n", at)
                     pos = len(cmd) if pos < 0 else pos
-                    self._spans.append((at, pos, MASKED))
+                    self._spans.append((at, pos, " "))
             elif ch == "\n":
                 if pending:
                     pos = self._bodies(pos, pending, top)
@@ -241,6 +316,7 @@ class ShellView:
                 if pending:
                     raise Unreadable
                 parens += 1 if ch == "(" else -1
+                self.parens = self.parens or top
                 if not top and not parens:
                     return pos
 
@@ -330,7 +406,7 @@ class ShellView:
                 heredoc.body = (start, len(cmd))
                 heredoc.end = len(cmd)
             if top:
-                self._spans.append((start, heredoc.end, MASKED))
+                self._spans.append((start, heredoc.end, " "))
         return pos
 
     def owner(self, pos: int) -> int | None:
@@ -341,14 +417,140 @@ class ShellView:
         start = self.breaks[brk] if brk >= 0 else 0
         if start not in self.owners:
             begin = BLANKS_RE.match(self.bare, start).end()
-            command = TEXT_PASSING_RE.match(self.bare, begin)
             more = brk + 1 < len(self.breaks)
             end = self.breaks[brk + 1] if more else self.limit
+            command = TEXT_PASSING_RE.match(self.bare, begin)
+            command = command or self.commit_with_options(begin, end)
             # A command the scan did not read to its end may hold anything.
             whole = more or self.limit == len(self.cmd)
             editor = EDITOR_FLAG_RE.search(self.bare, begin, end)
             self.owners[start] = bool(command) and whole and not editor
         return start if self.owners[start] else None
+
+    def git_command(
+        self, begin: int, end: int
+    ) -> tuple[str, list[tuple[int, int]]] | None:
+        """Read `git [options] <subcommand>` at `begin`. Return the subcommand
+        and the word that holds each option's value, or None when an option is
+        not one of `GIT_PLAIN_FLAGS`, `GIT_PATH_OPTIONS` or `-c` with a key
+        from `SAFE_GIT_CONFIG`."""
+        bare = self.bare
+        if not bare.startswith("git", begin):
+            return None
+        pos = begin + 3
+        values: list[tuple[int, int]] = []
+        while True:
+            word = BLANK_WORD_RE.match(bare, pos, end)
+            if not word:
+                return None
+            text, pos = word.group(1), word.end()
+            if not text.startswith("-"):
+                return text, values
+            if text in GIT_PLAIN_FLAGS:
+                continue
+            if text == "-c" or text in GIT_PATH_OPTIONS:
+                word = BLANK_WORD_RE.match(bare, pos, end)
+                if not word:
+                    return None
+                pos = word.end()
+            elif text.partition("=")[0] not in GIT_LONG_PATH_OPTIONS:
+                return None
+            if text == "-c":
+                key, equals, _ = word.group(1).partition("=")
+                if not equals or key.lower() not in SAFE_GIT_CONFIG:
+                    return None
+            values.append(word.span(1))
+
+    def commit_with_options(self, begin: int, end: int) -> bool:
+        """
+        Return whether the command at `begin` is a `git <options> commit` that
+        may own its message.
+
+        Until this spelling was read as a commit, every such message stayed in
+        the scan, so it is held to more than `git commit` is: the call has to
+        be plain (see `plain_call`), and every word of the command has to be
+        what it looks like. No variable, glob, brace or escape, and a quoted
+        stretch only as a message or as a literal option value, since any of
+        those can put a flag such as `-e` where the scan sees none.
+        """
+        git = self.git_command(begin, end)
+        if not git or git[0] != "commit" or not self.plain_call():
+            return False
+        escape = bisect.bisect_left(self._escapes, begin)
+        if escape < len(self._escapes) and self._escapes[escape] < end:
+            return False
+        if EXPANSION_RE.search(self.bare, begin, end):
+            return False
+        values = git[1]
+        first = bisect.bisect_left(self._quote_starts, begin)
+        for start in self._quote_starts[first:]:
+            stop = self.quotes[start]
+            if start >= end:
+                break
+            if start in self._messages:
+                continue
+            # The option value that starts at or before the quote.
+            value = bisect.bisect_right(values, (start, len(self.cmd))) - 1
+            if value < 0 or stop > values[value][1]:
+                return False
+            if self.cmd[start] == '"' and "$" in self.cmd[start:stop]:
+                return False
+        return True
+
+    def plain_call(self) -> bool:
+        """
+        Return whether the call holds nothing that could run a commit's message
+        or set Git up to run it: only `cd`, `echo`, the Git and `gh` commands
+        listed above, and output filters after a pipe. No parenthesis, no
+        redirect to a file, and no substitution outside the
+        `"$(cat <<'EOF' ... EOF)"` message form.
+        """
+        if self._plain is None:
+            self._plain = self._is_plain()
+        return self._plain
+
+    def _is_plain(self) -> bool:
+        cmd, bare = self.cmd, self.bare
+        if self.limit < len(cmd) or self.parens:
+            return False
+        if ">" in SAFE_REDIRECT_RE.sub("", bare):
+            return False
+        for start, end in self.live:
+            heredoc = self.cat_heredoc(start, end)
+            if not heredoc or not self.inert(heredoc):
+                return False
+        for heredoc in self.heredocs.values():
+            runs = not heredoc.quoted and SUBSTITUTION_RE.search(cmd, *heredoc.body)
+            if runs or not heredoc.closed:
+                return False
+        start, piped = 0, False
+        for end in [*self.breaks, len(cmd) + 1]:
+            stop = end - 1
+            begin = BLANKS_RE.match(bare, start).end()
+            if begin < stop and not self._plain_command(begin, stop, piped):
+                return False
+            # `a | b` feeds b. In `a || b` and `a |& b` an empty command
+            # stands between the two breaks, so b is checked as a command of
+            # its own.
+            piped = begin < stop and bare.startswith("|", stop)
+            start = end
+        return True
+
+    def _plain_command(self, begin: int, end: int, piped: bool) -> bool:
+        """Return whether the command from `begin` to `end` is one a plain call
+        may hold. `piped` says the command before it feeds it."""
+        word = WORD_RE.match(self.bare, begin, end)
+        name = word.group() if word else ""
+        if piped:
+            return name in OUTPUT_FILTERS
+        if name == "gh":
+            return bool(PLAIN_GH_RE.match(self.bare, begin, end))
+        if name != "git":
+            return name in PLAIN_COMMANDS
+        git = self.git_command(begin, end)
+        if not git or git[0] not in PLAIN_GIT_COMMANDS:
+            return False
+        return git[0] != "push" or not PUSH_PROGRAM_RE.search(self.cmd, begin, end)
 
     def reads_stdin(self, start: int, pos: int) -> bool:
         """Return whether the command from `start` to `pos` takes its message
@@ -389,7 +591,7 @@ def strip_text_payloads(cmd: str) -> str:
     its message there (`-F -`). Everything else stays in the scan, such as
     `bash <<EOF`, `-m "$(download | sh)"` and a flag of another command.
     """
-    if not TEXT_PASSING_RE.search(cmd):
+    if "commit" not in cmd and not TEXT_PASSING_RE.search(cmd):
         return cmd
     view = ShellView(cmd)
     cuts: list[tuple[int, int, str]] = []
