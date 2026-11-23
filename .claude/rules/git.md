@@ -44,18 +44,19 @@
   source code, or any other plain-text context. In those contexts a bare slug
   (BYB-1216) is correct, since reference-style syntax with no definition block
   renders as literal brackets.
-- Keep `## References` blocks short. Include only the references a reviewer
-  needs to understand or audit the change. That usually means the primary
-  Linear issue, the umbrella or parent if the work is part of a larger
-  initiative, the direct predecessor PRs whose contracts this change depends
-  on, and any spec or design doc the change rests on. Do not pad the list with
-  every adjacent ticket, every sibling phase, or every issue mentioned in
-  passing. A long reference list dilutes the important links and signals that
-  the body did not do the work of identifying what actually matters. The bar
-  for inclusion is "the reviewer cannot understand the change without this".
-  Five entries is typical; ten is almost always too many. If a link is useful
-  as context-while-reading but not as a standing reference, inline it in the
-  prose instead.
+- Add a `## References` block only to a PR large enough to use `## Overview`,
+  and keep it short. Include only the references a reviewer needs to understand
+  or audit the change. That usually means the primary Linear issue, the
+  umbrella or parent if the work is part of a larger initiative, the direct
+  predecessor PRs whose contracts this change depends on, and any spec or
+  design doc the change rests on. Do not pad the list with every adjacent
+  ticket, every sibling phase, or every issue mentioned in passing. A long
+  reference list dilutes the important links and signals that the body did not
+  do the work of identifying what actually matters. The bar for inclusion is
+  "the reviewer cannot understand the change without this". Five entries is
+  typical; ten is almost always too many. If a link is useful as
+  context-while-reading but not as a standing reference, inline it in the prose
+  instead.
 - When a Linear reference is followed by a colon and a description (e.g., in
   a `## References` list in a PR description), use the verbatim Linear issue
   title, not a paraphrase or abbreviation. Paraphrases ("Typed status reducer",
