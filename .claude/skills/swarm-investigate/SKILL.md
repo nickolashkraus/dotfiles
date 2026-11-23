@@ -182,8 +182,7 @@ until the user approves.
 In the **agent-os worktree**: commit all artifacts on the `{slug}` branch and
 push. Subject per rules/git.md (capitalized, imperative, <=50 chars), e.g.
 `"Investigate BYB-3147 patient_id data quality"`; the label-style
-`"swarm-investigate: {slug}"` form violates the commit-subject rules and the
-lint hooks will reject it.
+`"swarm-investigate: {slug}"` form violates the commit-subject rules.
 
 The user may narrow this at the approval gate. On 2026-10-21 (INC-8427) he
 asked for `final.md` only, directly on master: copy it into the master worktree
