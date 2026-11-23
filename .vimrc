@@ -1255,10 +1255,6 @@ let g:fzf_action = {
       \ 'ctrl-s': 'split',
       \ 'ctrl-v': 'vsplit' }
 
-" Search files with Ctrl - p.
-" NOTE: Overridden below with a NERDTree-aware version.
-nnoremap <C-P> :Files<CR>
-
 " Set fzf colorscheme.
 "
 "   fg:      #ebdbb2 - fg1
@@ -1310,7 +1306,7 @@ augroup fzf-statusline
     \| autocmd BufLeave <buffer> set laststatus=2 ruler
 augroup END
 
-" Do not open files in NERDTree buffer.
+" Search files with Ctrl - p. Do not open files in NERDTree buffer.
 nnoremap <silent> <expr> <C-P> (expand('%') =~ 'NERD_tree' ? "\<C-W>\<C-W>" : '').":Files\<CR>"
 
 " Set terminal colors.
