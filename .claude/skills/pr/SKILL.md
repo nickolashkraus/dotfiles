@@ -35,15 +35,19 @@ If `--no-pulse` was passed, skip this step entirely and proceed to Step 4.
 
 If the repo's `origin` is in the `Function-Health` org, run
 `Skill(skill: "pulse-review")` before pushing and follow it as written: it runs
-Pulse once, fixes the real bugs and does not re-run. Note what it left for the
-PR so Step 5 can carry the reasoning into the PR description.
+Pulse once, fixes the real bugs and does not re-run. Commit any fix it makes
+before Step 4, which builds the branch from HEAD and, with `--worktree`,
+discards uncommitted work. Note what it left for the PR so Step 5 can carry the
+reasoning into the PR description.
 
 Skip this step for non-Function-Health repos and for the pulse repo itself.
 
 ## Step 4: Create the branch and push
 
 Before any push, run the repo's full local CI per "Pushing" in
-@~/.claude/rules/git.md, and do not push until it passes.
+@~/.claude/rules/git.md, and do not push until it passes. Skip this run when
+Step 3's `pulse-review` already ran the full CI on the same tree
+(a Function-Health repo), since it is the same suite.
 
 If already on a non-default branch, push it. Otherwise:
 
