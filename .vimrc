@@ -1306,8 +1306,8 @@ let g:fzf_colors = {
 " See: https://github.com/junegunn/fzf/blob/master/README-VIM.md#hide-statusline
 augroup fzf-statusline
   autocmd!
-  autocmd FileType fzf set laststatus=0 noshowmode noruler
-    \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+  autocmd FileType fzf set laststatus=0 noruler
+    \| autocmd BufLeave <buffer> set laststatus=2 ruler
 augroup END
 
 " Do not open files in NERDTree buffer.
