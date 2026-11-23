@@ -39,9 +39,9 @@ window ending today).
 
 1. Daily compact logs from
    `~/nickolashkraus/agent-os/master/notes/logs/YYYY/MM/YYYY-MM-DD.md` for each
-   date in the window. Skip dates with no log. Logs average about 350 lines, so
-   do not truncate them. For a window over 7 days, split the dates into chunks
-   of about 15 logs and give each chunk to a parallel subagent
+   date in the window. Skip dates with no log. Logs run to hundreds of lines,
+   so do not truncate them. For a window over 7 days, split the dates into
+   chunks of about 15 logs and give each chunk to a parallel subagent
    (`model: "opus"`) with the Step 3 pattern list. Each subagent returns
    candidate patterns with dated quotes, not log contents.
 
