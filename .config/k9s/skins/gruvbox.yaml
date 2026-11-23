@@ -12,7 +12,8 @@
 # INSTALLATION
 #   Symlink file to $XDG_CONFIG_HOME/k9s/skins/gruvbox.yaml:
 #
-#     ln -s .config/k9s/skins/gruvbox.yaml $XDG_CONFIG_HOME/k9s/skins/gruvbox.yaml
+#     ln -s .config/k9s/skins/gruvbox.yaml \
+#       $XDG_CONFIG_HOME/k9s/skins/gruvbox.yaml
 ###############################################################################
 
 ###############################################################################

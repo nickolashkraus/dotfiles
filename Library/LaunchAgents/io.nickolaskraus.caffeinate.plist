@@ -5,7 +5,7 @@
   <dict>
     <key>Label</key>
     <string>io.nickolaskraus.caffeinate</string>
-    <!-- 
+    <!--
       -i: Prevent idle sleep.
       -m: Prevent disk idle sleep.
       -s: Prevent system sleep (AC power only).

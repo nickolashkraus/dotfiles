@@ -11,9 +11,9 @@
 #
 #   See: https://www.zsh.org
 #
-#   Oh My Zsh is a popular open-source framework for managing Zsh configuration,
-#   designed to make using the Z shell more powerful, user-friendly, and
-#   visually appealing—especially for developers.
+#   Oh My Zsh is a popular open-source framework for managing Zsh
+#   configuration, designed to make using the Z shell more powerful,
+#   user-friendly, and visually appealing—especially for developers.
 #
 #   See: https://ohmyz.sh
 #
