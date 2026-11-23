@@ -122,7 +122,8 @@ VALUE_FLAGS = {
     "rsync": frozenset({"-e", "--rsh", "--exclude", "--include"}),
 }
 
-# In a perl or ruby bundle, a switch that takes a value (`-M`, `-r`, `-e`) ends it.
+# In a perl or ruby bundle, a switch that takes a value (`-M`, `-r`, `-e`) ends
+# it.
 IN_PLACE_FLAG = {
     "sed": re.compile(r"^(-[a-zA-Z]*i|--in-place)"),
     "perl": re.compile(r"^-(?:(?![CEFIMemrx])[a-zA-Z])*i"),
@@ -143,7 +144,8 @@ CHECK_FLAGS = frozenset(
 
 DELETE_COMMANDS = frozenset({"mv", "rm", "rmdir", "shred", "unlink"})
 INTERPRETER_RE = re.compile(r"(?:python|pypy)[\d.]*|perl|ruby|node|php|osascript")
-# A delete command in command position, or a delete call, inside interpreter code.
+# A delete command in command position, or a delete call, inside interpreter
+# code.
 INTERP_DELETE_RE = re.compile(
     r"(?:^|[\n;{(\[,'\"`])\s*(?:rm|mv|unlink|rmdir|shred|rename)\b(?![-./])"
     r"|\b(?:os\.(?:remove|replace)|shutil\.move|File\.delete|FileUtils\.(?:rm|mv|remove)\w*)\s*\("

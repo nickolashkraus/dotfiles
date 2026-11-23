@@ -1,3 +1,9 @@
 required-version = "==0.17.5"
 target-version = "py312"
 include = ["**/*.py", "git-hooks/pre-commit"]
+
+[lint]
+extend-select = ["W505"]
+
+[lint.pycodestyle]
+max-doc-length = 79

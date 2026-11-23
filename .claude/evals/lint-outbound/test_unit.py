@@ -1309,8 +1309,8 @@ def test_try_autofix_input_scope() -> None:
     )
     check("fixed edit re-lints clean", lo.collect_violations("Edit", fixed) == [])
 
-    # Mixed violation: label-colon fix applied but a smart quote remains, so main
-    # must still block (collect_violations on the fix is non-empty).
+    # Mixed violation: label-colon fix applied but a smart quote remains, so
+    # main must still block (collect_violations on the fix is non-empty).
     ti2 = {"file_path": md, "new_string": "- **Element**: description \u201cx\u201d\n"}
     fixed2 = lo.try_autofix_input("Edit", ti2)
     check(

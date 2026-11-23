@@ -169,9 +169,9 @@ LOWERCASE_AFTER_LINK_COLON_RE = re.compile(
 # A line-initial PLAIN-TEXT bullet label followed by `: lowercase`, e.g.
 # `- Conventional Commits: the carve-out ...`. The bold/link/code-span label
 # forms are caught by the regexes above; this catches the unadorned label the
-# semantic check misses. Classification happens in `plain_label_colon_violation`
-# so the judgment is legible; the regex only captures the marker and the
-# pre-colon segment.
+# semantic check misses. Classification happens in
+# `plain_label_colon_violation` so the judgment is legible; the regex only
+# captures the marker and the pre-colon segment.
 PLAIN_LABEL_BULLET_RE = re.compile(
     r"^\s*(?:[-*+]|\d+[.)])\s+([^:\n]+?):\s+(?![a-z][a-z0-9+.-]*://)[a-z]"
 )
@@ -1578,10 +1578,10 @@ def main() -> int:
     if not all_violations:
         return 0
 
-    # Auto-fix the capitalize-after-label-colon case rather than block-and-retry,
-    # but only when the fix fully resolves every flagged issue. If any
-    # non-auto-fixable violation remains (smart quote, hard wrap), fall
-    # through to the block so the agent sees all of them.
+    # Auto-fix the capitalize-after-label-colon case rather than
+    # block-and-retry, but only when the fix fully resolves every flagged
+    # issue. If any non-auto-fixable violation remains (smart quote, hard
+    # wrap), fall through to the block so the agent sees all of them.
     fixed_input = try_autofix_input(tool_name, tool_input)
     if fixed_input is not None and not collect_violations(tool_name, fixed_input):
         log("AUTOFIX label-colon capitalization applied")
