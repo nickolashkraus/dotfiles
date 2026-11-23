@@ -157,11 +157,13 @@ Tracked in [<linear-issue-slug>](<linear-issue-url>).
 ## Step 7: Summarize
 
 Post a summary comment on the release PR. Follow "Findings summary" and
-"Durable comment link format" in PROCEDURES.md. Use these table headers (note
-the additional Severity and Linear columns for the Tracked section):
+"Durable comment link format" in PROCEDURES.md. Write the body to a file and
+post it with `--body-file`, in two separate Bash calls, as the canonical
+template in PROCEDURES.md does. Use these table headers (note the additional
+Severity and Linear columns for the Tracked section):
 
 ```
-gh pr comment <pr-number> --body "$(cat <<'EOF'
+cat > /tmp/pr-<pr-number>-summary.md <<'EOF'
 ## Bot Review Findings
 
 ### Tracked
@@ -176,5 +178,6 @@ gh pr comment <pr-number> --body "$(cat <<'EOF'
 | ---- | ------------------ | ------------- | -------- |
 | D-01 | [→](<comment-url>) | <description> | <reason> |
 EOF
-)"
+
+gh pr comment <pr-number> --body-file /tmp/pr-<pr-number>-summary.md
 ```
