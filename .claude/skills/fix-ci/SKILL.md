@@ -3,10 +3,11 @@ name: fix-ci
 description: >
   Fix CI failures on a pull request by fetching check results, diagnosing the
   issues, and applying fixes. TRIGGER when: `gh pr checks` shows failures, user
-  says "fix CI on PR N", user pastes failing check name or deploy log error.
+  says "fix CI on PR N", user pastes a failing check name or deploy log error,
+  or asks to address the bot review comments on a pull request in place.
 disable-model-invocation: false
 allowed-tools: Bash, Edit, Glob, Grep, Read, Skill
-argument-hint: "[--in-place | --stacked] [--re-review [all | unresolved]] [pr-ref]"
+argument-hint: "[--in-place|--stacked] [--re-review [all|unresolved]] [pr-ref]"
 ---
 
 You are fixing CI failures on a pull request. Follow every step in order.
@@ -36,8 +37,9 @@ Parse `$ARGUMENTS` for flags:
   status" in PROCEDURES.md.
 
 Remember the `--re-review` value (if set) for Step 5; it must be threaded
-through to `fix-bot-reviews`. Remove all three flags from `$ARGUMENTS` before
-continuing. Then follow "Resolve the pull request" in PROCEDURES.md.
+through to `fix-bot-reviews`. Remove all three flags, and `--re-review`'s
+value, from `$ARGUMENTS` before continuing. Then follow "Resolve the pull
+request" in PROCEDURES.md.
 
 ## Step 2: Wait for all checks to complete
 
