@@ -2,9 +2,10 @@
 """Retrieve interactive Claude Code sessions for a given date and emit a resume
 table plus a tmux rebuild script.
 
-Filters to real interactive sessions: those with activity on the target date
-and at least one genuine user turn in the transcript, so a session still
-working past midnight is kept. Hook-spawned subsessions (rule-check) and
+Reads both config directories, `~/.claude` and `~/.claude-fh`. Filters to real
+interactive sessions: those with activity on the target date and at least one
+genuine user turn in the transcript, so a session still working past midnight
+is kept. Hook-spawned subsessions (rule-check) and
 skill-runner-only sessions have zero genuine turns and are dropped. Nested
 subagent transcripts live under */subagents/ and are excluded by the top-level
 glob.
@@ -20,9 +21,13 @@ import os
 import shlex
 import sys
 
-PROJECTS = os.path.join(
-    os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude")), "projects"
+# Each config directory with the command that starts Claude Code on it. The
+# Function Health account lives in `~/.claude-fh` and starts with `claude-fh`.
+CONFIGS = (
+    (os.path.expanduser("~/.claude"), "claude"),
+    (os.path.expanduser("~/.claude-fh"), "claude-fh"),
 )
+SESSION_NAME = "resurrect"
 
 # User messages that are not genuine turns (harness/hook/skill-runner noise).
 _NOISE_PREFIXES = ("<", "Caveat", "[SYSTEM NOTIFICATION")
@@ -72,9 +77,14 @@ def _is_genuine(text: str) -> bool:
     return not any(s in text for s in _NOISE_CONTAINS)
 
 
-def collect(target: datetime.date) -> list[dict]:
+def collect(target: datetime.date, configs=CONFIGS) -> list[dict]:
     sessions = []
-    for f in glob.glob(os.path.join(PROJECTS, "*", "*.jsonl")):
+    transcripts = [
+        (f, launcher)
+        for config, launcher in configs
+        for f in glob.glob(os.path.join(config, "projects", "*", "*.jsonl"))
+    ]
+    for f, launcher in transcripts:
         sid = os.path.basename(f)[:-6]
         title = None
         cwd = None
@@ -116,6 +126,7 @@ def collect(target: datetime.date) -> list[dict]:
                 "last": max(day_times),
                 "turns": genuine,
                 "prompt": first_genuine or "",
+                "command": f"{launcher} --resume {sid}",
             }
         )
     sessions.sort(key=lambda s: (s["cwd"], s["first"]))
@@ -143,28 +154,36 @@ def render(sessions: list[dict], target: datetime.date) -> str:
         for s in group:
             hhmm = f"{s['first']:%H:%M}-{s['last']:%H:%M}"
             out.append(f"  [{s['title']}] {hhmm}  turns={s['turns']}")
-            out.append(f"    resume: (cd {_tilde(cwd)} && claude --resume {s['sid']})")
+            out.append(f"    resume: (cd {_tilde(cwd)} && {s['command']})")
             out.append(f"    first:  {s['prompt'][:120]}")
         out.append("")
     return "\n".join(out)
 
 
-def write_tmux_script(sessions: list[dict], target: datetime.date) -> str:
-    path = f"/tmp/claude-resurrect-{target.isoformat()}.sh"
-    session_name = "resurrect"
+def write_tmux_script(
+    sessions: list[dict], target: datetime.date, directory: str = "/tmp"
+) -> str:
+    path = os.path.join(directory, f"claude-resurrect-{target.isoformat()}.sh")
+    session_name = SESSION_NAME
+    refusal = f"claude-resurrect: tmux session '{session_name}' exists; close it first"
     lines = [
         "#!/usr/bin/env bash",
         f"# Rebuild a tmux session with one window per Claude session ({target.isoformat()}).",
-        "# Each window cd's to the right directory and stages `claude --resume <id>`",
+        "# Each window cd's to the right directory and stages its resume command",
         "# WITHOUT pressing Enter, so you can review before launching each one.",
         "set -euo pipefail",
-        f"tmux kill-session -t {session_name} 2>/dev/null || true",
+        # A second run must not kill the windows the first one built, which may
+        # hold a Claude that is already resumed.
+        f"if tmux has-session -t '={session_name}' 2>/dev/null; then",
+        f'  echo "{refusal}" >&2',
+        "  exit 1",
+        "fi",
     ]
     for i, s in enumerate(sessions):
         # tmux window names cannot contain ':' or '.'; keep it simple.
         name = s["title"].replace(":", "-").replace(".", "-").replace(" ", "-")[:32]
         cwd = s["cwd"]
-        cmd = f"claude --resume {s['sid']}"
+        cmd = s["command"]
         if i == 0:
             new = f"tmux new-session -d -s {session_name}"
         else:
