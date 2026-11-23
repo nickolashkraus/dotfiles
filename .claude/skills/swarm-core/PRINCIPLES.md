@@ -75,10 +75,12 @@ The Orchestrator runs the entire workflow. Without management, its context
 grows unboundedly: raw findings from four agents, synthesis drafts, review
 rounds, implementation diffs. Three strategies keep context viable:
 
-1. **File references over inline content.** Convergence and review rounds pass
-   file paths, not inline content. Subagents read files themselves. This caps
-   the Orchestrator's outgoing prompt size regardless of how large the findings
-   are, and lets subagents read selectively.
+1. **File references over inline content.** Convergence and synthesis review
+   rounds pass file paths, not inline content. Subagents read files themselves.
+   This caps the Orchestrator's outgoing prompt size regardless of how large
+   the findings are, and lets subagents read selectively. The code review in
+   `/swarm-bug` and `/swarm-feature` is the exception: its prompts take the
+   spec, the diff, and the prior analysis inline.
 2. **Phase handoffs via files.** Each phase produces a file
    (`orchestrator/analysis.md`, `orchestrator/final.md`,
    `orchestrator/findings.md`). The next phase reads the file. The Orchestrator
