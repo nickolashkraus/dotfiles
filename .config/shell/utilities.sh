@@ -31,9 +31,10 @@
 # output and regenerate only when the brew binary is newer than the cache.
 #
 # Replace the cache only when `brew shellenv` succeeds and returns output.
-# A failed or interrupted run would otherwise leave a 0-byte cache with an mtime
-# newer than the brew binary, which satisfies the staleness check forever and
-# silently drops $HOMEBREW_PREFIX and /opt/homebrew/bin from the environment.
+# A failed or interrupted run would otherwise leave a 0-byte cache with an
+# mtime newer than the brew binary, which satisfies the staleness check forever
+# and silently drops $HOMEBREW_PREFIX and /opt/homebrew/bin from the
+# environment.
 _brew_bin="/opt/homebrew/bin/brew"
 _brew_cache="$HOME/.cache/brew-shellenv.zsh"
 if [[ -x $_brew_bin ]]; then
