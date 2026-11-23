@@ -227,6 +227,9 @@ class ShellView:
         self.live: list[tuple[int, int]] = []
         self.parens = False
         self._spans: list[tuple[int, int, str]] = []
+        # Each escape, joined line end and quoted stretch outside quotes,
+        # in order, with its kind.
+        self.tokens: list[tuple[int, int, str]] = []
         self._escapes: list[int] = []
         self._plain: bool | None = None
         self._token = 0
@@ -277,6 +280,7 @@ class ShellView:
                     glued = pos
                 if top:
                     self._spans.append((at, pos, " " if joined else ESCAPED))
+                    self.tokens.append((at, pos, "join" if joined else "escape"))
                     if not joined:
                         self._escapes.append(at)
             elif ch in "'\"" or cmd.startswith("$'", at):
@@ -285,6 +289,7 @@ class ShellView:
                     raise Unreadable
                 if top:
                     self._spans.append((at, pos, MASKED))
+                    self.tokens.append((at, pos, "ansi" if ch == "$" else "quote"))
                     if ch != "$":
                         self.quotes[at] = pos
                     if ch == '"' and SUBSTITUTION_RE.search(cmd, at, pos):
@@ -617,6 +622,75 @@ def strip_text_payloads(cmd: str) -> str:
     return overwrite(cmd, sorted(cuts))
 
 
+BLANK_RE = re.compile(r"\s")
+# An escaped character or a quoted stretch, paired by pattern.
+LOOSE_TOKEN_RE = re.compile(r"\\(.)|'([^']*)'|\"((?:[^\"\\]|\\.)*)\"", re.DOTALL)
+
+
+def one_word(text: str) -> str:
+    """Return `text` with its blanks overwritten: inside quotes or after
+    a backslash a blank is part of its word, so `"src/a b.ts"` stays one."""
+    return BLANK_RE.sub(MASKED, text)
+
+
+def double_quoted(content: str) -> str:
+    """Return what the inside of a double-quoted stretch reads as. With no
+    substitution it is one word. With one, the shell reads the inside of `$( )`
+    as commands, so the quotes in there are dropped as well."""
+    if SUBSTITUTION_RE.search(content):
+        return loosely_unquoted(content)
+    return one_word(content)
+
+
+def loosely_unquoted(text: str) -> str:
+    """Return `text` without quote characters and escaping backslashes, with
+    quotes paired by pattern. For text the scan did not read: a wrong pairing
+    there costs this one reading a match and hides nothing from the others."""
+
+    def plain(token: re.Match[str]) -> str:
+        escaped, single, double = token.groups()
+        if escaped is not None:
+            return "" if escaped == "\n" else one_word(escaped)
+        if single is not None:
+            return one_word(single)
+        return double_quoted(double)
+
+    return LOOSE_TOKEN_RE.sub(plain, text)
+
+
+def unquoted(cmd: str) -> str:
+    """
+    Return `cmd` without the quote characters and backslashes the shell drops
+    before it runs a word, so that `'kubectl' delete` reads as `kubectl
+    delete`. A quoted word hides nothing from the shell, and without this
+    reading it hid a command from every pattern below.
+
+    A name the shell builds at run time stays hidden (a variable,
+    a substitution, a brace expansion), and so do quotes that a second shell
+    removes, as in `sh -c "'kubectl' delete"`. No reading of the text sees
+    through those.
+    """
+    view = ShellView(cmd)
+    parts: list[str] = []
+    last = 0
+    for start, end, kind in view.tokens:
+        token = cmd[start:end]
+        if kind == "join":
+            plain = ""
+        elif kind == "escape":
+            plain = one_word(token[1:])
+        elif kind == "ansi":
+            plain = one_word(token[2:-1])
+        elif token.startswith("'"):
+            plain = one_word(token[1:-1])
+        else:
+            plain = double_quoted(token[1:-1])
+        parts += [cmd[last:start], plain]
+        last = end
+    tail = loosely_unquoted(cmd[view.limit :])
+    return "".join([*parts, cmd[last : view.limit], tail])
+
+
 RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     # The first alternative of each push and auto-approve pattern is the
     # original, which reads past `;` and `&&`. The second adds the spellings it
@@ -947,9 +1021,11 @@ def main() -> int:
 
     risky: list[str] = []
     untrusted: list[str] = []
-    # Bash joins a backslash-newline into one line. Scan the joined text as
-    # well as the original, so nothing the original matched is lost.
-    for target in (scan_target, scan_target.replace("\\\n", "")):
+    # Bash joins a backslash-newline into one line and drops quote characters.
+    # Scan those readings as well as the original, so nothing the original
+    # matched is lost.
+    joined = scan_target.replace("\\\n", "")
+    for target in (scan_target, joined, unquoted(scan_target)):
         risky += [label for pattern, label in RISKY_PATTERNS if pattern.search(target)]
         untrusted += untrusted_code_matches(target, cwd)
     matches = list(dict.fromkeys(risky + untrusted))
