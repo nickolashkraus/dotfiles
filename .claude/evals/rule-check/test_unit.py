@@ -607,6 +607,18 @@ def test_extract_mcp_payloads_every_identifier_field() -> None:
         "to",
         "url",
     )
+    prose = "The retry budget resets every hour, so a burst cannot page twice."
+    for name in ("to", "cc", "skill", "state", "url", "id"):
+        for shape in (
+            {"properties": {name: prose}},
+            {"pages": [{"properties": {name: prose}}]},
+        ):
+            out = rc.extract_mcp_payloads("mcp__notion__notion-create-pages", shape)
+            check(
+                f"a page property named {name} is sent ({next(iter(shape))})",
+                [text for _, text in out] == [prose],
+                f"got {out!r}",
+            )
     for name in fields:
         value = "0b7f9c2e-5d4a-4c1e-9f3a-2b6d8e1a7c55"
         out = rc.extract_mcp_payloads("mcp__linear__save_issue", {name: value})

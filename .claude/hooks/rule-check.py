@@ -621,6 +621,13 @@ def field_name(path: str) -> str:
     return path.split(".")[-1].split("[")[0].lower()
 
 
+def in_properties(label: str) -> bool:
+    """Return whether a field sits under a `properties` object. The names there
+    are a page's own property names, so one called `to` or `skill` may hold
+    prose."""
+    return "properties" in label.split(".")
+
+
 def extract_mcp_payloads(tool_name: str, tool_input: dict) -> list[tuple[str, str]]:
     surface = tool_name.split("__")[-1]
     out: list[tuple[str, str]] = []
@@ -629,7 +636,7 @@ def extract_mcp_payloads(tool_name: str, tool_input: dict) -> list[tuple[str, st
             value = drop_quoted_lines(value)
         if not value or len(value) < 20:
             continue
-        if field_name(label) in NON_PROSE_FIELDS:
+        if field_name(label) in NON_PROSE_FIELDS and not in_properties(label):
             continue
         if field_name(label.split(".")[0]) in NON_PROSE_SUBTREES:
             continue

@@ -1477,6 +1477,13 @@ EMAIL_TOOLS = frozenset(
 EMAIL_BODY_FIELDS = frozenset({"body", "forwardText"})
 
 
+def in_properties(label: str) -> bool:
+    """Return whether a field sits under a `properties` object. The names there
+    are a page's own property names, so one called `to` or `skill` may hold
+    prose."""
+    return "properties" in label.split(".")
+
+
 def extract_fields(
     tool_name: str, tool_input: dict
 ) -> list[tuple[str, str, bool, bool, bool, bool]]:
@@ -1526,7 +1533,8 @@ def extract_fields(
     for label, value in walk_strings(tool_input):
         if not value or len(value) < 2:
             continue
-        if label.split(".")[-1].split("[")[0].lower() in NON_PROSE_FIELDS:
+        leaf = label.split(".")[-1].split("[")[0].lower()
+        if leaf in NON_PROSE_FIELDS and not in_properties(label):
             continue
         if label.split(".")[0].split("[")[0].lower() in NON_PROSE_SUBTREES:
             continue

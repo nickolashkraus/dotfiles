@@ -2912,6 +2912,20 @@ def test_mcp_identifier_fields_skipped() -> None:
                 found == [],
                 f"got {found!r}",
             )
+    for name in ("to", "cc", "bcc", "skill", "comment_id", "draftId"):
+        for tool, shape in (
+            ("mcp__notion__notion-update-page", {"properties": {name: value}}),
+            (
+                "mcp__notion__notion-create-pages",
+                {"pages": [{"properties": {name: value}}]},
+            ),
+        ):
+            found = lo.collect_violations(tool, shape)
+            check(
+                f"a page property named {name} is linted ({tool.rsplit('-', 1)[-1]})",
+                any("British spelling" in v for v in found),
+                f"got {found!r}",
+            )
     found = lo.collect_violations("mcp__claude_ai_Gmail__send_message", {"body": value})
     check(
         "the same value in a text field is linted",
