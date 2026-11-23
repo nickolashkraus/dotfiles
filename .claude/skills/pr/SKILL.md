@@ -52,7 +52,8 @@ If already on a non-default branch, push it. Otherwise:
      hyphenated description of the work (e.g., `epd-1337-require-ssl`), not the
      bare slug. The description makes the branch identifiable at a glance.
    - Otherwise, derive a short descriptive name from the changes.
-2. If `--worktree` was set:
+2. If `--worktree` was set, first stop unless `git status --porcelain` prints
+   nothing, since step b discards uncommitted work. Then:
    a. Create a worktree at HEAD with the new branch:
       `git worktree add -b <branch> ../<branch> HEAD`, then run
       `worktree-links`
