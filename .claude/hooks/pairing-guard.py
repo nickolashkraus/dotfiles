@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: the pairing guard. When the user and Claude work in the
-same worktree, the user turns the guard on, and Claude can no longer
-change the worktree's Git state or write its files from the shell.
+PreToolUse hook: the pairing guard. When the user and Claude work in the same
+worktree, the user turns the guard on, and Claude can no longer change the
+worktree's Git state or write its files from the shell.
 
 The guard is on for a worktree while `<git-dir>/claude-pairing` exists, where
 `<git-dir>` is what `git rev-parse --absolute-git-dir` prints there, so each
@@ -307,7 +307,8 @@ def unwrap(words: list[str]) -> list[str]:
 
 
 def flag_intents(targets: list[str], state: State) -> list[Intent]:
-    """Return a flag intent for each target named like the flag, resolved or not."""
+    """Return a flag intent for each target named like the flag, resolved or
+    not."""
     return [
         (FLAG_REASON, resolve(t, state))
         for t in targets
@@ -565,7 +566,8 @@ def scan_segment(
 
 
 def scan_command(cmd: str, state: State, depth: int = 0) -> list[Intent]:
-    """Return every (reason, path) the command would write. Raises ValueError."""
+    """Return every (reason, path) the command would write. Raises
+    ValueError."""
     if depth > 3:
         return []
     heredocs: dict[str, str] = {}

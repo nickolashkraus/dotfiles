@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: enforces @rules/models.md for model choices a session makes
-on its own. `availableModels` in settings.json keeps sessions and subagents
-from dropping below Opus, but it says nothing about Fable and
+PreToolUse hook: enforces @rules/models.md for model choices a session makes on
+its own. `availableModels` in settings.json keeps sessions and subagents from
+dropping below Opus, but it says nothing about Fable and
 `claude --setting-sources ""` skips it, so this hook is the visible check on
 top.
 

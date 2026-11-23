@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Git pre-commit hook: validates staged files in `.claude/` for the kinds
-of bugs that previously shipped silently because the harness has no CI.
+Git pre-commit hook: validates staged files in `.claude/` for the kinds of bugs
+that previously shipped silently because the harness has no CI.
 
 Catches:
   - YAML parse errors in `SKILL.md` frontmatter (e.g., the `argument-hint:
@@ -107,7 +107,8 @@ def lint_markdown(text: str, path: str) -> list[str]:
 
 @functools.cache
 def import_yaml() -> ModuleType | None:
-    """Return the `yaml` module, or None after warning once that it is missing."""
+    """Return the `yaml` module, or None after warning once that it is
+    missing."""
     try:
         import yaml
     except ImportError:

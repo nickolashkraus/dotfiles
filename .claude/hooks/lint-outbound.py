@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: lints content destined for external platforms (Linear,
-Notion, Slack, Gmail, GitHub, Git) against ~/.claude/rules/typography.md.
+PreToolUse hook: lints content destined for external platforms (Linear, Notion,
+Slack, Gmail, GitHub, Git) against ~/.claude/rules/typography.md.
 
 Reads the Claude Code hook payload on stdin, extracts text fields from the tool
 input, scans for typography violations, and exits with code 2 (blocking the
@@ -16,8 +16,8 @@ rule-check.py's log) so blocks are auditable across sessions.
 
 This hook also owns every check that requires counting characters
 (commit-subject length, commit-body wrap, Markdown table column padding),
-measured deterministically on the raw SOURCE text. rule-check.py's
-LLM pass is explicitly told not to do character arithmetic.
+measured deterministically on the raw SOURCE text. rule-check.py's LLM pass is
+explicitly told not to do character arithmetic.
 """
 
 from __future__ import annotations
@@ -363,11 +363,11 @@ def is_structural_line(line: str) -> bool:
 
 def detect_hard_wraps(text: str) -> list[int]:
     """
-    Return line numbers of lines that look like hard wraps within paragraphs
-    or wrapped bullets. External content (PR bodies, Linear, Notion, Slack)
-    must be single-line-per-paragraph per rules/git.md and rules/writing.md;
-    Markdown renderers handle wrapping. This catches in-source soft wraps
-    that look fine in an editor but ship as flow-prose to the destination.
+    Return line numbers of lines that look like hard wraps within paragraphs or
+    wrapped bullets. External content (PR bodies, Linear, Notion, Slack) must
+    be single-line-per-paragraph per rules/git.md and rules/writing.md;
+    Markdown renderers handle wrapping. This catches in-source soft wraps that
+    look fine in an editor but ship as flow-prose to the destination.
 
     Skipped: code blocks, tables (lines containing `|`), blockquotes (lines
     starting with `>`), and blocks where every continuation line is itself
@@ -423,8 +423,8 @@ def detect_hard_wraps(text: str) -> list[int]:
 def scrub_inline_code(line: str) -> str:
     """
     Remove inline code spans from a line so violations inside backticks are
-    ignored. Handles single-backtick spans only; multi-backtick spans are
-    rare in our content.
+    ignored. Handles single-backtick spans only; multi-backtick spans are rare
+    in our content.
     """
     return re.sub(r"`[^`\n]*`", "", line)
 
@@ -1425,12 +1425,12 @@ def extract_fields(
     Return a list of (field_label, text, allow_coauthor, is_pr_body,
     check_local_paths, is_full_commit) tuples to lint.
 
-    `allow_coauthor` is False only for commit messages, where the rule
-    forbids `Co-Authored-By:` lines. `is_pr_body` is True only for PR body
-    content, where the `Closes:`/`Fixes:`/`Resolves:` rule applies.
-    `check_local_paths` is False for in-repo Markdown edits, where
-    references to local paths are legitimate. `is_full_commit` enables
-    the deterministic commit subject-length and body-wrap checks.
+    `allow_coauthor` is False only for commit messages, where the rule forbids
+    `Co-Authored-By:` lines. `is_pr_body` is True only for PR body content,
+    where the `Closes:`/`Fixes:`/`Resolves:` rule applies. `check_local_paths`
+    is False for in-repo Markdown edits, where references to local paths are
+    legitimate. `is_full_commit` enables the deterministic commit
+    subject-length and body-wrap checks.
     """
     out: list[tuple[str, str, bool, bool, bool, bool]] = []
 

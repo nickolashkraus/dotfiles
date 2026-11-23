@@ -37,7 +37,8 @@ END_MARKER = "  <!-- ai-slop:end -->"
 
 @dataclasses.dataclass(frozen=True)
 class Entry:
-    """One tic: how to catch it, what to call it, and how the rules file says it."""
+    """One tic: how to catch it, what to call it, and how the rules file says
+    it."""
 
     label: str
     bullet: str

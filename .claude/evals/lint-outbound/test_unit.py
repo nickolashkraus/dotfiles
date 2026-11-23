@@ -2,12 +2,11 @@
 """
 Deterministic unit tests for ~/.claude/hooks/lint-outbound.py.
 
-Covers the regex layer end to end: table-padding measured on source
-width, commit subject/body length rules and their exemptions, payload
-extraction from Bash (interpreter heredocs, heredocs written into
-Markdown files, compound-command flag ownership, gh `@file` bodies), the
-hard-wrap detector, and the
-label-colon capitalization rules. Most cases are regressions for the
+Covers the regex layer end to end: table-padding measured on source width,
+commit subject/body length rules and their exemptions, payload extraction from
+Bash (interpreter heredocs, heredocs written into Markdown files,
+compound-command flag ownership, gh `@file` bodies), the hard-wrap detector,
+and the label-colon capitalization rules. Most cases are regressions for the
 2026-07-06 false-positive batch.
 
 Run: python3 .claude/evals/lint-outbound/test_unit.py

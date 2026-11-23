@@ -5,9 +5,9 @@ table plus a tmux rebuild script.
 Filters to real interactive sessions: those with activity on the target date
 and at least one genuine user turn in the transcript, so a session still
 working past midnight is kept. Hook-spawned subsessions (rule-check) and
-skill-runner-only sessions have zero genuine turns and are dropped.
-Nested subagent transcripts live under */subagents/ and are excluded by the
-top-level glob.
+skill-runner-only sessions have zero genuine turns and are dropped. Nested
+subagent transcripts live under */subagents/ and are excluded by the top-level
+glob.
 
 Usage:
     resurrect.py [today|yesterday|YYYY-MM-DD]   # default: today (local)

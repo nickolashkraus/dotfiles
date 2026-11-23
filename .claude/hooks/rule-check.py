@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: deep semantic rule check on outbound prose payloads via a
-fresh Opus invocation. Reads ~/.claude/rules/*.md and ~/.claude/CLAUDE.md,
-asks Opus whether the payload complies with every rule, and exit-2-blocks
-the tool call on any violation.
+PreToolUse hook: deep semantic rule check on outbound prose payloads via
+a fresh Opus invocation. Reads ~/.claude/rules/*.md and ~/.claude/CLAUDE.md,
+asks Opus whether the payload complies with every rule, and exit-2-blocks the
+tool call on any violation.
 
 This is the heavier complement to lint-outbound.py: cheap regexes catch the
 deterministic typography and leak patterns; this catches the semantic stuff
@@ -361,9 +361,9 @@ def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
 
 def _is_real_prose_value(value: str | None) -> bool:
     """Filter out flag-value extractions that are shell wrappers, not real
-    prose. Catches the residue left after HEREDOC_RE substitution wipes a
-    `$(cat <<'EOF' ... EOF)` heredoc invocation, which otherwise produces a
-    phantom payload like `$(cat \\n)` that wastes an Opus call."""
+    prose. Catches the residue left after HEREDOC_RE substitution wipes
+    a `$(cat <<'EOF' ... EOF)` heredoc invocation, which otherwise produces
+    a phantom payload like `$(cat \\n)` that wastes an Opus call."""
     if not value or len(value) <= 4:
         return False
     return not CMD_SUBST_PREFIX_RE.match(value.lstrip())
@@ -649,7 +649,8 @@ If the payload is compliant, return `{{"verdict": "pass", "violations": []}}`. O
 
 
 def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
-    """Spawn `claude --print` to evaluate payload. Returns (verdict, violations)."""
+    """Spawn `claude --print` to evaluate payload. Returns (verdict,
+    violations)."""
     if len(payload) > MAX_PAYLOAD_CHARS:
         payload = payload[:MAX_PAYLOAD_CHARS] + "\n\n[... truncated ...]"
 

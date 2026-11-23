@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: backstop for genuinely risky Bash commands. The system
-prompt asks the model to seek confirmation before destructive actions,
-but model judgment is fallible. This hook is the deterministic floor.
+PreToolUse hook: backstop for genuinely risky Bash commands. The system prompt
+asks the model to seek confirmation before destructive actions, but model
+judgment is fallible. This hook is the deterministic floor.
 
 Blocks (exit 2) when the command matches any pattern below, with a message that
 tells the model what to do: pause, surface the command to the user verbatim,
@@ -487,8 +487,8 @@ def trusted_dir(directory: str) -> bool:
 
 def runs_project_outside_trusted_roots(cmd: str, cwd: str) -> bool:
     """
-    Return whether an install or run command targets an unknown directory:
-    the one `cd` leads to, the one `cd` and `pushd` lead to (`popd` is not
+    Return whether an install or run command targets an unknown directory: the
+    one `cd` leads to, the one `cd` and `pushd` lead to (`popd` is not
     followed, so both count), or a `make -C`, `npm --prefix` or
     `uv --directory` value. A directory only the shell knows does not block.
     """
