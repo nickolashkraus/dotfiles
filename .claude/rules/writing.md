@@ -24,11 +24,12 @@ verbose" never means "strip everything".
   boolean flip, I wrote 40 lines, cut it to 12 when told it was too long, and
   Nickolas then cut it to the single sentence it should have been. Both of my
   attempts were wrong by an order of magnitude.
-- **Code comments and docstrings**: Keep docstrings on non-trivial functions
-  (2-4 lines: what it returns, non-obvious caveats). Keep ADR comments on files
-  that genuinely embody an architectural decision (20-40 lines is fine; 90+ is
-  not). Always keep the *why* on non-obvious decisions. Drop pure narration,
-  restatements of signatures, section dividers, and ASCII-art tables.
+- **Code comments and docstrings**: Keep docstrings on non-trivial functions,
+  at the length the Comments section of `coding.md` sets. Keep ADR comments on
+  files that genuinely embody an architectural decision (20-40 lines is fine;
+  90+ is not). Always keep the *why* on non-obvious decisions. Drop pure
+  narration, restatements of signatures, section dividers, and ASCII-art
+  tables.
 - **Orchestration messages to agents**: Tight, but include the context the
   recipient needs to act. Reviews with concrete file or line references beat
   single-word acknowledgments when the agent needs to know what to do.
