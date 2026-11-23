@@ -36,10 +36,13 @@ jobs:
           ln -sf "$GITHUB_WORKSPACE/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
           ln -sf "$GITHUB_WORKSPACE/.claude/hooks" "$HOME/.claude/hooks"
       - name: Run rule-check eval
+        env:
+          PARALLEL: ${{ inputs.parallel }}
+          FILTER: ${{ inputs.filter }}
         run: |
           python3 .claude/evals/rule-check/eval.py \
-            --parallel "${{ github.event.inputs.parallel }}" \
-            --filter "${{ github.event.inputs.filter }}"
+            --parallel "$PARALLEL" \
+            --filter "$FILTER"
       - name: Upload rule-check log
         if: always()
         uses: actions/upload-artifact@v4
