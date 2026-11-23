@@ -137,6 +137,9 @@ Write the report to:
 ~/.claude/projects/*-nickolashkraus-dotfiles/memory/harness-audit-YYYY-MM-DD.md
 ```
 
+Resolve the `*` to the one matching project directory before writing; it is
+a single directory, not a glob the `Write` tool expands.
+
 Use this structure:
 
 ```markdown
