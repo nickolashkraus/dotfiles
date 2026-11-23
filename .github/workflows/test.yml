@@ -28,6 +28,8 @@ jobs:
         run: python3 .claude/evals/pre-commit/test_unit.py
       - name: Run session-start-state unit tests
         run: python3 .claude/evals/session-start-state/test_unit.py
+      - name: Run claude-resurrect unit tests
+        run: python3 .claude/evals/claude-resurrect/test_unit.py
 
   lint:
     name: ruff
