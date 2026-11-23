@@ -9,10 +9,10 @@
 #   window managers like yabai to create a powerful, keyboard-driven macOS
 #   environment.
 #
-#   See: https://github.com/koekeishiya/skhd
+#   See: https://github.com/asmvik/skhd
 #
 #   See the following for an example skhdrc and explanation of the grammar that
-#   skhd parses: https://github.com/koekeishiya/yabai/blob/master/examples/skhdrc
+#   skhd parses: https://github.com/asmvik/yabai/blob/master/examples/skhdrc
 #
 # INSTALLATION
 #   Symlink file to $XDG_CONFIG_HOME/skhd/skhdrc:

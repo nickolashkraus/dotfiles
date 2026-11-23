@@ -9,7 +9,7 @@
 #   control and layout capabilities to the macOS desktop—similar to what you'd
 #   find on Linux with tools like i3 or bspwm.
 #
-#   See: https://github.com/koekeishiya/yabai
+#   See: https://github.com/asmvik/yabai
 #
 # INSTALLATION
 #   Symlink file to $XDG_CONFIG_HOME/yabai/yabairc:
@@ -27,7 +27,7 @@
 #     <user> ALL=(root) NOPASSWD: $(brew --prefix)/bin/yabai --load-sa
 #     ```
 #
-#   See: https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)
+#   See: https://github.com/asmvik/yabai/wiki/Installing-yabai-(latest-release)
 ###############################################################################
 
 # NOTE: Loading the scripting addition requires SIP to be partially disabled.
