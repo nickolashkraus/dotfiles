@@ -150,7 +150,6 @@ conventions when writing or editing blog posts, articles, and essays.
 
 ## Punctuation
 
-- Never use em dashes. Use commas, parentheses, or rewrite the sentence.
 - Never use smart quotes. Use straight quotes only.
 - Use colons to introduce code blocks, lists, and explanations.
 - Use parenthetical asides for brief clarifications and acronym expansions:

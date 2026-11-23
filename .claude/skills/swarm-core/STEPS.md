@@ -60,10 +60,9 @@ PRINCIPLES.md for when the cap resets).
 
 ## Typography pass
 
-Run the typography pass from PRINCIPLES.md ("Typography Discipline")
-against every artifact file authored in this run. Use
-`grep -c '—'` and a smart-quote grep across the artifact tree to
-confirm zero matches before advancing to verification or ship.
+Run the typography pass from PRINCIPLES.md ("Typography Discipline") against
+every artifact file authored in this run. Use a smart-quote grep across the
+artifact tree to confirm zero matches before advancing to verification or ship.
 
 ## Ship: artifact worktree
 

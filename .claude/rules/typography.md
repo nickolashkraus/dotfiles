@@ -2,7 +2,6 @@
 
 ## Pre-flight checklist (apply before generating Markdown prose)
 
-- No em dashes (`—`). Use commas, parentheses, semicolons, or rewrite.
 - No smart quotes. Straight only.
 - Capitalize the first word after a colon when the colon ends a label or
   lead-in: List elements (`**Element**: Description`), bold callouts
@@ -34,7 +33,7 @@
 
 ## Rules
 
-- Never use em dashes.
+- Em and en dashes are fine where they are the right punctuation.
 - Never use smart quotes, only straight quotes.
 - Use American English spellings in all prose. The common pairs: `-ize` and
   `-ization` over `-ise` and `-isation` (canonicalize, normalize, organize,

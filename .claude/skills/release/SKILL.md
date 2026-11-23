@@ -21,9 +21,9 @@ Follow every step in order.
 All release content (PR titles and descriptions, Notion doc, Slack
 announcement, daily task file, commit messages) must follow
 `@~/.claude/rules/typography.md` and `@~/.claude/rules/git.md`. In particular:
-no em dashes, no smart quotes, hard-wrap prose at ~80 columns, lead PR
-descriptions with a declarative verb (no "This PR does..."), and follow the
-Larger Changes structure (`## Overview`, `## PRs`, `## Alembic Migrations`,
+no smart quotes, hard-wrap prose at ~80 columns, lead PR descriptions with
+a declarative verb (no "This PR does..."), and follow the Larger Changes
+structure (`## Overview`, `## PRs`, `## Alembic Migrations`,
 `## Cross-Service Dependencies`, `## New Secrets`, `## Notes`).
 
 ## Step 1: Determine service and date
