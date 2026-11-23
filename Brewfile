@@ -26,11 +26,8 @@
 # resolve it. Homebrew refuses to load the formula otherwise.
 tap "conductorone/cone"
 tap "databricks/tap"
-tap "derailed/k9s"
 tap "felixkratz/formulae"
-tap "hashicorp/tap"
 tap "koekeishiya/formulae"
-tap "oven-sh/bun"
 
 brew "aspell"
 brew "awscli"
