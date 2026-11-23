@@ -13,10 +13,9 @@ Catches:
     back to body opener).
   - JSON parse errors in `settings.json` and `*.json`.
   - Python syntax errors in `hooks/*.py`.
-  - Em dashes, smart quotes, `**X** -` list lead-ins, and `[label][]`
-    reference-link shorthand in any staged `.md` file (in-repo typography
-    rules; mirrors the `lint-outbound.py` checks with the in-repo
-    carve-out).
+  - Smart quotes, `**X** -` list lead-ins, and `[label][]` reference-link
+    shorthand in any staged `.md` file (in-repo typography rules; mirrors
+    the `lint-outbound.py` checks with the in-repo carve-out).
 
 The `SKILL.md` YAML, description and name checks need PyYAML. Without it
 the hook prints a warning, skips them and still runs the rest.
@@ -46,8 +45,6 @@ SMART_QUOTES = {
     "‘": "left single quote",
     "’": "right single quote",
 }
-EM_DASH = "—"
-EN_DASH = "–"
 LIST_LEADIN_RE = re.compile(r"^\s*(?:[-*+]|\d+\.)\s+\*\*[^*\n]+\*\*\s+[-—–]\s+")
 LOWERCASE_AFTER_BOLD_COLON_RE = re.compile(
     r"^\s*[-*+]\s+\*\*[^*\n]+\*\*:\s+[a-z]\S*\s+\S"
@@ -88,10 +85,6 @@ def lint_markdown(text: str, path: str) -> list[str]:
         if in_code:
             continue
         line = scrub_inline_code(raw)
-        if EM_DASH in line:
-            violations.append(f"{path}:{lineno}: em dash")
-        if EN_DASH in line:
-            violations.append(f"{path}:{lineno}: en dash")
         for ch, name in SMART_QUOTES.items():
             if ch in line:
                 violations.append(f"{path}:{lineno}: {name}")

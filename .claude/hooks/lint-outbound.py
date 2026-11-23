@@ -48,8 +48,6 @@ SMART_QUOTES = {
     "‘": "left single quote",
     "’": "right single quote",
 }
-EM_DASH = "—"
-EN_DASH = "–"
 
 # AI-slop phraseology per rules/general.md ("do not speak like an LLM").
 # The catalog lives in ai_slop.py so the regexes here and the prose
@@ -753,15 +751,6 @@ def lint_text(
         if stripped.startswith(">"):
             prose = ""
 
-        if EM_DASH in line:
-            violations.append(
-                f"{field} line {lineno}: em dash (use comma, paren, "
-                "semicolon, or rewrite)"
-            )
-        if EN_DASH in line:
-            violations.append(
-                f"{field} line {lineno}: en dash (use straight hyphen or rewrite)"
-            )
         for ch, name in SMART_QUOTES.items():
             if ch in line:
                 violations.append(f"{field} line {lineno}: {name} (use straight quote)")
@@ -1586,7 +1575,7 @@ def main() -> int:
 
     # Auto-fix the capitalize-after-label-colon case rather than block-and-retry,
     # but only when the fix fully resolves every flagged issue. If any
-    # non-auto-fixable violation remains (em dash, smart quote, hard wrap), fall
+    # non-auto-fixable violation remains (smart quote, hard wrap), fall
     # through to the block so the agent sees all of them.
     fixed_input = try_autofix_input(tool_name, tool_input)
     if fixed_input is not None and not collect_violations(tool_name, fixed_input):

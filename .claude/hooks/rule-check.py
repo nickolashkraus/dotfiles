@@ -613,7 +613,7 @@ Pay particular attention to these common drift modes:
 - Linear slugs (pattern `[A-Z]{{2,10}}-\\d+` like `BYB-1234` or `EPD-987`) appearing in source-code comments, docstrings, test names, or any code-evergreen surface. Forbidden by rules/git.md unless absolutely necessary. PR descriptions, commit messages, branch names, and Linear/Notion/Slack content are the right places.
 - Internal or local-only paths leaking into external content: `~/nickolashkraus/`, `agent-os/`, `/Users/<name>/`, references to private repos, daily-log paths, scratch notes. Forbidden by rules/general.md. Inline a summary instead.
 - Linear issue references in PR `## References` blocks: titles after the colon must be VERBATIM Linear titles, not paraphrases or abbreviations. Rule in rules/git.md.
-- Forbidden tokens in commit/PR contexts: em dashes, smart quotes (rules/typography.md), `Co-Authored-By:` in commits (rules/git.md), `Closes:`/`Fixes:`/`Resolves:` in PR descriptions (rules/git.md).
+- Forbidden tokens in commit/PR contexts: smart quotes (rules/typography.md), `Co-Authored-By:` in commits (rules/git.md), `Closes:`/`Fixes:`/`Resolves:` in PR descriptions (rules/git.md).
 - Bare Linear-slug references that should be Markdown links (`[BYB-1234](url)`) in rendered Markdown surfaces (PR descriptions, review comments). Rule in rules/git.md. Bare slugs ARE correct in chat replies, commit messages, branch names, and source code.
 - Hard line breaks within paragraphs in external content (PR bodies, Linear, Notion, Slack). Forbidden by rules/git.md; Markdown renderers handle wrapping. In-repo Markdown files (docs, CLAUDE.md, etc.) DO wrap at ~80 chars.
 - Reference-style link shorthand `[label][]` or bare `[label]`. Forbidden by rules/typography.md.
@@ -625,7 +625,7 @@ Pay particular attention to these common drift modes:
 Surface-specific lens:
 
 - `git commit message`: The imperative-mood and no-terminal-period rules apply ONLY to the subject, which is the FIRST line of the payload. Everything after the first blank line is the commit body: it is ordinary prose, so declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT there and must NOT be flagged. Subject rules: imperative subject, no terminal period, no Co-Authored-By; bare Linear slug in subject is correct. Subject length and body wrap width are enforced deterministically elsewhere; do NOT count characters. When the subject matches `SLUG: Exact Issue Title` (e.g., `BYB-1345: Membership Upgrade Creates Duplicate Active Subscriptions in Stripe`), that rule supersedes the generic subject rules; it has NO length cap and keeps the issue title's capitalization. Conventional Commits carve-out (rules/git.md): when the subject matches `type(scope): description` with a lowercase type (feat, fix, docs, test, chore, refactor, etc.), the repo convention wins. The lowercase type, lowercase description, and lowercase-after-colon form are all CORRECT; do not flag any of them and do not demand `Fix(...)` capitalization.
-- `git commit message body`: This payload is a commit-message BODY paragraph (a later `-m` value), never the subject. The subject-only rules do NOT apply: declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT here; do NOT flag imperative mood or a trailing period. Only typography and content rules apply to the body: no em dashes, no smart quotes, backtick code identifiers, capitalize the first word after a label-ending colon, and no Co-Authored-By / internal paths.
+- `git commit message body`: This payload is a commit-message BODY paragraph (a later `-m` value), never the subject. The subject-only rules do NOT apply: declarative verbs (`Adds`, `Fixes`, `Covers`) and terminal periods are CORRECT here; do NOT flag imperative mood or a trailing period. Only typography and content rules apply to the body: no smart quotes, backtick code identifiers, capitalize the first word after a label-ending colon, and no Co-Authored-By / internal paths.
 - `GitHub PR` body or comment: single line per paragraph (no hard wraps), Markdown links for Linear refs, verbatim Linear titles in References, no Closes/Fixes/Resolves, no internal paths. A PR title (`--title`) is NOT a commit subject: it has no length limit and no imperative-mood requirement beyond rules/git.md's own PR-title rules. Never flag Markdown table padding or column alignment (deterministic linter territory).
 - Trivial PR bodies are allowed to be a single declarative sentence (rules/git.md explicitly permits "Service should not be publicly available." or "Determines document upload status from Google Cloud Storage." as valid trivial bodies). Do NOT demand a leading verb on these. Only flag the "lead with a declarative verb" rule for longer PR bodies and for openers like `This PR adds...` or `In this PR, I...`.
 - `Linear issue` (`save_issue`): standard sections (Overview, Acceptance Criteria, Implementation Details, References), Title Case for issue titles, no extra newlines for human readability.
@@ -717,10 +717,31 @@ def run_check(rules: str, surface: str, payload: str) -> tuple[str, list[dict]]:
     return (verdict, violations)
 
 
+SMART_QUOTE_KEYWORDS = ("smart quote", "curly", "quotation mark")
 FORBIDDEN_CHAR_CLASSES: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("‘’“”", ("smart quote", "curly", "quotation mark")),
-    ("—", ("em dash", "em-dash")),
+    ("‘’“”", SMART_QUOTE_KEYWORDS),
 )
+
+DASHES = "—–"
+DASH_RULE_RE = re.compile(r"\be[mn][ -]?dash", re.IGNORECASE)
+
+
+def _is_dash_violation(v: dict, payload: str) -> bool:
+    """Drop model findings against em or en dashes. No rule forbids them,
+    but the model flags them from habit and from any stale mention in a rule
+    file. A finding counts when its `rule_quote` names the dash, or when it
+    mentions a dash the payload does not contain. A list lead-in finding
+    whose fix mentions a real dash is kept, and a quote that also names
+    smart quotes is left to `_is_phantom_char_violation`."""
+    quote = str(v.get("rule_quote", "")).lower()
+    if any(kw in quote for kw in SMART_QUOTE_KEYWORDS):
+        return False
+    if DASH_RULE_RE.search(quote):
+        return True
+    excerpt = str(v.get("payload_excerpt", ""))
+    blob = f"{v.get('suggested_fix', '')} {excerpt}"
+    mentioned = DASH_RULE_RE.search(blob) or any(c in excerpt for c in DASHES)
+    return bool(mentioned) and not any(c in payload for c in DASHES)
 
 
 WIDTH_ARITHMETIC_RE = re.compile(
@@ -780,10 +801,10 @@ def cache_key(rules_digest: str, surface: str, payload: str) -> str:
 def _is_phantom_char_violation(v: dict, payload: str) -> bool:
     """Drop model findings about forbidden characters that the payload does
     not actually contain. The deep-check prompt primes the model to hunt for
-    smart quotes and em dashes, and it occasionally hallucinates them in
-    straight-quoted text, re-rendering the excerpt with the curly characters
-    it imagined. Character presence is mechanically checkable, so the model's
-    claim is only accepted when the codepoints exist in the raw payload."""
+    smart quotes, and it occasionally hallucinates them in straight-quoted
+    text, re-rendering the excerpt with the curly characters it imagined.
+    Character presence is mechanically checkable, so the model's claim is
+    only accepted when the codepoints exist in the raw payload."""
     blob = " ".join(
         str(v.get(k, "")) for k in ("rule_quote", "payload_excerpt", "suggested_fix")
     ).lower()
@@ -863,6 +884,12 @@ def main() -> int:
                 cache_dirty = True
         if verdict == "fail":
             for v in violations:
+                if _is_dash_violation(v, text):
+                    log(
+                        f"DASH tool={tool_name} surface={surface} "
+                        f"dropped dash finding: {v.get('rule_quote', '')[:80]}"
+                    )
+                    continue
                 if _is_phantom_char_violation(v, text):
                     log(
                         f"PHANTOM tool={tool_name} surface={surface} "

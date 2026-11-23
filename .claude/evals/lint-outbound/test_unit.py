@@ -318,12 +318,12 @@ def test_interpreter_heredoc_skipped() -> None:
     for marker in ("-EOF", '"EOF"'):
         cmd = (
             f"gh pr create --title T --body-file - <<{marker}\n"
-            "Adds a gate \u2014 finally.\nEOF"
+            "Adds a \u201cgate\u201d finally.\nEOF"
         )
         violations = lo.collect_violations("Bash", {"command": cmd})
         check(
             f"<<{marker} heredoc still linted",
-            any("em dash" in v for v in violations),
+            any("left double quote" in v for v in violations),
             f"got {violations!r}",
         )
     flag_text = (
@@ -441,7 +441,7 @@ def test_file_heredoc_is_not_the_message() -> None:
 
 def test_markdown_heredoc_writes() -> None:
     section("extract_fields: heredocs written into Markdown files are linted")
-    bad = "Done — shipped.\n"
+    bad = "Done \u201cshipped\u201d.\n"
     flagged = {
         "cat >> before marker": f"cat >> notes/2026-10-15.md <<'EOF'\n{bad}EOF",
         "redirect after marker": f"cat <<'EOF' >> notes/2026-10-15.md\n{bad}EOF",
@@ -454,8 +454,8 @@ def test_markdown_heredoc_writes() -> None:
     for name, cmd in flagged.items():
         violations = lo.collect_violations("Bash", {"command": cmd})
         check(
-            f"{name}: em dash flagged",
-            any("em dash" in v for v in violations),
+            f"{name}: smart quote flagged",
+            any("left double quote" in v for v in violations),
             f"got {violations!r}",
         )
     skipped = {
@@ -572,14 +572,14 @@ def test_compound_command_flag_ownership() -> None:
         not any("subject" in v for v in violations(paragraphs)),
         f"got {violations(paragraphs)!r}",
     )
-    dash = "Adds a gate \u2014 finally."
+    curly = "Adds a \u201cgate\u201d finally."
     for label, cmd in [
-        ("double-quoted --body", f'gh pr create --title "T" --body "{dash}"'),
-        ("gh issue create", f"gh issue create --title T --body '{dash}'"),
+        ("double-quoted --body", f'gh pr create --title "T" --body "{curly}"'),
+        ("gh issue create", f"gh issue create --title T --body '{curly}'"),
     ]:
         check(
-            f"{label}: em dash flagged",
-            any("em dash" in v for v in violations(cmd)),
+            f"{label}: smart quote flagged",
+            any("left double quote" in v for v in violations(cmd)),
             f"got {violations(cmd)!r}",
         )
     edit = "gh pr edit 12 --body 'Fixes #12'"
@@ -633,21 +633,21 @@ def test_gh_api_at_file_read_not_blocked() -> None:
             f"got {violations(cmd)!r}",
         )
 
-    dash = "Adds a gate \u2014 finally."
+    curly = "Adds a \u201cgate\u201d finally."
     for flag in ("-f", "-F", "--field", "--raw-field"):
         for name in ("body", "title"):
-            cmd = f"gh api repos/x/y/issues {flag} {name}='{dash}'"
+            cmd = f"gh api repos/x/y/issues {flag} {name}='{curly}'"
             check(
                 f"gh api {flag} {name}= linted",
-                any("em dash" in v for v in violations(cmd)),
+                any("left double quote" in v for v in violations(cmd)),
                 f"got {violations(cmd)!r}",
             )
 
     with tempfile.TemporaryDirectory() as tmp:
         body = Path(tmp) / "body.md"
         body.write_text("Adds the gate.\n\nCloses: BYB-1\n")
-        dashed = Path(tmp) / "dashed.md"
-        dashed.write_text(dash + "\n")
+        curly_file = Path(tmp) / "curly_file.md"
+        curly_file.write_text(curly + "\n")
         msg = Path(tmp) / "msg.txt"
         msg.write_text(
             "Add a really long subject line that keeps going well past fifty\n"
@@ -663,7 +663,11 @@ def test_gh_api_at_file_read_not_blocked() -> None:
                 f"gh pr create --title T --body-file '{body}'",
                 "Closes:",
             ),
-            ("quoted @file", f"gh api repos/x/y/issues -F body=@'{dashed}'", "em dash"),
+            (
+                "quoted @file",
+                f"gh api repos/x/y/issues -F body=@'{curly_file}'",
+                "left double quote",
+            ),
             ("git commit -F", f"git commit -F {msg}", "commit subject"),
             ("git commit --file=", f"git commit --file={msg}", "commit subject"),
             ("quoted git commit -F", f"git commit -F '{msg}'", "commit subject"),
@@ -812,14 +816,21 @@ def test_label_colon_rules() -> None:
         "- **Element** - description\n",
         "* **Element** - description\n",
         "1. **Element** - description\n",
+        "- **Element** \u2014 description\n",
+        "- **Element** \u2013 description\n",
     ):
         check(
             f"dash lead-in flagged: {line.strip()}",
             any("`**X** -`" in v for v in lint(line)),
             f"got {lint(line)!r}",
         )
-    later = "- **Element**: Description - with a dash\n"
-    check("dash later in the item is legal", lint(later) == [], f"got {lint(later)!r}")
+    for dash in ("-", "\u2014", "\u2013"):
+        later = f"- **Element**: Description {dash} with a dash\n"
+        check(
+            f"U+{ord(dash):04X} later in the item is legal",
+            lint(later) == [],
+            f"got {lint(later)!r}",
+        )
     check(
         "reference shorthand flagged",
         any("shorthand" in v for v in lint("See [docs][] here.\n")),
@@ -900,7 +911,7 @@ def test_plain_label_colon_detector() -> None:
 
 
 def test_punctuation_outside_code() -> None:
-    section("lint_text: smart quotes and dashes flagged outside code")
+    section("lint_text: smart quotes flagged outside code, dashes legal")
 
     def lint(text: str) -> list[str]:
         return lo.lint_text(text, "f", check_local_paths=False)
@@ -913,20 +924,109 @@ def test_punctuation_outside_code() -> None:
         )
     pair = lint("Say \u201chi\u201d now.\n")
     check("one smart-quote report per line", len(pair) == 1, f"got {pair!r}")
+    for name, text in (
+        ("em dash", "Wait \u2014 no.\n"),
+        ("en dash", "Pages 1\u20132.\n"),
+        ("both dashes on one line", "Wait \u2014 see pages 1\u20132.\n"),
+    ):
+        check(f"{name} is legal", lint(text) == [], f"got {lint(text)!r}")
+    span = "Run `a \u201cb\u201d` now.\n"
     check(
-        "en dash flagged",
-        any("en dash" in v for v in lint("Pages 1\u20132.\n")),
-        "not flagged",
+        "smart quote in a code span is legal", lint(span) == [], f"got {lint(span)!r}"
     )
-    span = "Run `a \u2014 b` now.\n"
-    check("em dash in a code span is legal", lint(span) == [], f"got {lint(span)!r}")
     for fence in ("```", "~~~"):
-        text = f"{fence}\na \u2014 b \u201cc\u201d\n{fence}\n"
+        text = f"{fence}\na \u201cb\u201d\n{fence}\n"
         check(
-            f"dashes and quotes in a {fence} fence are legal",
+            f"smart quotes in a {fence} fence are legal",
             lint(text) == [],
             f"got {lint(text)!r}",
         )
+
+
+def test_dashes_pass_on_every_surface() -> None:
+    section("collect_violations: dashes pass; smart quotes and dash lead-ins fail")
+
+    def surfaces(text: str, tmp: str) -> list[tuple[str, str, dict]]:
+        sentence = f"It closes {text}."
+        doc = f"{tmp}/doc.md"
+        return [
+            (
+                "commit subject",
+                "Bash",
+                {"command": f'git commit -m "Close the gate {text}"'},
+            ),
+            (
+                "commit body",
+                "Bash",
+                {
+                    "command": f"git commit -F - <<'EOF'\nClose the gate\n\n{sentence}\nEOF"
+                },
+            ),
+            (
+                "PR title",
+                "Bash",
+                {"command": f'gh pr create --title "Close the gate {text}" --body B'},
+            ),
+            (
+                "PR body",
+                "Bash",
+                {"command": f'gh pr create --title T --body "{sentence}"'},
+            ),
+            (
+                "PR comment",
+                "Bash",
+                {"command": f"gh pr comment 12 --body '{sentence}'"},
+            ),
+            (
+                "Markdown edit",
+                "Edit",
+                {"file_path": doc, "new_string": f"{sentence}\n"},
+            ),
+            ("Markdown write", "Write", {"file_path": doc, "content": f"{sentence}\n"}),
+            (
+                "Markdown heredoc",
+                "Bash",
+                {"command": f"cat >> notes/a.md <<'EOF'\n{sentence}\nEOF"},
+            ),
+            ("MCP payload", "mcp__linear__save_comment", {"body": sentence}),
+        ]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        for dash_name, text in (
+            ("em dash", "\u2014 at noon"),
+            ("en dash", "\u2013 pages 1\u20132"),
+        ):
+            for name, tool, tool_input in surfaces(text, tmp):
+                found = lo.collect_violations(tool, tool_input)
+                check(f"{name}: {dash_name} passes", found == [], f"got {found!r}")
+        for name, tool, tool_input in surfaces("\u201cat noon\u201d", tmp):
+            found = lo.collect_violations(tool, tool_input)
+            check(
+                f"{name}: smart quote still fails",
+                any("left double quote" in v for v in found),
+                f"got {found!r}",
+            )
+        for dash in ("-", "\u2014", "\u2013"):
+            item = f"- **Gate** {dash} closes at noon"
+            for name, tool, tool_input in (
+                (
+                    "PR body",
+                    "Bash",
+                    {"command": f"gh pr create --title T --body '{item}'"},
+                ),
+                (
+                    "Markdown edit",
+                    "Edit",
+                    {"file_path": f"{tmp}/doc.md", "new_string": item},
+                ),
+                ("MCP payload", "mcp__linear__save_comment", {"body": item}),
+            ):
+                found = lo.collect_violations(tool, tool_input)
+                check(
+                    f"{name}: U+{ord(dash):04X} list lead-in still fails",
+                    any("`**X** -`" in v for v in found),
+                    f"got {found!r}",
+                )
 
 
 def test_british_spellings() -> None:
@@ -1210,9 +1310,9 @@ def test_try_autofix_input_scope() -> None:
     )
     check("fixed edit re-lints clean", lo.collect_violations("Edit", fixed) == [])
 
-    # Mixed violation: label-colon fix applied but an em dash remains, so main
+    # Mixed violation: label-colon fix applied but a smart quote remains, so main
     # must still block (collect_violations on the fix is non-empty).
-    ti2 = {"file_path": md, "new_string": "- **Element**: description — x\n"}
+    ti2 = {"file_path": md, "new_string": "- **Element**: description \u201cx\u201d\n"}
     fixed2 = lo.try_autofix_input("Edit", ti2)
     check(
         "mixed still has violations",
@@ -1348,12 +1448,12 @@ def test_main_autofix_end_to_end() -> None:
             "tool_name": "Edit",
             "tool_input": {
                 "file_path": md,
-                "new_string": "- **Element**: description — x\n",
+                "new_string": "- **Element**: description \u201cx\u201d\n",
             },
         }
     )
     check("mixed blocks (exit 2)", rc2 == 2, f"rc={rc2}")
-    check("mixed reports em dash", "em dash" in err2, err2)
+    check("mixed reports the smart quote", "left double quote" in err2, err2)
 
     cmd = "cat >> notes/a.md <<'EOF'\n- **Email**: inbox zero\nEOF"
     rc3, out3, _ = run({"tool_name": "Bash", "tool_input": {"command": cmd}})
@@ -1385,7 +1485,10 @@ def test_main_fails_open() -> None:
         return p.returncode
 
     check("invalid JSON allowed", run("not json") == 0)
-    payload = {"tool_name": "mcp__x__y", "tool_input": ["Adds a gate \u2014 finally."]}
+    payload = {
+        "tool_name": "mcp__x__y",
+        "tool_input": ["Adds a \u201cgate\u201d finally."],
+    }
     check("non-dict tool_input allowed", run(_json.dumps(payload)) == 0)
 
 
@@ -1702,25 +1805,27 @@ def test_in_repo_path_prefixes() -> None:
 
 def test_extract_fields_scope() -> None:
     section("extract_fields: which tools, files and values are linted")
-    dash = "Adds a gate \u2014 finally."
+    curly = "Adds a \u201cgate\u201d finally."
 
     def flagged(tool: str, tool_input: dict) -> bool:
-        return any("em dash" in v for v in lo.collect_violations(tool, tool_input))
+        return any(
+            "left double quote" in v for v in lo.collect_violations(tool, tool_input)
+        )
 
     with tempfile.TemporaryDirectory() as tmp:
         check(
             "Edit on a .py file not linted",
-            not flagged("Edit", {"file_path": f"{tmp}/x.py", "new_string": dash}),
+            not flagged("Edit", {"file_path": f"{tmp}/x.py", "new_string": curly}),
         )
         check(
             "Write to a .markdown file linted",
-            flagged("Write", {"file_path": f"{tmp}/x.markdown", "content": dash}),
+            flagged("Write", {"file_path": f"{tmp}/x.markdown", "content": curly}),
         )
         binary = Path(tmp) / "binary.md"
         binary.write_bytes(b"\xff\xfe not utf-8\n")
         check(
             "undecodable target file still linted",
-            flagged("Write", {"file_path": str(binary), "content": dash}),
+            flagged("Write", {"file_path": str(binary), "content": curly}),
         )
         note = Path(tmp) / "note.md"
         note.write_text("  - We leverage the cache.\nWe leverage the cache.\n")
@@ -1737,21 +1842,24 @@ def test_extract_fields_scope() -> None:
         )
     check(
         "non-string file_path ignored",
-        lo.collect_violations("Edit", {"file_path": None, "new_string": dash}) == [],
+        lo.collect_violations("Edit", {"file_path": None, "new_string": curly}) == [],
     )
     check(
         "non-string command ignored",
         lo.collect_violations("Bash", {"command": ["git", "commit"]}) == [],
     )
-    nested = {"pages": [{"properties": {"title": "T"}, "content": dash}]}
+    nested = {"pages": [{"properties": {"title": "T"}, "content": curly}]}
     violations = lo.collect_violations("mcp__notion__notion-create-pages", nested)
     check(
         "nested MCP payload linted with its path",
-        any(v.startswith("pages[0].content") and "em dash" in v for v in violations),
+        any(
+            v.startswith("pages[0].content") and "left double quote" in v
+            for v in violations
+        ),
         f"got {violations!r}",
     )
-    check("one-character MCP value skipped", not flagged("mcp__x__y", {"v": "\u2014"}))
-    check("two-character MCP value linted", flagged("mcp__x__y", {"v": "\u2014."}))
+    check("one-character MCP value skipped", not flagged("mcp__x__y", {"v": "\u201c"}))
+    check("two-character MCP value linted", flagged("mcp__x__y", {"v": "\u201c."}))
 
 
 def test_linear_mirror_paths_skip_lint() -> None:
@@ -1764,7 +1872,7 @@ def test_linear_mirror_paths_skip_lint() -> None:
         ("project note", f"{root}/notes/2026-11-05.01.md", True),
         ("/tmp draft", "/tmp/linear/body.md", True),
     ]:
-        ti = {"file_path": path, "new_string": "a — b\n"}
+        ti = {"file_path": path, "new_string": "a \u201cb\u201d\n"}
         flagged = lo.collect_violations("Edit", ti) != []
         check(
             f"{label}: flagged={expected}",
@@ -1814,15 +1922,17 @@ def test_archive_cleanup_false_positives() -> None:
             "new slop line still flagged",
             any("AI slop" in v for v in lo.collect_violations("Write", added)),
         )
-        path.write_text("Old line — with a dash.\n")
-        dash = {"file_path": str(path), "content": path.read_text()}
+        path.write_text("Old line \u201cwith\u201d a quote.\n")
+        curly = {"file_path": str(path), "content": path.read_text()}
         check(
-            "existing em dash still flagged",
-            any("em dash" in v for v in lo.collect_violations("Write", dash)),
+            "existing smart quote still flagged",
+            any(
+                "left double quote" in v for v in lo.collect_violations("Write", curly)
+            ),
         )
         edit = {
             "file_path": str(path),
-            "new_string": "Old line, no dash.\n- **Name**: lowercase\n",
+            "new_string": "Old line, no quote.\n- **Name**: lowercase\n",
         }
         check(
             "edit with a new lowercase label still flagged",
@@ -1930,99 +2040,114 @@ def test_wrapped_code_span() -> None:
         )
 
 
-EM = "—"
+CURLY = "\u201c"
 
 
 def bash_violations(cmd: str) -> list[str]:
     return lo.collect_violations("Bash", {"command": cmd})
 
 
-def em_dash_flagged(cmd: str) -> bool:
-    return any("em dash" in v for v in bash_violations(cmd))
+def curly_flagged(cmd: str) -> bool:
+    return any("left double quote" in v for v in bash_violations(cmd))
 
 
 def test_short_combined_and_owned_flags() -> None:
     section("extract_bash_content: short, combined and owned flags are read")
     with tempfile.TemporaryDirectory() as tmp:
-        dashed = Path(tmp) / "my body.md"
-        dashed.write_text(f"Adds the gate {EM} finally.\n")
+        curly_file = Path(tmp) / "my body.md"
+        curly_file.write_text(f"Adds the gate {CURLY} finally.\n")
         clean = Path(tmp) / "clean.md"
         clean.write_text("Adds the gate.\n")
         for name, cmd in (
-            ("git commit -am", f'git commit -am "Fix the lock {EM} again"'),
-            ("git commit -qm", f'git commit -qm "Fix the lock {EM} again"'),
-            ("gh pr create -b", f'gh pr create -t T -b "Adds the gate {EM} finally."'),
-            ("gh issue create -t", f'gh issue create -t "Gate {EM} two" -b "Adds it."'),
-            ("gh pr create -F", f"gh pr create --title T -F '{dashed}'"),
-            ("gh issue comment -F", f"gh issue comment 3 -F '{dashed}'"),
-            ("git commit -F, quoted path", f"git commit -F '{dashed}'"),
-            ("git commit -aF", f"git commit -aF '{dashed}'"),
-            ("git commit --file", f"git commit --file '{dashed}'"),
+            ("git commit -am", f'git commit -am "Fix the lock {CURLY} again"'),
+            ("git commit -qm", f'git commit -qm "Fix the lock {CURLY} again"'),
+            (
+                "gh pr create -b",
+                f'gh pr create -t T -b "Adds the gate {CURLY} finally."',
+            ),
+            (
+                "gh issue create -t",
+                f'gh issue create -t "Gate {CURLY} two" -b "Adds it."',
+            ),
+            ("gh pr create -F", f"gh pr create --title T -F '{curly_file}'"),
+            ("gh issue comment -F", f"gh issue comment 3 -F '{curly_file}'"),
+            ("git commit -F, quoted path", f"git commit -F '{curly_file}'"),
+            ("git commit -aF", f"git commit -aF '{curly_file}'"),
+            ("git commit --file", f"git commit --file '{curly_file}'"),
             (
                 "--body-file, quoted path",
-                f'gh pr create --title T --body-file "{dashed}"',
+                f'gh pr create --title T --body-file "{curly_file}"',
             ),
-            ("gh pr comment -b", f'gh pr comment 1 -b "Fixed {EM} it."'),
-            ("gh pr edit -b", f'gh pr edit 1 -b "Adds {EM} it."'),
-            ("gh pr merge -t", f'gh pr merge 1 -t "Merge {EM} it"'),
-            ("gh pr review -b", f'gh pr review 1 -b "Looks {EM} good."'),
+            ("gh pr comment -b", f'gh pr comment 1 -b "Fixed {CURLY} it."'),
+            ("gh pr edit -b", f'gh pr edit 1 -b "Adds {CURLY} it."'),
+            ("gh pr merge -t", f'gh pr merge 1 -t "Merge {CURLY} it"'),
+            ("gh pr review -b", f'gh pr review 1 -b "Looks {CURLY} good."'),
             (
                 "-b after a single-quoted `;`",
-                f"gh pr create --title 'a; b' -b \"Adds {EM} it.\"",
+                f"gh pr create --title 'a; b' -b \"Adds {CURLY} it.\"",
             ),
             (
                 "-b after an escaped quote",
-                f'gh pr create --title "a \\" ; b" -b "Adds {EM} it."',
+                f'gh pr create --title "a \\" ; b" -b "Adds {CURLY} it."',
             ),
             (
                 "gh -R before pr",
-                f'gh -R o/r pr create --title T --body "Adds {EM} it."',
+                f'gh -R o/r pr create --title T --body "Adds {CURLY} it."',
             ),
-            ("gh --repo= before pr", f'gh --repo=o/r pr create --body "Adds {EM} it."'),
+            (
+                "gh --repo= before pr",
+                f'gh --repo=o/r pr create --body "Adds {CURLY} it."',
+            ),
             (
                 "gh pr -R before comment",
-                f'gh pr -R o/r comment 12 --body "Fixed {EM} it."',
+                f'gh pr -R o/r comment 12 --body "Fixed {CURLY} it."',
             ),
             (
                 "-b after a continuation",
-                f'gh pr create --title T \\\n  -b "Adds {EM} it."',
+                f'gh pr create --title T \\\n  -b "Adds {CURLY} it."',
             ),
             (
                 "-b after a quoted `;`",
-                f'gh pr create --title "a; b" -b "Adds {EM} it."',
+                f'gh pr create --title "a; b" -b "Adds {CURLY} it."',
             ),
-            ("-b after 2>&1", f'gh pr create --title T 2>&1 -b "Adds {EM} it."'),
-            ("-m $(cat file)", f"git commit -m \"$(cat '{dashed}')\""),
-            ("--body $(< file)", f"gh pr comment 1 --body \"$(< '{dashed}')\""),
-            ("unowned -F in a commit command", f"git commit -q; tool -F '{dashed}'"),
+            ("-b after 2>&1", f'gh pr create --title T 2>&1 -b "Adds {CURLY} it."'),
+            ("-m $(cat file)", f"git commit -m \"$(cat '{curly_file}')\""),
+            ("--body $(< file)", f"gh pr comment 1 --body \"$(< '{curly_file}')\""),
+            (
+                "unowned -F in a commit command",
+                f"git commit -q; tool -F '{curly_file}'",
+            ),
         ):
             check(
-                f"{name}: em dash flagged",
-                em_dash_flagged(cmd),
+                f"{name}: smart quote flagged",
+                curly_flagged(cmd),
                 f"got {bash_violations(cmd)!r}",
             )
         for name, cmd in (
-            ("git commit -Sm (a signing key)", f'git commit -Sm "Fix {EM} it"'),
-            ("git commit -t (a template)", f'git commit -t "t{EM}.txt" -m "Fix"'),
-            ("gh pr checkout -b (a branch)", f'gh pr checkout 12 -b "fix{EM}it"'),
-            ("gh api -t (a template)", f"gh api repos/o/r -t '{{{{.x}}}} {EM}'"),
-            ("-t of a later command", f'gh pr create --body B && tool -t "x {EM}"'),
-            ("-b of a piped command", f'gh pr create --body B | tool -b "x {EM}"'),
-            ("-b of a background command", f'gh pr create --body B & tool -b "x {EM}"'),
-            ("-b after a `;`", f'gh pr create --body B; tool -b "x {EM}"'),
-            ("-b on the next line", f'gh pr create --body B\ntool -b "x {EM}"'),
-            ("unowned -F, no commit", f"gh pr view 1; tool -F '{dashed}'"),
-            ("-am outside a commit", f'gh pr view 1 && tool -am "x {EM}"'),
+            ("git commit -Sm (a signing key)", f'git commit -Sm "Fix {CURLY} it"'),
+            ("git commit -t (a template)", f'git commit -t "t{CURLY}.txt" -m "Fix"'),
+            ("gh pr checkout -b (a branch)", f'gh pr checkout 12 -b "fix{CURLY}it"'),
+            ("gh api -t (a template)", f"gh api repos/o/r -t '{{{{.x}}}} {CURLY}'"),
+            ("-t of a later command", f'gh pr create --body B && tool -t "x {CURLY}"'),
+            ("-b of a piped command", f'gh pr create --body B | tool -b "x {CURLY}"'),
+            (
+                "-b of a background command",
+                f'gh pr create --body B & tool -b "x {CURLY}"',
+            ),
+            ("-b after a `;`", f'gh pr create --body B; tool -b "x {CURLY}"'),
+            ("-b on the next line", f'gh pr create --body B\ntool -b "x {CURLY}"'),
+            ("unowned -F, no commit", f"gh pr view 1; tool -F '{curly_file}'"),
+            ("-am outside a commit", f'gh pr view 1 && tool -am "x {CURLY}"'),
             (
                 "gh api -F (a field)",
-                f"git commit -m Fix && gh api graphql -F '{dashed}'",
+                f"git commit -m Fix && gh api graphql -F '{curly_file}'",
             ),
-            ("gh pr view -F", f"git commit -m Fix && gh pr view 1 -F '{dashed}'"),
+            ("gh pr view -F", f"git commit -m Fix && gh pr view 1 -F '{curly_file}'"),
             ("-F - (stdin)", "git commit -F - && echo"),
         ):
             check(
                 f"{name}: not read",
-                not em_dash_flagged(cmd),
+                not curly_flagged(cmd),
                 f"got {bash_violations(cmd)!r}",
             )
 
@@ -2033,14 +2158,14 @@ def test_short_combined_and_owned_flags() -> None:
             f"got {fields!r}",
         )
         both = lo.extract_bash_content(
-            f"git commit -F {clean} && gh pr create --title T -F '{dashed}'"
+            f"git commit -F {clean} && gh pr create --title T -F '{curly_file}'"
         )
         check(
             "-F is the commit message under git, the PR body under gh",
             [(f[0], *f[2:]) for f in both if f[0].startswith("arg -F")]
             == [
                 (f"arg -F {clean}", True, False, True),
-                (f"arg -F {dashed}", False, True, False),
+                (f"arg -F {curly_file}", False, True, False),
             ],
             f"got {both!r}",
         )
@@ -2050,13 +2175,14 @@ def test_short_combined_and_owned_flags() -> None:
             [f[2:] for f in fields] == [(False, False, False)],
             f"got {fields!r}",
         )
-        fields = lo.extract_bash_content(f"git commit -m \"$(cat '{dashed}')\"")
+        fields = lo.extract_bash_content(f"git commit -m \"$(cat '{curly_file}')\"")
         check(
             "$(cat file) is the file's text without the final newline",
-            fields == [("arg -m", f"Adds the gate {EM} finally.", True, False, True)],
+            fields
+            == [("arg -m", f"Adds the gate {CURLY} finally.", True, False, True)],
             f"got {fields!r}",
         )
-        prefixed = f"See $(cat '{dashed}')"
+        prefixed = f"See $(cat '{curly_file}')"
         check(
             "$(cat file) inside a longer value stays as written",
             lo.resolve_value(prefixed) == prefixed,
@@ -2112,7 +2238,7 @@ def test_code_and_data_heredocs() -> None:
     section("extract_bash_content: code and data heredocs are not messages")
     code = (
         "import json, sys\n"
-        f"files = json.load(sys.stdin)  # every changed path {EM} sorted by name\n"
+        f"files = json.load(sys.stdin)  # every changed path {CURLY} sorted by name\n"
         "print(files)\n"
     )
     for name, owner in (
@@ -2129,9 +2255,9 @@ def test_code_and_data_heredocs() -> None:
         found = bash_violations(cmd)
         check(f"{name}: code not linted", found == [], f"got {found!r}")
     kept = f"git commit -m 'Add it' && uv pip python3 <<'EOF'\n{code}EOF"
-    check("uv without run is not a wrapper", em_dash_flagged(kept), "not flagged")
+    check("uv without run is not a wrapper", curly_flagged(kept), "not flagged")
 
-    script = f"echo 'step {EM} one'\ngit commit -m 'Add the report'\n"
+    script = f"echo 'step {CURLY} one'\ngit commit -m 'Add the report'\n"
     for name, owner in (
         ("bash", "bash"),
         ("sh -s with an argument", "sh -s x"),
@@ -2149,16 +2275,16 @@ def test_code_and_data_heredocs() -> None:
             fields == [("arg -m", "Add the report", True, False, True)],
             f"got {fields!r}",
         )
-    bad = f"bash <<'EOF'\ngit commit -m 'Fix the lock {EM} again'\nEOF"
+    bad = f"bash <<'EOF'\ngit commit -m 'Fix the lock {CURLY} again'\nEOF"
     check(
         "bash: a message in the script is still linted",
-        em_dash_flagged(bad),
+        curly_flagged(bad),
         "not flagged",
     )
-    data = f"bash run.sh <<'EOF'\nstep {EM} one\nEOF\ngit commit -m 'Run it'"
+    data = f"bash run.sh <<'EOF'\nstep {CURLY} one\nEOF\ngit commit -m 'Run it'"
     check(
         "bash run.sh: the script's input stays a payload",
-        em_dash_flagged(data),
+        curly_flagged(data),
         "not flagged",
     )
 
@@ -2174,18 +2300,18 @@ def test_code_and_data_heredocs() -> None:
     )
     comment = (
         "gh api repos/o/r/issues/1/comments --input - <<'EOF'\n"
-        f'{{"body": "Fixed {EM} thanks."}}\nEOF'
+        f'{{"body": "Fixed {CURLY} thanks."}}\nEOF'
     )
     found = bash_violations(comment)
     check(
         "gh api --input - JSON: the body is still linted",
-        any("em dash" in v and "body" in v for v in found),
+        any("left double quote" in v and "body" in v for v in found),
         f"got {found!r}",
     )
-    one_char = f"gh api graphql --input - <<'EOF'\n[\"{EM}\"]\nEOF"
+    one_char = f"gh api graphql --input - <<'EOF'\n[\"{CURLY}\"]\nEOF"
     check(
         "gh api --input - JSON: a one-character string is linted",
-        em_dash_flagged(one_char),
+        curly_flagged(one_char),
         "not flagged",
     )
     numbers = (
@@ -2345,6 +2471,7 @@ TESTS = [
     test_label_colon_rules,
     test_plain_label_colon_detector,
     test_punctuation_outside_code,
+    test_dashes_pass_on_every_surface,
     test_british_spellings,
     test_ai_slop_catalog,
     test_autofix_resolves_detected,

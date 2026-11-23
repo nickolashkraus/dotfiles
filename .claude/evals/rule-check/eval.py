@@ -216,8 +216,8 @@ TESTS: list[dict] = [
         "expected_rule_substrings": ["general.md"],
     },
     {
-        "id": "fail_em_dash_in_pr_body",
-        "category": "TP",
+        "id": "clean_em_dash_in_pr_body",
+        "category": "TN",
         "payload": bash(
             "gh pr create --title 'Add upgrade gate' --body "
             + heredoc(
@@ -225,8 +225,7 @@ TESTS: list[dict] = [
                 "## References\n\n- [BYB-1234](https://linear.app/x/BYB-1234): Add Upgrade Gate\n"
             )
         ),
-        "expected": "fail",
-        "expected_rule_substrings": ["typography.md"],
+        "expected": "pass",
     },
     {
         "id": "fail_smart_quotes_in_linear",
@@ -318,13 +317,12 @@ TESTS: list[dict] = [
         "expected": "pass",
     },
     {
-        "id": "fail_pr_comment_em_dash",
-        "category": "TP",
+        "id": "clean_pr_comment_em_dash",
+        "category": "TN",
         "payload": bash(
             "gh pr comment 1234 --body 'Will address — see follow-up in linked thread for context on the design.'"
         ),
-        "expected": "fail",
-        "expected_rule_substrings": ["typography.md"],
+        "expected": "pass",
     },
     {
         "id": "clean_issue_comment",
@@ -445,7 +443,7 @@ TESTS: list[dict] = [
         "payload": bash(
             "gh pr create --title 'Add upgrade gate' --body "
             + heredoc(
-                "This PR adds a feature flag gate — see ~/nickolashkraus/agent-os/notes.\n\n"
+                "This PR adds a “feature flag” gate, see ~/nickolashkraus/agent-os/notes.\n\n"
                 "Closes: BYB-1234\n\n"
                 "## References\n\n"
                 "- [BYB-1234](https://linear.app/x/BYB-1234): Add Upgrade Gate\n"
@@ -544,7 +542,7 @@ TESTS: list[dict] = [
         "category": "TN",
         "payload": bash(
             "python3 - <<'PY'\n"
-            'text = "An em dash — and a hard-wrapped\\nparagraph inside '
+            'text = "A “smart quote” and a hard-wrapped\\nparagraph inside '
             'python source."\n'
             "print(text.upper())\n"
             "PY"

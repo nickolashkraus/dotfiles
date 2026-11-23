@@ -76,7 +76,7 @@ class FakeSubprocess:
 
 
 @contextlib.contextmanager
-def sandbox(rules: str = "Never use em dashes.\n"):
+def sandbox(rules: str = "Never use smart quotes.\n"):
     """Point the hook's rule, log and cache paths at a temp dir and swap in
     FakeSubprocess, so a test never touches ~/.claude or calls a model."""
     names = ("RULES_DIR", "CLAUDE_MD", "LOG_FILE", "CACHE_FILE", "subprocess")
@@ -1154,9 +1154,7 @@ def test_phantom_char_filter() -> None:
         finding(rule_quote="Never use smart quotes."),
         finding(payload_excerpt="curly quotes here"),
         finding(suggested_fix="Replace the quotation marks."),
-        finding(rule_quote="Never use em dashes."),
-        finding(suggested_fix="Remove the em-dash."),
-        finding(rule_quote="Never use an Em Dash."),
+        finding(rule_quote="Never use Smart Quotes."),
         finding(payload_excerpt="\u201chere\u201d"),
     ):
         check(
@@ -1171,16 +1169,115 @@ def test_phantom_char_filter() -> None:
             not rc._is_phantom_char_violation(v, f"Say {c}here."),
             "dropped",
         )
-    v = finding(rule_quote="Never use em dashes.", payload_excerpt="\u2014")
-    check(
-        "real em dash kept",
-        not rc._is_phantom_char_violation(v, "Say \u2014 here."),
-        "dropped",
-    )
     v = finding(rule_quote="Always render Linear issue references as Markdown links")
     check(
         "finding about something else kept",
         not rc._is_phantom_char_violation(v, clean),
+        "dropped",
+    )
+    v = finding(rule_quote="Never use em dashes.", payload_excerpt="\u2014")
+    check(
+        "a dash is not a forbidden character",
+        not rc._is_phantom_char_violation(v, clean),
+        "dropped here, which is _is_dash_violation's job",
+    )
+
+
+def test_dash_filter() -> None:
+    section("_is_dash_violation: no finding against an em or en dash survives")
+    clean = "Use straight quotes and commas here."
+    dashed = "Wait \u2014 see pages 1\u20132."
+
+    def finding(**fields: str) -> dict:
+        return {
+            "rule_quote": "Follow the rule.",
+            "payload_excerpt": "here",
+            "suggested_fix": "Fix it.",
+            **fields,
+        }
+
+    for quote in (
+        "Never use em dashes.",
+        "Never use an Em Dash.",
+        "No em-dashes (`\u2014`). Use commas.",
+        "No emdash in prose.",
+        "Use a hyphen, not an en dash.",
+        "No EN-DASH in ranges.",
+    ):
+        for label, payload in (("absent", clean), ("present", dashed)):
+            check(
+                f"dash rule dropped, dash {label}: {quote}",
+                rc._is_dash_violation(finding(rule_quote=quote), payload),
+                "kept",
+            )
+    for v in (
+        finding(suggested_fix="Remove the em-dash."),
+        finding(suggested_fix="Replace the en dash with a hyphen."),
+        finding(suggested_fix="Remove the Em Dash."),
+        finding(payload_excerpt="an em dash here"),
+        finding(payload_excerpt="Wait \u2014 no."),
+        finding(payload_excerpt="Pages 1\u20132."),
+    ):
+        check(f"phantom dash dropped: {v!r}", rc._is_dash_violation(v, clean), "kept")
+        check(
+            f"same finding kept when the dash is real: {v!r}",
+            not rc._is_dash_violation(v, dashed),
+            "dropped",
+        )
+    for dash in "\u2014\u2013":
+        item = f"- **Element** {dash} description"
+        leadin = finding(
+            rule_quote="Never use ` - ` or ` \u2014 ` as the lead-in separator.",
+            payload_excerpt=item,
+            suggested_fix="Replace the em dash with a colon.",
+        )
+        check(
+            f"U+{ord(dash):04X} list lead-in finding kept",
+            not rc._is_dash_violation(leadin, f"{item}\n"),
+            "dropped",
+        )
+    other = finding(
+        rule_quote="Always render Linear issue references as Markdown links"
+    )
+    for label, payload in (("no dash", clean), ("a dash", dashed)):
+        check(
+            f"finding about something else kept, payload with {label}",
+            not rc._is_dash_violation(other, payload),
+            "dropped",
+        )
+    check(
+        "words that only contain the letters kept",
+        not rc._is_dash_violation(
+            finding(rule_quote="Keep the system dashboard."), clean
+        ),
+        "dropped",
+    )
+    mixed = finding(rule_quote="No em dashes, no smart quotes.")
+    for label, payload in (("no dash", clean), ("a dash", dashed)):
+        check(
+            f"quote that also names smart quotes left alone, payload with {label}",
+            not rc._is_dash_violation(mixed, payload),
+            "dropped",
+        )
+    check(
+        "that quote is dropped as a phantom when no smart quote is present",
+        rc._is_phantom_char_violation(mixed, dashed),
+        "kept",
+    )
+    check(
+        "and kept when a smart quote is present",
+        not rc._is_phantom_char_violation(mixed, "Say \u201chi\u201d \u2014 now."),
+        "dropped",
+    )
+    prompt = rc.build_prompt("", "GitHub PR", "")
+    check("the prompt names no dash rule", not rc.DASH_RULE_RE.search(prompt), "found")
+    for kept in ("contexts: smart quotes", "the body: no smart quotes"):
+        check(f"the prompt still says `{kept}`", kept in prompt, "missing")
+    check(
+        "a capitalized quote that names smart quotes is left alone too",
+        not rc._is_dash_violation(
+            finding(rule_quote="No Em Dashes, no Smart Quotes."), dashed
+        ),
         "dropped",
     )
 
@@ -1418,6 +1515,23 @@ def test_main_verdicts() -> None:
                 "rules/git.md" in err and "payload: See BYB-1234" in err,
                 err,
             )
+    # Singular on purpose: the width filter drops any quote that says "dashes".
+    dash = dict(FINDING, rule_quote="Never use an em dash.", payload_excerpt="\u2014")
+    body = comment("Will address \u2014 see BYB-1234 for the retry guard.")
+    with sandbox() as fake:
+        fake.stdout = verdict_json("fail", [dash])
+        code, err = run_main(body)
+        logged = rc.LOG_FILE.read_text()
+    check("finding against a real em dash dropped", code == 0, f"code={code} {err!r}")
+    check("the drop is logged", "DASH tool=mcp__linear__save_comment" in logged, logged)
+    with sandbox() as fake:
+        fake.stdout = verdict_json("fail", [dash, FINDING])
+        code, err = run_main(body)
+    check(
+        "another finding beside it still blocks, alone",
+        code == 2 and "rules/git.md" in err and "em dash" not in err,
+        f"code={code} stderr={err!r}",
+    )
 
 
 def test_main_fails_open() -> None:
@@ -1838,6 +1952,7 @@ TESTS = [
     test_width_arithmetic_filter,
     test_width_arithmetic_phrases,
     test_phantom_char_filter,
+    test_dash_filter,
     test_run_check_invocation,
     test_run_check_truncates_long_payloads,
     test_run_check_verdict_parsing,
