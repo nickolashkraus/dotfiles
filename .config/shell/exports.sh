@@ -27,9 +27,6 @@ export LANG=en_US.UTF-8
 # Set preferred editor for local and remote sessions.
 export EDITOR='vim'
 
-# Set path to kubeconfig file (prepend Workiva-specific kubeconfig file).
-export KUBECONFIG=$HOME/.kube/workiva.yaml:$HOME/.kube/config
-
 # Set default AWS profile.
 export AWS_PROFILE=master.root
 
