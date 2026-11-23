@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -1441,6 +1443,59 @@ def call_hook(payload: object) -> subprocess.CompletedProcess[str]:
     )
 
 
+# A hook that fails must block, and say that it failed. Each body replaces
+# the start of `main` in a copy of the hook. The harness gives the hook five
+# seconds, so the hook has to answer sooner than that.
+FAILING = [
+    ("hook that raises", '    raise RuntimeError("boom")\n', "boom"),
+    ("hook that exits 1", "    return 1\n", ""),
+    ("hook killed by a signal", "    os.kill(os.getpid(), 9)\n", ""),
+    ("hook that sleeps", "    time.sleep(30)\n", ""),
+    (
+        "hook stuck in a pattern match",
+        '    re.match(r"(a+)+$", "a" * 60 + "b")\n',
+        "",
+    ),
+]
+HARNESS_TIMEOUT = 5.0
+
+
+def failing_hook(body: str) -> tuple[int | None, str]:
+    """Run a copy of the hook whose `main` starts with `body`. Return its exit
+    status, or None when it gave no answer in twice the harness's timeout, and
+    what it wrote to stderr. The copy runs in its own process group, which is
+    killed afterward, so a hook that hangs leaves nothing running."""
+    source = HOOK_PATH.read_text()
+    start = "def main() -> int:\n"
+    assert source.count(start) == 1
+    source = source.replace(start, start + body).replace(
+        "import sys\n", "import sys\nimport time\n", 1
+    )
+    payload = {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": WORK}
+    with tempfile.TemporaryDirectory() as tmp:
+        copy = Path(tmp) / "confirm-risky.py"
+        copy.write_text(source)
+        proc = subprocess.Popen(
+            [sys.executable, str(copy)],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        try:
+            _, stderr = proc.communicate(json.dumps(payload), 2 * HARNESS_TIMEOUT)
+            code: int | None = proc.returncode
+        except subprocess.TimeoutExpired:
+            code, stderr = None, ""
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        proc.communicate()
+    return code, stderr
+
+
 def run_hook(command: str, cwd: str) -> subprocess.CompletedProcess[str]:
     payload = {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": cwd}
     return call_hook(payload)
@@ -1471,6 +1526,18 @@ def main() -> int:
         if actual != 2 or elapsed > TIME_LIMIT:
             failures += 1
             print(f"FAIL {name}: exit {actual} after {elapsed:.1f} s")
+    for command in ("git push --force origin main", "ls"):
+        if "itself failed" in run_hook(command, WORK).stderr:
+            failures += 1
+            print(f"FAIL a verdict is reported as a hook failure: {command}")
+    for name, body, error in FAILING:
+        started = time.monotonic()
+        code, stderr = failing_hook(body)
+        elapsed = time.monotonic() - started
+        told = "itself failed" in stderr and "# user-approved:" in stderr
+        if code != 2 or not told or error not in stderr or elapsed >= HARNESS_TIMEOUT:
+            failures += 1
+            print(f"FAIL {name}: exit {code} after {elapsed:.1f} s: {stderr[-200:]!r}")
     for name, command in OWN_LINE_HINT:
         if "on its own line" not in run_hook(command, WORK).stderr:
             failures += 1
@@ -1481,6 +1548,8 @@ def main() -> int:
         + len(PAYLOADS)
         + len(SECURITY_NOTE)
         + len(OWN_LINE_HINT)
+        + len(FAILING)
+        + 2
     )
     total += len(TIMED)
     print(f"{total - failures}/{total} passed")

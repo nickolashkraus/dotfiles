@@ -36,6 +36,8 @@ import bisect
 import json
 import os
 import re
+import select
+import signal
 import sys
 
 # A flag between a command and its subcommand, such as `kubectl -n payments`
@@ -771,5 +773,50 @@ def main() -> int:
     return 2
 
 
+# The harness stops the hook after 5 seconds (settings.json). The hook stops
+# itself first, so that its own message is the one shown.
+TIME_LIMIT = 4.0
+
+
+def hook_failed(reason: str) -> int:
+    """Block the command and say that the hook failed, not the command."""
+    sys.stderr.write(
+        f"BLOCKED: confirm-risky.py itself failed ({reason}), so this command "
+        "was not checked. The command may be fine.\n\nTell the user the hook "
+        "failed and show them the exact command. If they approve it, retry "
+        f"with `{ALLOWLIST_PREFIX}` on its own line above the command, which "
+        "skips the check. Approval has to come from the user in chat.\n"
+    )
+    return 2
+
+
+def run_checked() -> int:
+    """
+    Run `main` in a child process and return its verdict. A crash, or no
+    verdict within `TIME_LIMIT`, blocks the command.
+
+    `"onFailure": "block"` in settings.json already blocks on both, and stays
+    as the net for a hook that cannot start. Its message does not say what to
+    do next, and a slow pattern match cannot be interrupted from inside the
+    process that runs it, which is why the check runs in a child.
+    """
+    done, child_end = os.pipe()
+    child = os.fork()
+    if child == 0:
+        os.close(done)
+        sys.exit(main())
+    os.close(child_end)
+    # The child's end closes when the child exits, however it exits.
+    finished, _, _ = select.select([done], [], [], TIME_LIMIT)
+    if not finished:
+        os.kill(child, signal.SIGKILL)
+        os.waitpid(child, 0)
+        return hook_failed(f"no verdict after {TIME_LIMIT:g} seconds")
+    code = os.waitstatus_to_exitcode(os.waitpid(child, 0)[1])
+    if code in (0, 2):
+        return code
+    return hook_failed("it crashed; its error is above")
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run_checked())
