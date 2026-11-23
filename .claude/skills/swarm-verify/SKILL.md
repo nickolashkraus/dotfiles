@@ -64,7 +64,7 @@ git -C ~/nickolashkraus/agent-os worktree add \
 Set `{artifact_dir}` to:
 
 ```
-~/nickolashkraus/agent-os/{slug}/domains/{domain}/{projects|teams}/{name}/verifications/{slug}/
+~/nickolashkraus/agent-os/{slug}/domains/{domain}/{project_or_team}/verifications/{slug}/
 ```
 
 If the user directs the verification into an existing agent-os worktree (e.g.,

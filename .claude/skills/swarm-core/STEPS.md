@@ -18,8 +18,13 @@ git -C ~/nickolashkraus/agent-os worktree add \
 ## Artifact directory formula
 
 ```
-~/nickolashkraus/agent-os/{slug}/domains/{domain}/{projects|teams}/{name}/{bucket}/{slug}/
+~/nickolashkraus/agent-os/{slug}/domains/{domain}/{project_or_team}/{bucket}/{slug}/
 ```
+
+`{project_or_team}` is `projects/<name>` or `teams/<name>`, the directory under
+`domains/{domain}/` that owns the run. For a run that belongs to the domain
+itself (e.g., `domains/infrable`), it is empty and its segment drops out:
+`domains/{domain}/{bucket}/{slug}/`.
 
 `{bucket}` is one of `bugs/`, `features/`, `investigations/`, `verifications/`,
 `research/` per the skill (see "Artifacts Live in agent-os" in PRINCIPLES.md).
