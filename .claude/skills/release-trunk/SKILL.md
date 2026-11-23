@@ -10,8 +10,8 @@ description: >
   (e.g. ppp-service) deploy to Prod through EasyDeploy, not a release tag,
   even when a tag-triggered Cloud Build trigger still exists (use `devhub`).
 disable-model-invocation: false
-allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, Monitor, mcp__claude_ai_Slack__slack_send_message_draft
-argument-hint: "[--date YYYY-MM-DD] [--commit SHA] [--no-op] [--cc USER_IDS_OR_HANDLES]"
+allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, Monitor
+argument-hint: "[--no-op]"
 ---
 
 You are cutting a trunk-based release for a Function Health service. The Prod
