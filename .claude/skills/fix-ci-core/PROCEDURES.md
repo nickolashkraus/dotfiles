@@ -366,9 +366,8 @@ The `lint-outbound.py` hook rejects tables whose columns are not padded to
 equal width (each column's header, separator, and data cells must share one
 width with a 1-space buffer). Wide Description/Reason cells make hand-alignment
 error-prone, so build the table programmatically (pad each column to its
-longest cell) and keep the Comment cell short with a reference-style link
-(`[→](url)` plus an `[r1]: <url>` definition below the table) rather than an
-inline one.
+longest cell). The Comment cell is an inline `[→](url)` link, as in the
+template below.
 
 A Description cell that opens with a bot name and a colon (`Pulse: the runner
 was...`) is a line-initial label, so `rule-check.py` requires the next word to
