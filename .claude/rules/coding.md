@@ -222,7 +222,7 @@ actually working at runtime. This applies especially to:
 - Async or concurrency bugs (exercise the actual code path).
 - Anything where the deploy log says "container failed to start".
 
-The procedure: run the failing code path, confirm the failure reproduces, apply
+The procedure: Run the failing code path, confirm the failure reproduces, apply
 the fix, run the path again, confirm it now succeeds. Only then push. If you
 cannot reproduce locally, say so explicitly in the PR body (e.g., "Could not
 reproduce locally because <reason>; please verify in <env>") rather than
