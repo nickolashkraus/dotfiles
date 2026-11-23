@@ -1,0 +1,40 @@
+name: lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    name: shellcheck and shfmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SHELLCHECK_VERSION: v0.11.0
+      SHELLCHECK_SHA256: 8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198
+      SHFMT_VERSION: v3.14.1
+      SHFMT_SHA256: 76e77641faa025814b77f153b29796b8e6fa2fca03e0c76a691608b86c7ea7bf
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck and shfmt
+        working-directory: "${{ runner.temp }}"
+        run: |
+          curl -fsSL -o shellcheck.tar.xz \
+            "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+          curl -fsSL -o shfmt \
+            "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
+          printf '%s  %s\n' \
+            "${SHELLCHECK_SHA256}" shellcheck.tar.xz \
+            "${SHFMT_SHA256}" shfmt | sha256sum --check
+          mkdir -p "${HOME}/.local/bin"
+          tar -xJf shellcheck.tar.xz --strip-components=1 \
+            -C "${HOME}/.local/bin" "shellcheck-${SHELLCHECK_VERSION}/shellcheck"
+          install -m 0755 shfmt "${HOME}/.local/bin/shfmt"
+          echo "${HOME}/.local/bin" >>"${GITHUB_PATH}"
+      - name: Lint
+        run: "shfmt -f . | xargs shellcheck"
+      # yabairc keeps its aligned columns, which shfmt would collapse. It is
+      # still linted above.
+      - name: Check formatting
+        run: "shfmt -f . | grep -vxF .config/yabai/yabairc | xargs shfmt -i 2 -ci -d"
