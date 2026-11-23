@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# shellcheck shell=bash # ShellCheck has no zsh mode, so lint as bash.
 ###############################################################################
 # Shell Functions
 #
@@ -28,6 +29,7 @@ fh_init() {
 # See: https://junegunn.github.io/fzf/tips/ripgrep-integration/
 rfv() (
   RELOAD='reload:rg --column --color=always --smart-case {q} || :'
+  # shellcheck disable=SC2016 # Expanded by the shell fzf spawns, not here.
   OPENER='if [[ $FZF_SELECT_COUNT -eq 0 ]]; then
             vim {1} +{2}     # No selection. Open the current line in Vim.
           else
@@ -67,13 +69,13 @@ _poetry_auto_activate() {
     root=${root:h}
   done
 
-  if [[ -f $root/pyproject.toml ]] && grep -q '\[tool\.poetry\]' $root/pyproject.toml 2>/dev/null; then
+  if [[ -f $root/pyproject.toml ]] && grep -q '\[tool\.poetry\]' "$root/pyproject.toml" 2>/dev/null; then
     # Already active for this project: nothing to do.
-    [[ $root == $_POETRY_ACTIVE_ROOT ]] && return
+    [[ $root == "$_POETRY_ACTIVE_ROOT" ]] && return
 
     # Extract the minor version (e.g., "3.12") from the Python dependency.
     local py_constraint
-    py_constraint=$(grep -E '^\s*python\s*=' $root/pyproject.toml | head -1 | grep -oE '[0-9]+\.[0-9]+')
+    py_constraint=$(grep -E '^\s*python\s*=' "$root/pyproject.toml" | head -1 | grep -oE '[0-9]+\.[0-9]+')
     if [[ -z "$py_constraint" ]]; then
       return
     fi

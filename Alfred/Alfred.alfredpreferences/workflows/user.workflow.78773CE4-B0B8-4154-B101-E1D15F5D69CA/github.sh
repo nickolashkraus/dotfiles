@@ -36,6 +36,7 @@ short_name() {
 # Clones under the directory that match, ranked exact, prefix, initials, then
 # substring, and shorter names first within a rank.
 cloned_matches() {
+  # shellcheck disable=SC2012 # Clone names are plain; -p marks directories.
   ls -1p "${dir}" 2>/dev/null | awk -v q="$1" '
     /\/$/ {
       name = substr($0, 1, length($0) - 1)
@@ -83,7 +84,7 @@ if [[ "${mode}" == pr ]]; then
   read -r name number extra <<<"${query}"
   path=""
   [[ -n "${name}" ]] || usage
-  [[ -z "${extra}" && ( -z "${number}" || "${number}" =~ ^[0-9]+$ ) ]] || usage
+  [[ -z "${extra}" && (-z "${number}" || "${number}" =~ ^[0-9]+$) ]] || usage
 else
   read -r name extra <<<"${query}"
   if [[ -z "${name}" ]]; then

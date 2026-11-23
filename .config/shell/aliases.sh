@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# shellcheck shell=bash # ShellCheck has no zsh mode, so lint as bash.
 ###############################################################################
 # Shell Aliases
 #
