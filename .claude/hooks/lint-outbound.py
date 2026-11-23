@@ -864,11 +864,12 @@ CAT_HEREDOC_SUBST_RE = re.compile(
 # A quoted message, body or title. `-am` and `-qm` are `git commit` flags
 # combined with `-m`; only flags that take no value combine this way, so `-Sm`
 # (a signing key named `m`) is not a message. `-b` and `-t` are gh's short
-# `--body` and `--title`. Both short forms count only under the command that
-# gives them that meaning (see `flag_kind`). A `--body-file` value is a path
-# and is read separately.
+# `--body` and `--title`, and `-n` is `gh release`'s short `--notes`. The short
+# forms and `--notes` count only under the command that gives them that
+# meaning (see `flag_kind`). A `--body-file` value is a path and is read
+# separately.
 FLAG_VALUE_RE = re.compile(
-    r"(?:^|\s)(--?(?:m|message|body|title)|-[apsneioqvz]+m|-[bt])[=\s]+"
+    r"(?:^|\s)(--?(?:m|message|body|title|notes)|-[apsneioqvz]+m|-[btn])[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
 # `gh api` uses `-f field=value` / `-F field=value` / `--field field=value`
@@ -1009,7 +1010,7 @@ def heredoc_feeds_shell(command: str, heredoc_start: int) -> bool:
 # `$(cat file)`).
 HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
 FILE_READER_RE = re.compile(
-    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file|--input)[=\s]+"
+    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--(?:body|notes)-file|--input)[=\s]+"
     r"|=@|<\s*|\bcat\s+)"
     r"([^\s;|&<>()]+)"
 )
@@ -1041,15 +1042,16 @@ def heredoc_writes_other_file(command: str, heredoc_start: int) -> bool:
     return not any(n in readers for n in names) and not (opaque and readers)
 
 
-# `gh ... --body-file <path>`, `gh pr create -F <path>` and `git commit
-# -F|--file <path>` point the command at a file rather than carrying the body
-# inline. The Write call that created the file is linted only when it has
-# a Markdown extension, so non-`.md` bodies (like `/tmp/commit-msg.txt`)
-# bypass the lint entirely. Read the file contents at hook-eval time so the
-# body is always inspected regardless of file extension. `-F` means
-# a different thing under each command (see `extract_bash_content`).
+# `gh ... --body-file <path>`, `gh release ... --notes-file <path>`, `gh pr
+# create -F <path>` and `git commit -F|--file <path>` point the command at
+# a file rather than carrying the body inline. The Write call that created the
+# file is linted only when it has a Markdown extension, so non-`.md` bodies
+# (like `/tmp/commit-msg.txt`) bypass the lint entirely. Read the file contents
+# at hook-eval time so the body is always inspected regardless of file
+# extension. `-F` means a different thing under each command (see
+# `extract_bash_content`).
 PATH_TOKEN = r"(\"[^\"]*\"|'[^']*'|[^\s;|&<>()]+)"
-BODY_FILE_FLAG_RE = re.compile(rf"(?:^|\s)--body-file[=\s]+{PATH_TOKEN}")
+BODY_FILE_FLAG_RE = re.compile(rf"(?:^|\s)(--(?:body|notes)-file)[=\s]+{PATH_TOKEN}")
 FILE_FLAG_RE = re.compile(rf"(?:^|\s)(?:--file|-[apsneioqvz]*F)[=\s]+{PATH_TOKEN}")
 # `-m "$(cat body.md)"` sends the file's text as the value.
 CAT_FILE_SUBST_RE = re.compile(rf"\$\(\s*(?:cat\s+|<\s*){PATH_TOKEN}\s*\)")
@@ -1097,12 +1099,13 @@ GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w]
 GH_OPT = r"(?:-R|--repo)(?:=|\s+)\S+"
 GH_PREFIX = rf"\bgh(?:\s+(?:{GH_OPT}))*\s+"
 GH_COMMAND_RE = re.compile(
-    rf"{GH_PREFIX}(?:(pr|issue)(?:\s+(?:{GH_OPT}))*\s+(\w+)|api\b)"
+    rf"{GH_PREFIX}(?:(pr|issue|release)(?:\s+(?:{GH_OPT}))*\s+(\w+)|api\b)"
 )
-# The `gh pr` and `gh issue` subcommands whose `-b`, `-t` and `-F` are a body,
-# a title and a body file. Elsewhere they mean other things (`gh pr checkout
-# -b` is a branch).
-GH_TEXT_SUBCOMMANDS = frozenset({"comment", "create", "edit", "merge", "review"})
+# The `gh pr`, `gh issue` and `gh release` subcommands whose `-b` (or `-n`),
+# `-t` and `-F` are a body (or release notes), a title and a body file.
+# Elsewhere they mean other things (`gh pr checkout -b` is a branch, `gh
+# release view -t` a template). `new` is the alias of `create`.
+GH_TEXT_SUBCOMMANDS = frozenset({"comment", "create", "edit", "merge", "new", "review"})
 OUTBOUND_COMMAND_RE = re.compile(rf"{GIT_COMMIT_RE.pattern}|{GH_COMMAND_RE.pattern}")
 QUOTED_RE = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'[^']*'")
 # What ends a simple command. The `&` of a redirection such as `2>&1` does not.
@@ -1151,7 +1154,7 @@ def flag_kind(flag: str, owner: str) -> str:
     if owner == "commit" and name.endswith("m"):
         return "message"
     if owner == "gh-text":
-        return {"b": "body", "t": "title"}.get(name, "")
+        return {"b": "body", "n": "body", "notes": "body", "t": "title"}.get(name, "")
     return ""
 
 
@@ -1179,7 +1182,8 @@ def extract_bash_content(
     command: str,
 ) -> list[tuple[str, str, bool, bool, bool]]:
     """
-    Extract text payloads from `git commit` and `gh {pr,issue} ...` commands.
+    Extract text payloads from `git commit` and `gh {pr,issue,release} ...`
+    commands.
 
     Returns a list of (field_label, text, is_commit, is_pr_body,
     is_full_commit). `is_commit` toggles the Co-Authored-By check; `is_pr_body`
@@ -1193,7 +1197,7 @@ def extract_bash_content(
         return []
 
     is_commit = bool(GIT_COMMIT_RE.search(command))
-    has_gh = bool(re.search(rf"{GH_PREFIX}(?:pr|issue|api)\b", command))
+    has_gh = bool(re.search(rf"{GH_PREFIX}(?:pr|issue|release|api)\b", command))
     is_pr_body = any(
         m.group(1) == "pr" and m.group(2) in ("create", "edit")
         for m in GH_COMMAND_RE.finditer(command)
@@ -1288,19 +1292,20 @@ def extract_bash_content(
                 (f"arg --field {m.group(1)} @{path}", text, False, is_pr_body, False)
             )
 
-    # `gh ... --body-file <path>` (any gh subcommand). Read the file so
-    # the body is linted regardless of its extension. Silent when the file
-    # cannot be read so a missing path does not block the command (gh itself
-    # will surface the file-not-found error at execution time). A quoted
-    # variable hides the body, so it is blocked like a variable `--body`.
+    # `gh ... --body-file <path>` or `--notes-file <path>` (any gh
+    # subcommand). Read the file so the body is linted regardless of its
+    # extension. Silent when the file cannot be read so a missing path does not
+    # block the command (gh itself will surface the file-not-found error at
+    # execution time). A quoted variable hides the body, so it is blocked like
+    # a variable `--body`.
     for m in BODY_FILE_FLAG_RE.finditer(redacted):
-        path = m.group(1).strip("'\"")
-        if path != m.group(1) and BARE_VAR_RE.match(path):
-            fields.append(("arg --body-file", path, False, is_pr_body, False))
+        flag, path = m.group(1), m.group(2).strip("'\"")
+        if path != m.group(2) and BARE_VAR_RE.match(path):
+            fields.append((f"arg {flag}", path, False, is_pr_body, False))
             continue
         text = read_file(path)
         if text:
-            fields.append((f"arg --body-file {path}", text, False, is_pr_body, False))
+            fields.append((f"arg {flag} {path}", text, False, is_pr_body, False))
 
     # `-F` is the message file under `git commit` and the body file under gh's
     # text subcommands, but a field under `gh api`. An `-F` that no command
@@ -1428,6 +1433,12 @@ def is_linear_mirror_path(path: str) -> bool:
     )
 
 
+# Top-level MCP fields whose whole subtree is not prose. An email attachment's
+# `content` is base64 or a `sha256:<hash>:<path>` file reference, whose path
+# would read as a local-only path.
+NON_PROSE_SUBTREES = frozenset({"attachments"})
+
+
 def extract_fields(
     tool_name: str, tool_input: dict
 ) -> list[tuple[str, str, bool, bool, bool, bool]]:
@@ -1476,6 +1487,8 @@ def extract_fields(
 
     for label, value in walk_strings(tool_input):
         if not value or len(value) < 2:
+            continue
+        if label.split(".")[0].split("[")[0] in NON_PROSE_SUBTREES:
             continue
         out.append((label, value, True, False, True, False))
 

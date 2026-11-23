@@ -73,7 +73,7 @@
         ]
       },
       {
-        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__create_draft|Bash|Edit|Write",
+        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment|update-comment|create-meeting-note)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__(create_draft|send_message|reply|forward|update_draft)|Bash|Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -83,7 +83,7 @@
         ]
       },
       {
-        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__create_draft|Bash",
+        "matcher": "mcp__linear__save_.*|mcp__notion__notion-(create-pages|update-page|create-comment|update-comment|create-meeting-note)|mcp__claude_ai_Slack__slack_(send_message|send_message_draft|schedule_message|create_canvas|update_canvas)|mcp__claude_ai_Gmail__(create_draft|send_message|reply|forward|update_draft)|Bash",
         "hooks": [
           {
             "type": "command",

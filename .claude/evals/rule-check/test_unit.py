@@ -20,6 +20,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,7 @@ import traceback
 from pathlib import Path
 
 HOOK_PATH = Path(__file__).resolve().parents[2] / "hooks" / "rule-check.py"
+SETTINGS_PATH = HOOK_PATH.parents[1] / "settings.json"
 
 spec = importlib.util.spec_from_file_location("rule_check", HOOK_PATH)
 assert spec is not None and spec.loader is not None, f"cannot load {HOOK_PATH}"
@@ -561,20 +563,28 @@ def test_extract_mcp_payloads_non_prose_fields_filtered() -> None:
 def test_extract_mcp_payloads_every_identifier_field() -> None:
     section("extract_mcp_payloads: every identifier field, as the tools spell it")
     fields = (
+        "accountId",
         "addReleases",
         "assignee",
+        "bcc",
         "blockedBy",
         "blocks",
+        "calendarId",
+        "cc",
         "channel",
         "channelId",
+        "comment_id",
         "cursor",
         "cycle",
         "delegate",
+        "draftId",
         "dueDate",
         "duplicateOf",
         "estimate",
+        "eventId",
         "id",
         "labels",
+        "messageId",
         "milestone",
         "pageId",
         "parent",
@@ -587,9 +597,13 @@ def test_extract_mcp_payloads_every_identifier_field() -> None:
         "removeBlocks",
         "removeReleases",
         "removeRelatedTo",
+        "replyThreadId",
+        "replyToMessageId",
         "setReleases",
+        "skill",
         "state",
         "team",
+        "to",
         "url",
     )
     for name in fields:
@@ -665,10 +679,22 @@ def test_gated_mcp_matches() -> None:
         ("mcp__claude_ai_Slack__slack_update_canvas", True),
         ("mcp__claude_ai_Slack__slack_schedule_message", True),
         ("mcp__claude_ai_Gmail__create_draft", True),
+        ("mcp__claude_ai_Gmail__send_message", True),
+        ("mcp__claude_ai_Gmail__reply", True),
+        ("mcp__claude_ai_Gmail__forward", True),
+        ("mcp__claude_ai_Gmail__update_draft", True),
+        ("mcp__notion__notion-update-comment", True),
+        ("mcp__notion__notion-create-meeting-note", True),
         ("mcp__linear__list_issues", False),
         ("mcp__notion__notion-fetch", False),
         ("mcp__notion__notion-update-page-favorites", False),
+        ("mcp__notion__notion-get-comments", False),
+        ("mcp__notion__notion-delete-comment", False),
+        ("mcp__notion__notion-query-meeting-notes", False),
         ("mcp__claude_ai_Slack__slack_read_channel", False),
+        ("mcp__claude_ai_Gmail__search_threads", False),
+        ("mcp__claude_ai_Gmail__get_draft", False),
+        ("mcp__claude_ai_Gmail__delete_draft", False),
         ("Bash", False),
         ("Edit", False),
     ]
@@ -713,6 +739,223 @@ def test_extract_payloads_dispatch() -> None:
 
     none_out = rc.extract_payloads("Bash", {"command": None})
     check("non-string Bash command returns empty", none_out == [], f"got {none_out!r}")
+
+
+def hook_matcher(script: str) -> str:
+    """The PreToolUse matcher of the settings.json entry that runs `script`."""
+    settings = json.loads(SETTINGS_PATH.read_text())
+    for entry in settings["hooks"]["PreToolUse"]:
+        if any(h.get("command", "").endswith(script) for h in entry["hooks"]):
+            return entry["matcher"]
+    raise AssertionError(f"no PreToolUse entry runs {script}")
+
+
+def test_settings_matcher_gates_outbound_tools() -> None:
+    section("settings.json: the rule-check matcher runs on every gated tool")
+    # Claude Code tests a matcher that is not a plain list of names as an
+    # unanchored JavaScript regex, which `re.search` mirrors.
+    matcher = hook_matcher("rule-check.py")
+    for tool in (
+        "mcp__claude_ai_Gmail__create_draft",
+        "mcp__claude_ai_Gmail__send_message",
+        "mcp__claude_ai_Gmail__reply",
+        "mcp__claude_ai_Gmail__forward",
+        "mcp__claude_ai_Gmail__update_draft",
+        "mcp__notion__notion-update-comment",
+        "mcp__notion__notion-create-meeting-note",
+    ):
+        check(f"{tool} gated", re.search(matcher, tool) is not None)
+        check(f"{tool} in GATED_MCP_RE", rc.GATED_MCP_RE.match(tool) is not None)
+    for tool in (
+        "mcp__claude_ai_Gmail__search_threads",
+        "mcp__claude_ai_Gmail__get_thread",
+        "mcp__claude_ai_Gmail__get_draft",
+        "mcp__claude_ai_Gmail__list_drafts",
+        "mcp__claude_ai_Gmail__delete_draft",
+        "mcp__notion__notion-fetch",
+        "mcp__notion__notion-get-comments",
+        "mcp__notion__notion-delete-comment",
+        "mcp__notion__notion-query-meeting-notes",
+        "mcp__notion__notion-link-meeting-note-to-calendar-event",
+    ):
+        check(f"{tool} not gated", re.search(matcher, tool) is None)
+
+
+def test_extract_mcp_payloads_email_and_comments() -> None:
+    section("extract_mcp_payloads: email, comment and meeting-note fields")
+    address = "member.support@example.com"
+    reference = "sha256:" + "0" * 64 + ":/Users/nobody/Downloads/menu.pdf"
+    attachments = [
+        {
+            "content": reference,
+            "filename": "quarterly-membership-report.pdf",
+            "mimeType": "application/octet-stream",
+        }
+    ]
+    prose = "Thanks for the quick turnaround on the gate."
+    for tool, tool_input, expected in (
+        (
+            "mcp__claude_ai_Gmail__send_message",
+            {
+                "to": [address],
+                "cc": [address],
+                "bcc": [address],
+                "subject": "Membership upgrade gate is live",
+                "body": prose,
+                "htmlBody": f"<p>{prose}</p>",
+                "replyThreadId": "18c2f0a1b2c3d4e5f6a7b8c9",
+                "replyToMessageId": "18c2f0a1b2c3d4e5f6a7b8c9",
+                "draftId": "r-1234567890123456789012",
+                "attachments": attachments,
+            },
+            ["subject", "body", "htmlBody"],
+        ),
+        (
+            "mcp__claude_ai_Gmail__reply",
+            {
+                "messageId": "18c2f0a1b2c3d4e5f6a7b8c9",
+                "to": [address],
+                "body": prose,
+                "attachments": attachments,
+            },
+            ["body"],
+        ),
+        (
+            "mcp__claude_ai_Gmail__forward",
+            {
+                "messageId": "18c2f0a1b2c3d4e5f6a7b8c9",
+                "to": [address],
+                "forwardText": prose,
+                "htmlBody": f"<p>{prose}</p>",
+            },
+            ["forwardText", "htmlBody"],
+        ),
+        (
+            "mcp__claude_ai_Gmail__update_draft",
+            {
+                "draftId": "r-1234567890123456789012",
+                "subject": "Membership upgrade gate is live",
+                "body": prose,
+                "attachments": attachments,
+            },
+            ["subject", "body"],
+        ),
+        (
+            "mcp__notion__notion-update-comment",
+            {
+                "comment_id": "1f2e3d4c-5b6a-4789-8abc-def012345678",
+                "markdown": prose,
+                "skill": "notion-meeting-preparation",
+            },
+            ["markdown"],
+        ),
+        (
+            "mcp__notion__notion-create-meeting-note",
+            {
+                "title": "Membership upgrade weekly sync",
+                "content": f"## Notes\n\n{prose}",
+                "parent": {"type": "page", "url": "https://www.notion.so/abc"},
+                "calendarEvent": {
+                    "calendar": {
+                        "accountId": "0b7f9c2e-5d4a-4c1e-9f3a-2b6d8e1a7c55",
+                        "calendarId": address,
+                    },
+                    "eventId": "0b7f9c2e-5d4a-4c1e-9f3a-2b6d8e1a7c55",
+                },
+            },
+            ["title", "content"],
+        ),
+    ):
+        out = rc.extract_payloads(tool, tool_input)
+        labels = [label.split(" ", 1)[1] for label, _ in out]
+        check(
+            f"{tool.split('__')[-1]}: only prose extracted",
+            labels == expected,
+            f"got {labels!r}",
+        )
+    nested = rc.extract_mcp_payloads(
+        "mcp__notion__notion-create-pages",
+        {"pages": [{"attachments": prose, "content": prose}]},
+    )
+    check(
+        "`attachments` below the top level is still checked",
+        [label for label, _ in nested]
+        == [
+            "notion-create-pages pages[0].attachments",
+            "notion-create-pages pages[0].content",
+        ],
+        f"got {nested!r}",
+    )
+
+
+def test_extract_bash_payloads_gh_release() -> None:
+    section("extract_bash_payloads: gh release notes and titles")
+    with tempfile.TemporaryDirectory() as tmp:
+        notes = Path(tmp) / "notes.md"
+        notes.write_text("Adds the membership gate.\n")
+        text = "Adds the membership gate.\n"
+        for cmd, expected in (
+            (
+                'gh release create v1.2.3 --title "v1.2.3" --notes "Adds the gate."',
+                [
+                    ("GitHub release arg --title", "v1.2.3"),
+                    ("GitHub release arg --notes", "Adds the gate."),
+                ],
+            ),
+            (
+                "gh release create v1.2.3 -t 'v1.2.3' -n 'Adds the gate.'",
+                [
+                    ("GitHub release arg -t", "v1.2.3"),
+                    ("GitHub release arg -n", "Adds the gate."),
+                ],
+            ),
+            (
+                'gh release edit v1.2.3 --notes="Adds the gate."',
+                [("GitHub release arg --notes", "Adds the gate.")],
+            ),
+            (
+                'gh release new v1.2.3 -n "Adds the gate."',
+                [("GitHub release arg -n", "Adds the gate.")],
+            ),
+            (
+                'gh -R o/r release edit v1.2.3 -n "Adds the gate."',
+                [("GitHub release arg -n", "Adds the gate.")],
+            ),
+            (
+                f"gh release create v1 -F '{notes}'",
+                [(f"GitHub release -F {notes}", text)],
+            ),
+            (
+                f"gh release edit v1 --notes-file {notes}",
+                [(f"GitHub release --notes-file {notes}", text)],
+            ),
+            (
+                "gh release create v1 -F - <<'EOF'\nAdds the gate.\nEOF",
+                [("GitHub release heredoc<EOF>", "Adds the gate.")],
+            ),
+            (
+                (
+                    "cat > notes.md <<'EOF'\nAdds the gate.\nEOF\n"
+                    "gh release create v1 --notes-file notes.md"
+                ),
+                [("GitHub release heredoc<EOF>", "Adds the gate.")],
+            ),
+            (
+                'git commit -m "Fix the lock" && gh release create v1 -n "Adds the gate."',
+                [
+                    ("git commit message arg -m", "Fix the lock"),
+                    ("GitHub release arg -n", "Adds the gate."),
+                ],
+            ),
+            ("gh release view v1 -t '{{.body}} of the release'", []),
+            ("gh release list -L 5 -t '{{.tagName}} of the release'", []),
+            ("gh release download v1 -p 'dist-*.tar.gz' -O 'release.tar.gz'", []),
+            ("gh release download v1 -n 'not release notes'", []),
+            (f"gh release view v1 -F '{notes}'", []),
+            ("gh release create v1 --notes-from-tag 'dist/asset.zip'", []),
+        ):
+            out = rc.extract_bash_payloads(cmd)
+            check(f"`{cmd[:44]}`", out == expected, f"got {out!r}")
 
 
 def test_load_rules_smoke() -> None:
@@ -1938,6 +2181,9 @@ TESTS = [
     test_skip_sentinel_case_insensitive,
     test_skip_sentinel_no_match,
     test_gated_mcp_matches,
+    test_settings_matcher_gates_outbound_tools,
+    test_extract_mcp_payloads_email_and_comments,
+    test_extract_bash_payloads_gh_release,
     test_extract_payloads_dispatch,
     test_load_rules_smoke,
     test_load_rules_order_and_sources,

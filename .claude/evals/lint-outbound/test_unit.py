@@ -15,12 +15,15 @@ Run: python3 .claude/evals/lint-outbound/test_unit.py
 from __future__ import annotations
 
 import importlib.util
+import json
+import re
 import sys
 import tempfile
 import traceback
 from pathlib import Path
 
 HOOK_PATH = Path(__file__).resolve().parents[2] / "hooks" / "lint-outbound.py"
+SETTINGS_PATH = HOOK_PATH.parents[1] / "settings.json"
 
 spec = importlib.util.spec_from_file_location("lint_outbound", HOOK_PATH)
 assert spec is not None and spec.loader is not None, f"cannot load {HOOK_PATH}"
@@ -2591,6 +2594,233 @@ def test_body_file_path_is_not_the_body() -> None:
     check("an unquoted variable passes as before", found == [], f"got {found!r}")
 
 
+def test_gh_release_text() -> None:
+    section("extract_bash_content: gh release notes and titles are read")
+    with tempfile.TemporaryDirectory() as tmp:
+        notes = Path(tmp) / "notes.txt"
+        notes.write_text(f"Adds the gate {CURLY} finally.\n")
+        for name, cmd in (
+            ("create --notes", f'gh release create v1.2.3 --notes "Adds {CURLY} it."'),
+            ("create --notes=", f'gh release create v1.2.3 --notes="Adds {CURLY} it."'),
+            ("create -n", f'gh release create v1.2.3 -n "Adds {CURLY} it."'),
+            ("create --title", f'gh release create v1 --title "v1 {CURLY}" -n N'),
+            ("create -t", f'gh release create v1 -t "v1 {CURLY}" -n N'),
+            ("edit --notes", f"gh release edit v1 --notes 'Adds {CURLY} it.'"),
+            ("edit -n", f'gh release edit v1 -n "Adds {CURLY} it."'),
+            ("edit -t", f'gh release edit v1 -t "v1 {CURLY}"'),
+            ("new (alias of create) -n", f'gh release new v1 -n "Adds {CURLY} it."'),
+            ("create -F", f"gh release create v1 -F '{notes}'"),
+            ("edit -F", f"gh release edit v1 -F {notes}"),
+            ("create --notes-file", f"gh release create v1 --notes-file {notes}"),
+            ("edit --notes-file=", f"gh release edit v1 --notes-file='{notes}'"),
+            (
+                "create -F - with a heredoc",
+                f"gh release create v1 -F - <<'EOF'\nAdds {CURLY} it.\nEOF",
+            ),
+            (
+                "edit --notes-file - with a heredoc",
+                f"gh release edit v1 --notes-file - <<'EOF'\nAdds {CURLY} it.\nEOF",
+            ),
+            (
+                "a .txt notes file written by the same command",
+                (
+                    f"cat > notes.txt <<'EOF'\nAdds {CURLY} it.\nEOF\n"
+                    "gh release create v1 --notes-file notes.txt"
+                ),
+            ),
+            ("gh -R before release", f'gh -R o/r release create v1 -n "{CURLY}x"'),
+            ("gh release -R before edit", f'gh release -R o/r edit v1 -n "{CURLY}x"'),
+        ):
+            check(
+                f"gh release {name}: smart quote flagged",
+                curly_flagged(cmd),
+                f"got {bash_violations(cmd)!r}",
+            )
+        clean = (
+            "gh release create v1.2.3 --title 'v1.2.3' "
+            "--notes 'Adds the upgrade gate.' --target main"
+        )
+        check(
+            "clean release notes pass",
+            bash_violations(clean) == [],
+            f"got {bash_violations(clean)!r}",
+        )
+        for name, cmd in (
+            ("view -t (a template)", f"gh release view v1 -t '{{{{.body}}}} {CURLY}'"),
+            ("list -t (a template)", f"gh release list -t '{{{{.tagName}}}} {CURLY}'"),
+            ("verify -t (a template)", f"gh release verify v1 -t '{CURLY}x'"),
+            ("view -q", f"gh release view v1 --json body -q '.body {CURLY}'"),
+            ("download -p", f"gh release download v1 -p '*{CURLY}.tgz'"),
+            ("download -O", f"gh release download v1 -O 'out{CURLY}.tgz'"),
+            ("download -D", f"gh release download v1 -D 'dir{CURLY}'"),
+            ("view -F", f"git commit -m Fix && gh release view v1 -F '{notes}'"),
+            ("download -n", f"gh release download v1 -n '{CURLY}x'"),
+            (
+                "an asset display label",
+                f"gh release create v1 -n N 'dist/a.zip#Label {CURLY}'",
+            ),
+            (
+                "--notes-from-tag is not --notes",
+                f"gh release create v1 --notes-from-tag 'a{CURLY}.zip'",
+            ),
+            ("-n of a later command", f'gh release create v1 -n N; tool -n "{CURLY}x"'),
+            (
+                "--notes of a later command",
+                f'gh release create v1 -n N && tool --notes "{CURLY}x"',
+            ),
+            ("git commit -n (no verify)", f'git commit -m Fix -n "{CURLY}x"'),
+        ):
+            check(
+                f"gh release {name}: not read",
+                not curly_flagged(cmd),
+                f"got {bash_violations(cmd)!r}",
+            )
+        fields = lo.extract_bash_content(f"gh release edit v1 --notes-file {notes}")
+        check(
+            "--notes-file is labeled with its own flag",
+            [f[0] for f in fields] == [f"arg --notes-file {notes}"],
+            f"got {fields!r}",
+        )
+    for cmd, expected in (
+        (
+            "gh release create v1 -n 'Adds it.'",
+            [("arg -n", "Adds it.", False, False, False)],
+        ),
+        (
+            "gh release edit v1 --notes 'Adds it.' -t 'v1'",
+            [
+                ("arg --notes", "Adds it.", False, False, False),
+                ("arg -t", "v1", False, False, False),
+            ],
+        ),
+        ("gh release view v1 -t '{{.body}}'", []),
+        ("gh release list -L 5 -t '{{.tagName}}'", []),
+        ("gh release download v1 -p '*.tgz' -O out.tgz", []),
+    ):
+        fields = lo.extract_bash_content(cmd)
+        check(f"`{cmd[:40]}` fields", fields == expected, f"got {fields!r}")
+    found = bash_violations("gh release create v1 --notes 'Closes #12'")
+    check(
+        "release notes are not a PR body",
+        not any("Closes:" in v for v in found),
+        f"got {found!r}",
+    )
+    subject = "S" * 60
+    found = bash_violations(
+        f"git commit -F - <<'EOF'\n{subject}\nEOF\ngh release create v1 --notes N"
+    )
+    check(
+        "gh release in the command keeps the heredoc length checks off",
+        found == [],
+        f"got {found!r}",
+    )
+    found = bash_violations('gh release create v1 --notes-file "$f"')
+    check(
+        "a quoted variable --notes-file is blocked as a bypass",
+        any(v.startswith("arg --notes-file:") for v in found),
+        f"got {found!r}",
+    )
+
+
+def hook_matcher(script: str) -> str:
+    """The PreToolUse matcher of the settings.json entry that runs `script`."""
+    settings = json.loads(SETTINGS_PATH.read_text())
+    for entry in settings["hooks"]["PreToolUse"]:
+        if any(h.get("command", "").endswith(script) for h in entry["hooks"]):
+            return entry["matcher"]
+    raise AssertionError(f"no PreToolUse entry runs {script}")
+
+
+OUTBOUND_MCP_TOOLS = (
+    "mcp__claude_ai_Gmail__create_draft",
+    "mcp__claude_ai_Gmail__send_message",
+    "mcp__claude_ai_Gmail__reply",
+    "mcp__claude_ai_Gmail__forward",
+    "mcp__claude_ai_Gmail__update_draft",
+    "mcp__notion__notion-update-comment",
+    "mcp__notion__notion-create-meeting-note",
+)
+READ_ONLY_NEIGHBORS = (
+    "mcp__claude_ai_Gmail__search_threads",
+    "mcp__claude_ai_Gmail__get_thread",
+    "mcp__claude_ai_Gmail__get_draft",
+    "mcp__claude_ai_Gmail__list_drafts",
+    "mcp__claude_ai_Gmail__delete_draft",
+    "mcp__notion__notion-fetch",
+    "mcp__notion__notion-get-comments",
+    "mcp__notion__notion-delete-comment",
+    "mcp__notion__notion-query-meeting-notes",
+    "mcp__notion__notion-link-meeting-note-to-calendar-event",
+)
+FILE_REFERENCE = "sha256:" + "0" * 64 + ":/Users/nobody/Downloads/menu.pdf"
+
+
+def test_outbound_mcp_surfaces() -> None:
+    section("settings.json matcher and payloads: email and Notion comment tools")
+    # Claude Code tests a matcher that is not a plain list of names as an
+    # unanchored JavaScript regex, which `re.search` mirrors.
+    matcher = hook_matcher("lint-outbound.py")
+    for tool in OUTBOUND_MCP_TOOLS:
+        check(f"{tool} gated", re.search(matcher, tool) is not None)
+    for tool in READ_ONLY_NEIGHBORS:
+        check(f"{tool} not gated", re.search(matcher, tool) is None)
+
+    attachment = {"content": FILE_REFERENCE, "filename": "menu.pdf"}
+    for tool, tool_input, field in (
+        (
+            "mcp__claude_ai_Gmail__send_message",
+            {"to": ["a@example.com"], "subject": "Lunch", "body": "Noon works."},
+            "body",
+        ),
+        (
+            "mcp__claude_ai_Gmail__send_message",
+            {"to": ["a@example.com"], "subject": "Lunch at noon", "body": "Yes."},
+            "subject",
+        ),
+        (
+            "mcp__claude_ai_Gmail__reply",
+            {"messageId": "18c2f0a1b2c3d4e5", "htmlBody": "<p>Noon works.</p>"},
+            "htmlBody",
+        ),
+        (
+            "mcp__claude_ai_Gmail__forward",
+            {"messageId": "18c2f0a1b2c3d4e5", "forwardText": "See below."},
+            "forwardText",
+        ),
+        (
+            "mcp__claude_ai_Gmail__update_draft",
+            {"draftId": "r-123", "body": "Noon works."},
+            "body",
+        ),
+        (
+            "mcp__notion__notion-update-comment",
+            {"comment_id": "1f2e3d4c", "markdown": "Fixed in the new draft."},
+            "markdown",
+        ),
+        (
+            "mcp__notion__notion-create-meeting-note",
+            {"title": "Weekly sync", "content": "## Notes\n\nShipped the gate."},
+            "content",
+        ),
+    ):
+        clean = {**tool_input, "attachments": [attachment]}
+        found = lo.collect_violations(tool, clean)
+        check(f"{tool.split('__')[-1]}: clean payload passes", found == [], f"{found}")
+        curly = {**tool_input, field: f"{CURLY}{tool_input[field]}"}
+        found = lo.collect_violations(tool, curly)
+        check(
+            f"{tool.split('__')[-1]} {field}: smart quote flagged",
+            any(v.startswith(f"{field} line 1: left double quote") for v in found),
+            f"got {found!r}",
+        )
+    bare = lo.collect_violations("mcp__x__y", {"content": FILE_REFERENCE})
+    check(
+        "a file reference outside `attachments` is still linted",
+        any("local-only path" in v for v in bare),
+        f"got {bare!r}",
+    )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -2629,6 +2859,8 @@ TESTS = [
     test_code_and_data_heredocs,
     test_multiple_m_flags,
     test_body_file_path_is_not_the_body,
+    test_gh_release_text,
+    test_outbound_mcp_surfaces,
 ]
 
 

@@ -13,11 +13,14 @@ formats, missed conventions).
 Gated tools: prose surfaces only.
 
 - Bash: `git commit`, `gh pr create|edit`, `gh pr comment`, `gh issue
-  create|edit|comment`, `gh api` with `body`/`title` fields.
+  create|edit|comment`, `gh release create|edit`, `gh api` with
+  `body`/`title` fields.
 - MCP: `mcp__linear__save_*`, `mcp__notion__notion-(create-pages|update-page
-  |create-comment)`, `mcp__claude_ai_Slack__slack_(send_message|
-  send_message_draft|schedule_message|create_canvas|update_canvas)`,
-  `mcp__claude_ai_Gmail__create_draft`.
+  |create-comment|update-comment|create-meeting-note)`,
+  `mcp__claude_ai_Slack__slack_(send_message|send_message_draft|
+  schedule_message|create_canvas|update_canvas)`,
+  `mcp__claude_ai_Gmail__(create_draft|send_message|reply|forward|
+  update_draft)`.
 
 Source-code Edit/Write is intentionally NOT in this hook; lint-outbound.py's
 regex layer handles the deterministic source-code rules at zero latency.
@@ -72,10 +75,12 @@ SKIP_RE = re.compile(
 GATED_MCP_RE = re.compile(
     r"^(?:"
     r"mcp__linear__save_.*"
-    r"|mcp__notion__notion-(?:create-pages|update-page|create-comment)"
+    r"|mcp__notion__notion-(?:create-pages|update-page|create-comment"
+    r"|update-comment|create-meeting-note)"
     r"|mcp__claude_ai_Slack__slack_(?:send_message|send_message_draft"
     r"|schedule_message|create_canvas|update_canvas)"
-    r"|mcp__claude_ai_Gmail__create_draft"
+    r"|mcp__claude_ai_Gmail__(?:create_draft|send_message|reply|forward"
+    r"|update_draft)"
     r")$"
 )
 
@@ -86,11 +91,12 @@ HEREDOC_RE = re.compile(
 # A quoted message, body or title. `-am` and `-qm` are `git commit` flags
 # combined with `-m`; only flags that take no value combine this way, so `-Sm`
 # (a signing key named `m`) is not a message. `-b` and `-t` are gh's short
-# `--body` and `--title`. Both short forms count only under the command that
-# gives them that meaning (see `flag_kind`). A `--body-file` value is a path
-# and is read separately.
+# `--body` and `--title`, and `-n` is `gh release`'s short `--notes`. The short
+# forms and `--notes` count only under the command that gives them that
+# meaning (see `flag_kind`). A `--body-file` value is a path and is read
+# separately.
 FLAG_VALUE_RE = re.compile(
-    r"(?:^|\s)(--?(?:m|message|body|title)|-[apsneioqvz]+m|-[bt])[=\s]+"
+    r"(?:^|\s)(--?(?:m|message|body|title|notes)|-[apsneioqvz]+m|-[btn])[=\s]+"
     r"(\"((?:[^\"\\]|\\.)*)\"|'((?:[^'\\]|\\.)*)')",
 )
 GH_API_FIELD_RE = re.compile(
@@ -101,7 +107,7 @@ GH_API_FIELD_RE = re.compile(
 # text subcommands, but is a field under `gh api` (handled separately by
 # GH_API_FIELD_RE), so each `-F` is read by the command that owns it.
 PATH_TOKEN = r"(\"[^\"]*\"|'[^']*'|[^\s;|&<>()]+)"
-BODY_FILE_RE = re.compile(rf"(?:^|\s)--body-file[=\s]+{PATH_TOKEN}")
+BODY_FILE_RE = re.compile(rf"(?:^|\s)(--(?:body|notes)-file)[=\s]+{PATH_TOKEN}")
 FILE_FLAG_RE = re.compile(rf"(?:^|\s)(?:--file|-[apsneioqvz]*F)[=\s]+{PATH_TOKEN}")
 # `-m "$(cat body.md)"` sends the file's text as the value.
 CAT_FILE_SUBST_RE = re.compile(rf"\$\(\s*(?:cat\s+|<\s*){PATH_TOKEN}\s*\)")
@@ -149,12 +155,13 @@ GIT_COMMIT_RE = re.compile(rf"\bgit(?:\s+(?:{GIT_GLOBAL_OPT}))*\s+commit(?![-\w]
 GH_OPT = r"(?:-R|--repo)(?:=|\s+)\S+"
 GH_PREFIX = rf"\bgh(?:\s+(?:{GH_OPT}))*\s+"
 GH_COMMAND_RE = re.compile(
-    rf"{GH_PREFIX}(?:(pr|issue)(?:\s+(?:{GH_OPT}))*\s+(\w+)|api\b)"
+    rf"{GH_PREFIX}(?:(pr|issue|release)(?:\s+(?:{GH_OPT}))*\s+(\w+)|api\b)"
 )
-# The `gh pr` and `gh issue` subcommands whose `-b`, `-t` and `-F` are a body,
-# a title and a body file. Elsewhere they mean other things (`gh pr checkout
-# -b` is a branch).
-GH_TEXT_SUBCOMMANDS = frozenset({"comment", "create", "edit", "merge", "review"})
+# The `gh pr`, `gh issue` and `gh release` subcommands whose `-b` (or `-n`),
+# `-t` and `-F` are a body (or release notes), a title and a body file.
+# Elsewhere they mean other things (`gh pr checkout -b` is a branch, `gh
+# release view -t` a template). `new` is the alias of `create`.
+GH_TEXT_SUBCOMMANDS = frozenset({"comment", "create", "edit", "merge", "new", "review"})
 QUOTED_RE = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'[^']*'")
 # What ends a simple command. The `&` of a redirection such as `2>&1` does not.
 SEPARATOR_RE = re.compile(r"[;|\n]|(?<![<>])&")
@@ -202,7 +209,7 @@ def flag_kind(flag: str, owner: str) -> str:
     if owner == "commit" and name.endswith("m"):
         return "message"
     if owner == "gh-text":
-        return {"b": "body", "t": "title"}.get(name, "")
+        return {"b": "body", "n": "body", "notes": "body", "t": "title"}.get(name, "")
     return ""
 
 
@@ -327,7 +334,7 @@ def heredoc_feeds_shell(command: str, heredoc_start: int) -> bool:
 # `$(cat file)`).
 HEREDOC_REDIRECT_RE = re.compile(r"(?:^|\s)>>?\s*([^\s;|&<>()]+)")
 FILE_READER_RE = re.compile(
-    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--body-file|--input)[=\s]+"
+    r"(?:(?:^|\s)(?:-[A-Za-z]*F|--file|--(?:body|notes)-file|--input)[=\s]+"
     r"|=@|<\s*|\bcat\s+)"
     r"([^\s;|&<>()]+)"
 )
@@ -413,7 +420,16 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
 
     is_pr = bool(re.search(rf"{GH_PREFIX}pr\b", command))
     is_issue = bool(re.search(rf"{GH_PREFIX}issue\b", command))
-    gh_surface = "GitHub PR" if is_pr else "GitHub issue" if is_issue else "GitHub API"
+    is_release = bool(re.search(rf"{GH_PREFIX}release\b", command))
+    gh_surface = (
+        "GitHub PR"
+        if is_pr
+        else "GitHub issue"
+        if is_issue
+        else "GitHub release"
+        if is_release
+        else "GitHub API"
+    )
     surface = "git commit message" if is_commit else gh_surface
 
     out: list[tuple[str, str]] = []
@@ -456,7 +472,7 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
                     commit_msg_seen += 1
                 else:
                     flag_surface = surface
-            elif is_pr or is_issue:
+            elif is_pr or is_issue or is_release:
                 flag_surface = gh_surface
             else:
                 flag_surface = surface
@@ -479,10 +495,10 @@ def extract_bash_payloads(command: str) -> list[tuple[str, str]]:
             pass
 
     for m in BODY_FILE_RE.finditer(redacted):
-        path = m.group(1).strip("'\"")
+        path = m.group(2).strip("'\"")
         text = read_file(path)
         if text:
-            out.append((f"{gh_surface} --body-file {path}", text))
+            out.append((f"{gh_surface} {m.group(1)} {path}", text))
 
     # An `-F` that no command owns is read as the commit message whenever the
     # command commits.
@@ -525,20 +541,28 @@ def walk_strings(obj, path: str = ""):
 # closed.
 NON_PROSE_FIELDS = frozenset(
     {
+        "accountid",
         "addreleases",
         "assignee",
+        "bcc",
         "blockedby",
         "blocks",
+        "calendarid",
+        "cc",
         "channel",
         "channelid",
+        "comment_id",
         "cursor",
         "cycle",
         "delegate",
+        "draftid",
         "duedate",
         "duplicateof",
         "estimate",
+        "eventid",
         "id",
         "labels",
+        "messageid",
         "milestone",
         "pageid",
         "parent",
@@ -551,12 +575,20 @@ NON_PROSE_FIELDS = frozenset(
         "removeblocks",
         "removereleases",
         "removerelatedto",
+        "replythreadid",
+        "replytomessageid",
         "setreleases",
+        "skill",
         "state",
         "team",
+        "to",
         "url",
     }
 )
+# Top-level fields whose whole subtree is not prose. An email attachment's
+# `content` is base64 or a file reference, though `content` is prose on other
+# tools.
+NON_PROSE_SUBTREES = frozenset({"attachments"})
 
 
 def field_name(path: str) -> str:
@@ -574,6 +606,8 @@ def extract_mcp_payloads(tool_name: str, tool_input: dict) -> list[tuple[str, st
         if not value or len(value) < 20:
             continue
         if field_name(label) in NON_PROSE_FIELDS:
+            continue
+        if field_name(label.split(".")[0]) in NON_PROSE_SUBTREES:
             continue
         out.append((f"{surface} {label}", value))
     return out
