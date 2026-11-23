@@ -254,10 +254,6 @@ for p in glob.glob('domains/**/manifest.yaml',recursive=True): yaml.safe_load(op
 print('ok')"
 ```
 
-Manifest edits made through Bash bypass the outbound linter hook, so run it by
-hand on each changed file (see the linting note in
-`agent-os/master/.claude/skills/recurring/SKILL.md`).
-
 ## Reporting
 
 Lead with the counts and the clean checks, then the findings, then the judgment
