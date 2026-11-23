@@ -31,8 +31,11 @@ Skip if `--worktree` was not passed.
 Move the uncommitted changes into a new worktree so the review, commit, and PR
 phases all happen there:
 
-1. Stash all changes including untracked:
-   `git stash push --include-untracked`
+1. Stash all changes including untracked under a unique tag (e.g.,
+   `ship-<epoch-seconds>`), since other sessions share the stash stack, and
+   record the entry's SHA:
+   `git stash push -u -m "<tag>"`, then
+   `git stash list --format='%H %gs' | grep '<tag>'`
 2. Determine the worktree name. If a Linear issue was passed, use the lowercase
    slug plus a short hyphenated description (e.g., `epd-1337-require-ssl`), not
    the bare slug. Otherwise, use a short descriptive name.
@@ -40,7 +43,8 @@ phases all happen there:
    `git worktree add -b <name> ../<name> HEAD`
 4. `worktree-links`
 5. `cd ../<name>`
-6. `git stash pop`
+6. `git stash apply <sha>`, then drop that entry: re-find its index with
+   `git stash list | grep '<tag>'` and run `git stash drop stash@{<n>}`
 
 All subsequent steps run in the worktree.
 
