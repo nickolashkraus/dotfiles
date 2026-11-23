@@ -324,8 +324,8 @@ endfunction
 " Function: s:CopyGitHubURL()
 " Copy the GitHub URL of the current buffer to the system clipboard.
 "
-" This function generates a GitHub permalink for the current file and copies it
-" to the system clipboard.
+" This function generates a GitHub URL for the current file and copies it to
+" the system clipboard.
 "
 " Examples:
 "   https://github.com/user/repo/blob/main/src/file.py
@@ -381,9 +381,9 @@ nnoremap <Leader>cpghc :CopyGitHubURLWithCurrentBranch<CR>
 " Function: s:CopyGitHubURLWithRange() range
 " Copy the GitHub URL of the current buffer to the system clipboard.
 "
-" This function generates a GitHub permalink for the current file and copies it
-" to the system clipboard. When called with a visual selection, it includes
-" line range anchors in the URL (e.g., #L13-L37).
+" This function generates a GitHub URL for the current file and copies it to
+" the system clipboard. When called with a visual selection, it includes line
+" range anchors in the URL (e.g., #L13-L37).
 "
 " Requires the current buffer to be within a Git repository with a GitHub
 " remote origin. Git must be available in the system PATH.
