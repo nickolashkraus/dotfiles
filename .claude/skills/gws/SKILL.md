@@ -33,8 +33,11 @@ allowed-tools: Bash, Read
 
 ## Account Switching
 
-- Determine the profile from the working directory:
+- Determine the profile from the working directory and the account that owns
+  the file:
   - `~/Function-Health/*`: Use `function` profile.
+  - A Function Health doc or mailbox from any other directory (`agent-os` pulls
+    Function Health docs this way): Use `function` profile.
   - Everything else: Use `personal` profile.
 - For `gws`, always inline the profile since env vars do not
   persist across Bash calls:
