@@ -34,10 +34,9 @@ commits that will be included in the pull request.
 If `--no-pulse` was passed, skip this step entirely and proceed to Step 4.
 
 If the repo's `origin` is in the `Function-Health` org, run
-`Skill(skill: "pulse-review")` before pushing. Fix or dismiss every finding per
-that skill and iterate until Pulse is clean (zero critical, zero should-fix).
-The goal is a PR that arrives clean vis-a-vis the `fh-pulse` bot every time.
-Note any dismissals so Step 5 can carry the reasoning into the PR description.
+`Skill(skill: "pulse-review")` before pushing and follow it as written: it runs
+Pulse once, fixes the real bugs and does not re-run. Note what it left for the
+PR so Step 5 can carry the reasoning into the PR description.
 
 Skip this step for non-Function-Health repos and for the pulse repo itself.
 
