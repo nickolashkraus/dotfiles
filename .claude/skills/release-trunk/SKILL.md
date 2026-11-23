@@ -57,6 +57,10 @@ gcloud run services describe <prod-service-name> \
 
 The image tag is `tf_<short-sha>`. Map it to a commit:
 
+```
+git log -1 --format='%h %ad %s' --date=short <short-sha>
+```
+
 **EasyDeploy-managed services** (e.g. ppp-service) serve an EasyDeploy-owned
 image digest instead of `tf_<short-sha>`, so this mapping does not work.
 Determine the deployed version from the newest `release/*` tag whose Prod
@@ -64,10 +68,6 @@ deploy build succeeded (`gcloud builds list` filtered by the trigger ID). Also
 check the trigger's `_MIGRATION_ENABLED` substitution: repos that moved
 migrations to the DevHub Migrations action pin it `false`, and the release then
 only builds the image and applies Terraform.
-
-```
-git log -1 --format='%h %ad %s' --date=short <short-sha>
-```
 
 ## Step 3: Pick the release commit
 
