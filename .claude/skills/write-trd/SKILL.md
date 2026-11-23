@@ -84,8 +84,9 @@ Populate the template in TEMPLATE.md top to bottom. Follow these rules:
   for all prose.
 - Infer from code wherever possible rather than leaving placeholders.
 - For unavoidable gaps, use `[TBD: what is needed]`.
-- If mobile changes were confirmed, add a mobile consultation checklist item
-  and document OTA/version strategy.
+- If mobile changes were confirmed, add a mobile consultation item to Open
+  Questions and document OTA/version strategy under Mobile app version support
+  in Constraints and Assumptions.
 - If security/compliance was confirmed, fully populate the Security and
   Compliance section.
 - Generate Mermaid diagrams for: (1) high-level architecture (flowchart), (2)
