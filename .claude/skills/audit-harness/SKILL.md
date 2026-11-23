@@ -65,13 +65,15 @@ window ending today).
    ```
 
 4. The previous `harness-audit-*.md` report in the dotfiles memory directory,
-   so candidates it already closed are not re-proposed.
+   so candidates it already closed are not re-proposed. With no report there,
+   this is the first audit on this machine: skip that check.
 
 5. The platform delta. The changelog lives at `~/.claude/cache/changelog.md`,
    newest first, one `## <version>` section per release, with no dates. The
    current version is `claude --version`. The baseline is the `Claude Code`
    line of the previous report; if it has none, take the last version published
-   before the previous report's date:
+   before the previous report's date, or before the start of the window when
+   there is no report:
 
    ```
    npm view @anthropic-ai/claude-code time --json
@@ -180,9 +182,8 @@ What looked like a pattern but was actually fine on closer look. One
 line each.
 ```
 
-Use folded YAML `>` for the report's frontmatter description (per
-the standard in
-`memory/skill_description_yaml_format.md`).
+Use folded YAML `>` for the report's frontmatter description (per the YAML
+conventions in `rules/typography.md`).
 
 ## Step 6: Report
 
