@@ -5,7 +5,7 @@ description: >
   to update/edit, modify the description, or change status. SKIP: creating a
   new issue (use `create-linear-issue`).
 disable-model-invocation: false
-allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__get_issue, mcp__linear__save_comment
+allowed-tools: Bash, Read, mcp__linear__save_issue, mcp__linear__get_issue, mcp__linear__save_comment, mcp__linear__list_comments
 argument-hint: "<linear-issue>"
 ---
 
@@ -21,7 +21,9 @@ Extract the Linear issue identifier from `$ARGUMENTS`.
 **Comment updates**: Findings, analyses, and verification results go on the
 issue as a comment via `save_comment` (`issueId` plus `body`), never by
 overwriting the description. Steps 2 to 5 apply unchanged (draft, clean,
-strip); in Step 6 use `save_comment` instead of `save_issue`.
+strip); in Step 6 use `save_comment` instead of `save_issue`; in Step 7 confirm
+with `list_comments` rather than `get_issue`, which does not return comments,
+checking the new comment is present.
 
 **Metadata-only updates**: When the update touches no description text (state,
 labels, team or project moves, assignee, PR link attachments via `links`), skip
