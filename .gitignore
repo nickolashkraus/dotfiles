@@ -4,6 +4,9 @@
 # Codex-managed system directory, regenerated locally and not user-authored.
 .codex/skills/.system
 
+# Chrome's compiled theme cache, regenerated from `manifest.json`.
+Google Chrome/theme/Cached Theme.pak
+
 # Python bytecode caches.
 *.py[cod]
 __pycache__/
