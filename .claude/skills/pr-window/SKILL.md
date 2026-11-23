@@ -7,9 +7,9 @@ You are opening a tmux window on a pull request's worktree, so the change can
 be reviewed and edited by hand instead of through another round of agent
 instructions. Follow every step in order.
 
-This runs automatically as the last step of the `pr` skill. Invoke it directly
-when a pull request already exists and needs a window, or to reopen one that
-was closed.
+This runs automatically from Step 6 of the `pr` skill, which runs Fix CI after
+it. Invoke it directly when a pull request already exists and needs a window,
+or to reopen one that was closed.
 
 ## Arguments
 
