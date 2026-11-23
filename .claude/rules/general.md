@@ -26,8 +26,8 @@
   the reference leaks internal context. This includes GitHub URLs into the
   `agent-os` repo (e.g., `github.com/nickolashkraus/agent-os/...`) since the
   repo is private. When the underlying detail is useful, inline a summary
-  instead. Internal context belongs in memory or daily notes, not in
-  external posts.
+  instead. Internal context belongs in memory or daily notes, not in external
+  posts.
 - Default to six lines or fewer in chat, and never more than twelve without
   being asked. State results and decisions directly; skip preamble, recap, and
   trailing summaries. A simple question gets a direct answer, not headers and
