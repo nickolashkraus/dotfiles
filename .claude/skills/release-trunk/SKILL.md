@@ -6,9 +6,9 @@ description: >
   Prod version, picks the release commit, pushes the tag, creates the GitHub
   Release, and monitors the deploy to completion. TRIGGER when: user says
   "trunk release", "tag release", "push a release tag", or the repo's Prod
-  Cloud Build trigger is tag-based. SKIP: EasyDeploy-managed services
-  (e.g. ppp-service) deploy to Prod through EasyDeploy, not a release tag,
-  even when a tag-triggered Cloud Build trigger still exists (use `devhub`).
+  Cloud Build trigger is tag-based. SKIP: deploying the app of an
+  EasyDeploy-managed service (e.g. ppp-service); EasyDeploy does that (use
+  `devhub`). A release tag still deploys that service's Terraform, for now.
 disable-model-invocation: false
 allowed-tools: Bash, Read, Edit, Write, Glob, Grep, Agent, Monitor
 argument-hint: "[--no-op]"
@@ -61,8 +61,10 @@ The image tag is `tf_<short-sha>`. Map it to a commit:
 git log -1 --format='%h %ad %s' --date=short <short-sha>
 ```
 
-**EasyDeploy-managed services** (e.g. ppp-service) serve an EasyDeploy-owned
-image digest instead of `tf_<short-sha>`, so this mapping does not work.
+**EasyDeploy-managed services** (e.g. ppp-service): EasyDeploy deploys the
+app, and the release tag still deploys the Terraform, for now. They serve an
+EasyDeploy-owned image digest instead of `tf_<short-sha>`, so this mapping does
+not work.
 Determine the deployed version from the newest `release/*` tag whose Prod
 deploy build succeeded (`gcloud builds list` filtered by the trigger ID). Also
 check the trigger's `_MIGRATION_ENABLED` substitution: repos that moved
