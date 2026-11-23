@@ -583,6 +583,7 @@ def test_extract_mcp_payloads_every_identifier_field() -> None:
         "estimate",
         "eventId",
         "id",
+        "instructions_version",
         "labels",
         "messageId",
         "milestone",
@@ -956,6 +957,60 @@ def test_extract_bash_payloads_gh_release() -> None:
         ):
             out = rc.extract_bash_payloads(cmd)
             check(f"`{cmd[:44]}`", out == expected, f"got {out!r}")
+
+
+def test_extract_mcp_payloads_email_quoted_history() -> None:
+    section("extract_mcp_payloads: quoted history is dropped from email bodies")
+    own = "Noon works for me, thanks for asking."
+    curly = "Noon “works” for me, thanks for asking."
+    quoted = (
+        "> Is noon “ok” for everyone on the team?\n"
+        ">> Earlier “draft” of the rollout plan.\n"
+        "  > Indented “quote” from the thread."
+    )
+    for tool, ids, field in (
+        ("mcp__claude_ai_Gmail__create_draft", {"to": ["a@example.com"]}, "body"),
+        ("mcp__claude_ai_Gmail__send_message", {"to": ["a@example.com"]}, "body"),
+        ("mcp__claude_ai_Gmail__reply", {"messageId": "18c2f0a1"}, "body"),
+        ("mcp__claude_ai_Gmail__forward", {"messageId": "18c2f0a1"}, "forwardText"),
+        ("mcp__claude_ai_Gmail__update_draft", {"draftId": "r-123"}, "body"),
+    ):
+        name = tool.split("__")[-1]
+        label = f"{name} {field}"
+        out = rc.extract_payloads(tool, {**ids, field: f"{own}\n\n{quoted}"})
+        check(
+            f"{name}: quoted lines dropped",
+            out == [(label, f"{own}\n")],
+            f"got {out!r}",
+        )
+        out = rc.extract_payloads(tool, {**ids, field: f"{curly}\n{quoted}"})
+        check(
+            f"{name}: a smart quote in its own line is sent",
+            out == [(label, curly)],
+            f"got {out!r}",
+        )
+        out = rc.extract_payloads(tool, {**ids, field: quoted})
+        check(f"{name}: only quoted lines sends nothing", out == [], f"got {out!r}")
+    for tool, field, text in (
+        ("mcp__claude_ai_Gmail__reply", "htmlBody", f"<p>{own}</p>\n{quoted}"),
+        ("mcp__claude_ai_Gmail__send_message", "subject", "> Re: is noon ok for all?"),
+        ("mcp__claude_ai_Slack__slack_send_message", "message", quoted),
+        ("mcp__notion__notion-update-comment", "markdown", quoted),
+        ("mcp__notion__notion-create-meeting-note", "content", quoted),
+        ("mcp__linear__save_comment", "body", quoted),
+    ):
+        out = rc.extract_payloads(tool, {field: text})
+        check(
+            f"{tool.split('__')[-1]} {field}: quoted lines kept",
+            [t for _, t in out] == [text],
+            f"got {out!r}",
+        )
+    out = rc.extract_bash_payloads(f'gh pr comment 1 --body "{quoted}"')
+    check(
+        "a quoted Bash --body is kept",
+        [t for _, t in out] == [quoted],
+        f"got {out!r}",
+    )
 
 
 def test_load_rules_smoke() -> None:
@@ -2184,6 +2239,7 @@ TESTS = [
     test_settings_matcher_gates_outbound_tools,
     test_extract_mcp_payloads_email_and_comments,
     test_extract_bash_payloads_gh_release,
+    test_extract_mcp_payloads_email_quoted_history,
     test_extract_payloads_dispatch,
     test_load_rules_smoke,
     test_load_rules_order_and_sources,

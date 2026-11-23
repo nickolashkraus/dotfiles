@@ -2821,6 +2821,120 @@ def test_outbound_mcp_surfaces() -> None:
     )
 
 
+EMAIL_BODIES = (
+    ("mcp__claude_ai_Gmail__create_draft", {"to": ["a@example.com"]}, "body"),
+    ("mcp__claude_ai_Gmail__send_message", {"to": ["a@example.com"]}, "body"),
+    ("mcp__claude_ai_Gmail__reply", {"messageId": "18c2f0a1b2c3d4e5"}, "body"),
+    ("mcp__claude_ai_Gmail__forward", {"messageId": "18c2f0a1"}, "forwardText"),
+    ("mcp__claude_ai_Gmail__update_draft", {"draftId": "r-123"}, "body"),
+)
+QUOTED_HISTORY = (
+    f"> Is noon {CURLY}ok{CURLY}? The [notes][] are attached.\n"
+    f">> Earlier {CURLY}draft{CURLY}.\n"
+    f"  > Indented {CURLY}quote{CURLY}.\n"
+    f"> > Spaced {CURLY}nesting{CURLY}."
+)
+
+
+def test_email_quoted_history() -> None:
+    section("collect_violations: quoted history in an email body")
+    for tool, ids, field in EMAIL_BODIES:
+        name = tool.split("__")[-1]
+
+        def lint(text: str, tool: str = tool, ids: dict = ids, field: str = field):
+            return lo.collect_violations(tool, {**ids, field: text})
+
+        found = lint(f"Noon works.\n\nOn Monday someone wrote:\n{QUOTED_HISTORY}")
+        check(f"{name}: quoted lines are not linted", found == [], f"got {found!r}")
+        found = lint(f"Noon {CURLY}works{CURLY}.\n\n{QUOTED_HISTORY}")
+        check(
+            f"{name}: a smart quote in its own line blocks",
+            found == [f"{field} line 1: left double quote (use straight quote)"],
+            f"got {found!r}",
+        )
+        found = lint(QUOTED_HISTORY)
+        check(f"{name}: only quoted lines passes", found == [], f"got {found!r}")
+        found = lint("Noon works.\n\n> The notes are in /Users/nobody/notes.md")
+        check(
+            f"{name}: a local path in a quoted line still blocks",
+            [v.split(":")[0] for v in found] == [f"{field} line 3"]
+            and "local-only path" in found[0],
+            f"got {found!r}",
+        )
+        found = lint("Noon works.\n\n> Generated with Claude Code")
+        check(
+            f"{name}: the tool footer in a quoted line still blocks",
+            any("Generated with Claude Code" in v for v in found),
+            f"got {found!r}",
+        )
+    line = f"> Is noon {CURLY}ok{CURLY}?"
+    for tool, field, text in (
+        ("mcp__claude_ai_Gmail__reply", "htmlBody", f"<p>Yes.</p>\n{line}"),
+        ("mcp__claude_ai_Gmail__send_message", "subject", line),
+        ("mcp__claude_ai_Slack__slack_send_message", "message", line),
+        ("mcp__notion__notion-update-comment", "markdown", line),
+        ("mcp__notion__notion-create-meeting-note", "content", line),
+        ("mcp__linear__save_comment", "body", line),
+    ):
+        found = lo.collect_violations(tool, {field: text})
+        check(
+            f"{tool.split('__')[-1]} {field}: a quoted line is still linted",
+            any("left double quote" in v for v in found),
+            f"got {found!r}",
+        )
+    check(
+        "a quoted line in a Bash --body is still linted",
+        curly_flagged(f'gh pr comment 1 --body "{line}"'),
+    )
+
+
+def test_mcp_identifier_fields_skipped() -> None:
+    section("extract_fields: addresses, identifiers and metadata are not linted")
+    value = "colour-team@example.com"
+    for name in (
+        "bcc",
+        "cc",
+        "comment_id",
+        "draftId",
+        "instructions_version",
+        "messageId",
+        "replyThreadId",
+        "replyToMessageId",
+        "skill",
+        "to",
+    ):
+        for shape in (value, [value]):
+            found = lo.collect_violations(
+                "mcp__claude_ai_Gmail__send_message", {name: shape}
+            )
+            check(
+                f"{name} ({type(shape).__name__}) not linted",
+                found == [],
+                f"got {found!r}",
+            )
+    found = lo.collect_violations("mcp__claude_ai_Gmail__send_message", {"body": value})
+    check(
+        "the same value in a text field is linted",
+        any("British spelling" in v for v in found),
+        f"got {found!r}",
+    )
+    for subtree in (
+        {"parent": {"type": "page", "url": f"https://example.com/{value}"}},
+        {
+            "calendarEvent": {
+                "calendar": {"accountId": value, "calendarId": value},
+                "eventId": value,
+            }
+        },
+    ):
+        found = lo.collect_violations(
+            "mcp__notion__notion-create-meeting-note", subtree
+        )
+        check(
+            f"{next(iter(subtree))} subtree not linted", found == [], f"got {found!r}"
+        )
+
+
 TESTS = [
     test_table_padding_source_width,
     test_commit_subject_exemptions,
@@ -2861,6 +2975,8 @@ TESTS = [
     test_body_file_path_is_not_the_body,
     test_gh_release_text,
     test_outbound_mcp_surfaces,
+    test_email_quoted_history,
+    test_mcp_identifier_fields_skipped,
 ]
 
 

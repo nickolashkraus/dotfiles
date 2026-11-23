@@ -561,6 +561,7 @@ NON_PROSE_FIELDS = frozenset(
         "estimate",
         "eventid",
         "id",
+        "instructions_version",
         "labels",
         "messageid",
         "milestone",
@@ -589,6 +590,27 @@ NON_PROSE_FIELDS = frozenset(
 # `content` is base64 or a file reference, though `content` is prose on other
 # tools.
 NON_PROSE_SUBTREES = frozenset({"attachments"})
+# The plain-text body fields of the Gmail tools. A line there whose first
+# non-blank character is `>` is quoted history, someone else's words, so it is
+# dropped before the model reads the body. `htmlBody` quotes with
+# `<blockquote>`, so it is not listed.
+EMAIL_TOOLS = frozenset(
+    {
+        "mcp__claude_ai_Gmail__create_draft",
+        "mcp__claude_ai_Gmail__forward",
+        "mcp__claude_ai_Gmail__reply",
+        "mcp__claude_ai_Gmail__send_message",
+        "mcp__claude_ai_Gmail__update_draft",
+    }
+)
+EMAIL_BODY_FIELDS = frozenset({"body", "forwardText"})
+
+
+def drop_quoted_lines(text: str) -> str:
+    """`text` without the lines whose first non-blank character is `>`."""
+    return "\n".join(
+        line for line in text.split("\n") if not line.lstrip().startswith(">")
+    )
 
 
 def field_name(path: str) -> str:
@@ -603,6 +625,8 @@ def extract_mcp_payloads(tool_name: str, tool_input: dict) -> list[tuple[str, st
     surface = tool_name.split("__")[-1]
     out: list[tuple[str, str]] = []
     for label, value in walk_strings(tool_input):
+        if tool_name in EMAIL_TOOLS and label in EMAIL_BODY_FIELDS:
+            value = drop_quoted_lines(value)
         if not value or len(value) < 20:
             continue
         if field_name(label) in NON_PROSE_FIELDS:

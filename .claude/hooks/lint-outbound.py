@@ -691,6 +691,7 @@ def lint_text(
     is_pr_body: bool = False,
     check_local_paths: bool = True,
     existing: frozenset[str] = frozenset(),
+    quoted_history: bool = False,
 ) -> list[str]:
     """
     Return a list of violation strings for the given text.
@@ -703,7 +704,8 @@ def lint_text(
     payloads), not to in-repo dotfiles Markdown. `existing` holds the stripped
     lines already in the file being edited; word-level checks skip them so
     content edited in place keeps its wording, while punctuation checks still
-    apply.
+    apply. `quoted_history` marks an email body, whose lines quoted with `>`
+    are someone else's words: only the local-path and footer checks read them.
     """
     violations: list[str] = []
 
@@ -754,6 +756,10 @@ def lint_text(
             continue
 
         line = scrubbed[lineno - 1]
+        if quoted_history and stripped.startswith(">"):
+            if check_local_paths:
+                violations.extend(local_path_violations(field, lineno, line))
+            continue
         # Word-level checks (slop, spelling, label colons) skip lines that
         # already exist in the file, blockquotes, and quoted spans.
         check_words = not (raw.strip() and raw.strip() in existing)
@@ -818,15 +824,18 @@ def lint_text(
                 "`[label][]` (use `[text][label]` per rules/typography.md)"
             )
         if check_local_paths:
-            for local_match in LOCAL_PATH_RE.finditer(line):
-                violations.append(
-                    f"{field} line {lineno}: local-only path "
-                    f"`{local_match.group(0)}` (forbidden in external "
-                    "content per rules/general.md; inline a summary "
-                    "instead)"
-                )
+            violations.extend(local_path_violations(field, lineno, line))
 
     return violations
+
+
+def local_path_violations(field: str, lineno: int, line: str) -> list[str]:
+    """One violation per local-only path on `line`."""
+    return [
+        f"{field} line {lineno}: local-only path `{m.group(0)}` (forbidden in "
+        "external content per rules/general.md; inline a summary instead)"
+        for m in LOCAL_PATH_RE.finditer(line)
+    ]
 
 
 def walk_strings(obj, path: str = "") -> Iterable[tuple[str, str]]:
@@ -1433,10 +1442,39 @@ def is_linear_mirror_path(path: str) -> bool:
     )
 
 
-# Top-level MCP fields whose whole subtree is not prose. An email attachment's
-# `content` is base64 or a `sha256:<hash>:<path>` file reference, whose path
-# would read as a local-only path.
-NON_PROSE_SUBTREES = frozenset({"attachments"})
+# MCP fields that hold an address, an identifier or tracking metadata rather
+# than text anyone reads, matched by leaf name, lowercased. A subtree name
+# skips everything under that top-level field: an email attachment's `content`
+# is base64 or a `sha256:<hash>:<path>` file reference, whose path would read
+# as a local-only path.
+NON_PROSE_FIELDS = frozenset(
+    {
+        "bcc",
+        "cc",
+        "comment_id",
+        "draftid",
+        "instructions_version",
+        "messageid",
+        "replythreadid",
+        "replytomessageid",
+        "skill",
+        "to",
+    }
+)
+NON_PROSE_SUBTREES = frozenset({"attachments", "calendarevent", "parent"})
+# The plain-text body fields of the Gmail tools. A line there whose first
+# non-blank character is `>` is quoted history, reproduced content exempt from
+# typography. `htmlBody` quotes with `<blockquote>`, so it is not listed.
+EMAIL_TOOLS = frozenset(
+    {
+        "mcp__claude_ai_Gmail__create_draft",
+        "mcp__claude_ai_Gmail__forward",
+        "mcp__claude_ai_Gmail__reply",
+        "mcp__claude_ai_Gmail__send_message",
+        "mcp__claude_ai_Gmail__update_draft",
+    }
+)
+EMAIL_BODY_FIELDS = frozenset({"body", "forwardText"})
 
 
 def extract_fields(
@@ -1488,7 +1526,9 @@ def extract_fields(
     for label, value in walk_strings(tool_input):
         if not value or len(value) < 2:
             continue
-        if label.split(".")[0].split("[")[0] in NON_PROSE_SUBTREES:
+        if label.split(".")[-1].split("[")[0].lower() in NON_PROSE_FIELDS:
+            continue
+        if label.split(".")[0].split("[")[0].lower() in NON_PROSE_SUBTREES:
             continue
         out.append((label, value, True, False, True, False))
 
@@ -1537,6 +1577,7 @@ def collect_violations(tool_name: str, tool_input: dict) -> list[str]:
                 is_pr_body=is_pr_body,
                 check_local_paths=check_local_paths,
                 existing=existing,
+                quoted_history=tool_name in EMAIL_TOOLS and label in EMAIL_BODY_FIELDS,
             )
         )
         if is_full:
