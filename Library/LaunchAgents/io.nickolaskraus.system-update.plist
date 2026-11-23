@@ -12,8 +12,8 @@
       shell expand $HOME. The redirect stands in for StandardOutPath and
       StandardErrorPath, which are subject to the same no-expansion rule.
       `exec` replaces the shell, so ProcessType and LowPriorityIO still apply
-      to system-update itself. `install` creates the log directory; the
-      redirect fails if it does not exist.
+      to system-update itself. `install -d` creates the log directory first,
+      since the redirect fails if it does not exist.
 
       Nothing else prunes the log, so it is rotated here, before the redirect
       opens it. Rotating afterwards would not work: the redirect holds the
