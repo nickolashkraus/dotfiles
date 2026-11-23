@@ -536,14 +536,14 @@ COMMIT_BODY_WRAP = 72
 
 
 def lint_commit_message(text: str, field: str) -> list[str]:
-    """Deterministic checks for a FULL commit message (heredoc, `-F
-    <file>`, or a sole `-m`). Subject: 50 chars max, except Linear-slug
-    subjects (`BYB-1345: Exact Issue Title`, no cap per rules/git.md),
-    Conventional Commits subjects (72 chars per the carve-out), and
-    auto-generated Merge/Revert subjects. Body: wrap at 72, skipping
-    fenced code and lines an URL or single unbreakable token makes long.
-    These length checks live here, not in the LLM rule check, so the
-    verdict never depends on model arithmetic."""
+    """Deterministic checks for a FULL commit message (heredoc, `-F <file>`, or
+    a sole `-m`). Subject: 50 chars max, except Linear-slug subjects
+    (`BYB-1345: Exact Issue Title`, no cap per rules/git.md), Conventional
+    Commits subjects (72 chars per the carve-out), and auto-generated
+    Merge/Revert subjects. Body: wrap at 72, skipping fenced code and lines an
+    URL or single unbreakable token makes long. These length checks live here,
+    not in the LLM rule check, so the verdict never depends on model
+    arithmetic."""
     violations: list[str] = []
     lines = text.splitlines()
     if not lines:

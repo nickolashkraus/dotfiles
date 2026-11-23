@@ -16,13 +16,12 @@ Allowlist: when the input command starts with `# user-approved:` (a literal
 comment), the hook lets it through. The model uses this prefix on the retry
 after the user has explicitly approved the action.
 
-Text-passing carve-out: `git commit -m "..."`, `gh pr create --body
-"..."`, and similar commands often embed risky-pattern literals in
-the message body (changelog entries, PR descriptions). Heredoc bodies
-and `--body`/`-m` flag values are stripped from the command before
-pattern matching, but only when the outer command is a known text
-tool. Interpreter heredocs (`bash <<EOF ... EOF`) are left intact so
-their contents are still scanned.
+Text-passing carve-out: `git commit -m "..."`, `gh pr create --body "..."`, and
+similar commands often embed risky-pattern literals in the message body
+(changelog entries, PR descriptions). Heredoc bodies and `--body`/`-m` flag
+values are stripped from the command before pattern matching, but only when the
+outer command is a known text tool. Interpreter heredocs (`bash <<EOF ... EOF`)
+are left intact so their contents are still scanned.
 
 Untrusted code (@rules/security.md): Also blocks piping a download into
 a shell, cloning outside the trusted owners, installing packages from a URL or
