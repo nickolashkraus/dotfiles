@@ -19,7 +19,7 @@ parent page link separated by whitespace.
 
 Extract the file path and (optional) Notion parent page link from `$ARGUMENTS`.
 If only one argument is given, treat it as the file path and create the page
-without a parent (workspace-level private page).
+as a private draft without a parent (Step 7).
 
 ## Step 2: Clean the Markdown file
 
@@ -98,7 +98,8 @@ Use the `notion-create-pages` tool with:
 - **title**: From Step 4.
 - **content**: From Step 5.
 - **parent**: The parent ID from Step 6 if available; otherwise omit the
-  `parent` parameter so the page is created as a workspace-level private page
-  the user can organize later.
+  `parent` parameter and pass `creation_mode: "draft"` so the page is created
+  as a workspace-level private page the user can organize later. Never pass
+  both.
 
 Print the new Notion page link when done.
