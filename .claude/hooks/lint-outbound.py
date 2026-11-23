@@ -293,16 +293,21 @@ COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # (PRs, Linear, Notion, Slack, Gmail) per rules/general.md. The private
 # notes repo is also matched by its GitHub name: a URL or an
 # `owner/repo#12` reference puts the name after a `/`, where the bare
-# `agent-os` form does not match. GitHub names ignore case.
+# `agent-os` form does not match. GitHub names ignore case. It is matched
+# by its `master` worktree after any directory too (`../agent-os/master`),
+# and every worktree by its short link under `~/w` (rules/git.md).
 LOCAL_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_/])(?:"
     r"agent-os(?:/[A-Za-z0-9_./-]*)?"
-    r"|~/nickolashkraus(?:/[A-Za-z0-9_./-]*)?"
-    r"|~/\.claude(?:/[A-Za-z0-9_./-]*)?"
-    r"|~/dotfiles(?:/[A-Za-z0-9_./-]*)?"
+    r"|(?:~|\$HOME|\$\{HOME\})/nickolashkraus(?:/[A-Za-z0-9_./-]*)?"
+    r"|(?:~|\$HOME|\$\{HOME\})/\.claude(?:/[A-Za-z0-9_./-]*)?"
+    r"|(?:~|\$HOME|\$\{HOME\})/dotfiles(?:/[A-Za-z0-9_./-]*)?"
+    r"|(?:~|\$HOME|\$\{HOME\})/w(?![A-Za-z0-9_-])(?:/[A-Za-z0-9_./-]*)?"
     r"|/Users/[A-Za-z0-9_./-]+"
     r")"
     r"|(?<![A-Za-z0-9_-])(?i:nickolashkraus/agent-os)(?![A-Za-z0-9_-])"
+    r"(?:/[A-Za-z0-9_./-]*)?"
+    r"|(?<![A-Za-z0-9_-])agent-os/master(?![A-Za-z0-9_-])"
     r"(?:/[A-Za-z0-9_./-]*)?"
 )
 # `Closes:` / `Fixes:` / `Resolves:` keywords are forbidden in PR

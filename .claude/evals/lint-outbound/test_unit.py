@@ -1680,6 +1680,69 @@ def test_private_repo_references() -> None:
         )
 
 
+def test_short_links_and_home_spellings() -> None:
+    section("lint_text: short links and other spellings of home are local paths")
+
+    def reported(text: str, external: bool = True) -> list[str]:
+        violations = lo.lint_text(text, "f", check_local_paths=external)
+        return [v for v in violations if "local-only path" in v]
+
+    for path in (
+        "~/w/agent-os/notes/x.md",
+        "~/w/agent-os",
+        "~/w/mam-5531-debit/app/x.py",
+        "$HOME/w/agent-os/notes/x.md",
+        "${HOME}/w/agent-os",
+        "$HOME/nickolashkraus/dotfiles/master",
+        "${HOME}/nickolashkraus",
+        "$HOME/.claude/rules/git.md",
+        "${HOME}/.claude/rules/git.md",
+        "$HOME/dotfiles/README.md",
+        "${HOME}/dotfiles",
+        "../agent-os/master/notes/x.md",
+        "../../agent-os/master",
+        "w/agent-os/master/notes/x.md",
+        "(~/w/agent-os)",
+    ):
+        got = reported(f"See {path} for details.\n")
+        check(f"blocked once: {path}", len(got) == 1, f"got {got!r}")
+        check(f"allowed in-repo: {path}", reported(f"See {path}.\n", False) == [])
+    for path in (
+        "~/work/x.md",
+        "~/www",
+        "~/w-old/x.md",
+        "~/w_x/x.md",
+        "~/w9",
+        "$HOMER/w/x",
+        "$HOME/work/x",
+        "$HOME/bin/x",
+        "${HOMES}/dotfiles",
+        "x/agent-os/masters/x.md",
+        "x/agent-os/master-plan",
+        "x/agent-os/master_x",
+        "x/agent-os/main/x.md",
+        "x/reagent-os/master/x.md",
+        "x/re_agent-os/master/x.md",
+        "`~/w/agent-os`",
+    ):
+        got = reported(f"See {path} for details.\n")
+        check(f"not flagged: {path}", got == [], f"got {got!r}")
+    got = reported("Moved to ~/w.\n")
+    check("the link directory itself is blocked", len(got) == 1, f"got {got!r}")
+    got = reported("See ~/w/agent-os/notes/x.md for details.\n")
+    check(
+        "the report names the whole short link",
+        "`~/w/agent-os/notes/x.md`" in "".join(got),
+        f"got {got!r}",
+    )
+    got = reported("See ../agent-os/master/notes/x.md for details.\n")
+    check(
+        "the report names the path from the repo on",
+        "`agent-os/master/notes/x.md`" in "".join(got),
+        f"got {got!r}",
+    )
+
+
 def test_pr_body_copied_from_linear() -> None:
     section("lint_text: a PR body may not repeat its Linear issue")
     copied = "The checkout monitor pages on every client error, so on-call ignores it."
@@ -2554,6 +2617,7 @@ TESTS = [
     test_commit_trailer_and_autoclose,
     test_local_paths_in_external_content,
     test_private_repo_references,
+    test_short_links_and_home_spellings,
     test_pr_body_copied_from_linear,
     test_git_global_flags_before_commit,
     test_in_repo_path_prefixes,
