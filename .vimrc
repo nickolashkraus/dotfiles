@@ -623,7 +623,6 @@ let g:ale_fixers = {
 \   'html': ['prettier'],
 \   'json': ['prettier'],
 \   'yaml': ['prettier'],
-\   'yml': ['prettier'],
 \   'xml': ['xmllint'],
 \   'terraform': ['terraform'],
 \}
