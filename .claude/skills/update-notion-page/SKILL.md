@@ -35,11 +35,12 @@ python ~/nickolashkraus/agent-os/master/scripts/clean_markdown.py --input <file>
 **NOTE**: The script lives in the `agent-os` repo `scripts/` dir, not under the
 skill base dir. `clean_markdown.py` does NOT enforce capitalize-after-colon,
 but the `lint-outbound.py` hook rejects the `notion-update-page` payload for
-any `[-*+]` bullet containing `: lowercase` (it checks the raw line, anywhere
-in the bullet, code spans included). After cleaning, run a capitalization pass
-that uppercases the first letter after each `: ` in bullet lines (protecting
-backtick code spans), and reword any `: lowercase` that sits inside a code span
-(e.g., a `foo: bar` type annotation) so the colon is outside backticks.
+any bullet or numbered item whose line-initial label is followed by
+`: lowercase`. A label is a bold span, a Markdown link or a code span
+(optionally followed by a parenthetical), or a plain Title-Case label of one to
+four words. After cleaning, run a capitalization pass that uppercases the first
+letter after each such label colon. Leave a colon that joins two clauses
+lowercase, per `rules/typography.md`.
 
 `--rewrite-local-links` walks up from `<file>` to the nearest `manifest.yaml`,
 reads `notion.pages` (and any nested `children`), and replaces inline links
