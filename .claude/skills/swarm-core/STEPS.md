@@ -50,7 +50,8 @@ When spawning the per-role investigation agents in Step 2:
 
 Use `~/.claude/skills/swarm-core/prompts/convergence.md`. Spawn all agents
 again with file references to each other's findings (not the content inline).
-Each agent appends under `## Convergence`. Write
+Substitute `{user_request}` with the user's request as they wrote it. Each
+agent appends under `## Convergence`. Write
 `{artifact_dir}/orchestrator/checkpoint.md` after each round capturing the
 round number and each agent's verdict. Repeat until all agents report
 "complete," capped at 3 rounds.

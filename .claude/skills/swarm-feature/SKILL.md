@@ -104,10 +104,11 @@ When all four agents complete, read each agent's `investigation.md`.
 
 **Convergence round**: Use
 `~/.claude/skills/swarm-core/prompts/convergence.md`. Spawn all four agents
-again. Substitute `{own_findings_path}`, `{other_findings_paths}`, and
-`{output_file}` (= the agent's `investigation.md`). Each agent appends under a
-`## Convergence` section. Write `{artifact_dir}/orchestrator/checkpoint.md`
-after each round. Repeat until all four report "complete," capped at 3 rounds.
+again. Substitute `{own_findings_path}`, `{other_findings_paths}`,
+`{user_request}` (the user's request as they wrote it) and `{output_file}` (=
+the agent's `investigation.md`). Each agent appends under a `## Convergence`
+section. Write `{artifact_dir}/orchestrator/checkpoint.md` after each round.
+Repeat until all four report "complete," capped at 3 rounds.
 
 Assemble the final agent files into `{artifact_dir}/orchestrator/analysis.md`
 under the corresponding `### Architect`, `### Implementer`, etc. sections.
