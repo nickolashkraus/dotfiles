@@ -434,6 +434,16 @@ BLOCKED = [
     ),
     ("approval on the command's line", "# user-approved: git status", WORK),
     ("clone https", "git clone https://github.com/acme/assignment", WORK),
+    (
+        "clone from a longer name than the Terraform modules owner",
+        "git clone https://github.com/Function-Health-Terraform-Modules-x/example-module",
+        WORK,
+    ),
+    (
+        "clone from a shorter name than the Terraform modules owner",
+        "git clone git@github.com:Function-Health-Terraform/example-module.git",
+        WORK,
+    ),
     ("clone ssh", "git clone git@github.com:acme/assignment.git", WORK),
     ("clone with flags", "git clone --depth 1 https://github.com/acme/a", WORK),
     (
@@ -916,6 +926,21 @@ ALLOWED = [
     ("clone local path", "git clone ../repo copy", WORK),
     ("gh clone trusted", "gh repo clone Function-Health/a", WORK),
     ("gh clone infrable-io", "gh repo clone infrable-io/a", WORK),
+    (
+        "clone ssh from the Terraform modules owner",
+        "git clone git@github.com:Function-Health-Terraform-Modules/example-module.git",
+        WORK,
+    ),
+    (
+        "clone https from the Terraform modules owner",
+        "git clone https://github.com/function-health-terraform-modules/example-module",
+        WORK,
+    ),
+    (
+        "gh clone from the Terraform modules owner",
+        "gh repo clone Function-Health-Terraform-Modules/example-module",
+        WORK,
+    ),
     ("gh clone own", "gh repo clone dotfiles", WORK),
     ("worktree", "git worktree add ../a -b a", WORK),
     ("curl to jq", "curl -s https://example.com/a | jq .", WORK),

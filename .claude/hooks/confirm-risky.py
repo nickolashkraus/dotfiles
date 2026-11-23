@@ -472,7 +472,13 @@ RISKY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ALLOWLIST_PREFIX = "# user-approved:"
 
 TRUSTED_GIT_OWNERS = frozenset(
-    {"function-health", "grind-rip", "infrable-io", "nickolashkraus"}
+    {
+        "function-health",
+        "function-health-terraform-modules",
+        "grind-rip",
+        "infrable-io",
+        "nickolashkraus",
+    }
 )
 TRUSTED_TAPS = frozenset(
     {
