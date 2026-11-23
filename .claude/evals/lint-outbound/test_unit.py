@@ -1608,6 +1608,78 @@ def test_local_paths_in_external_content() -> None:
         )
 
 
+def test_private_repo_references() -> None:
+    section("lint_text: the private notes repo is blocked by URL and by name")
+
+    def reported(text: str, external: bool = True) -> list[str]:
+        violations = lo.lint_text(text, "f", check_local_paths=external)
+        return [v for v in violations if "local-only path" in v]
+
+    for ref in (
+        "https://github.com/nickolashkraus/agent-os/blob/master/x.md",
+        "github.com/nickolashkraus/agent-os",
+        "nickolashkraus/agent-os#12",
+        "git@github.com:nickolashkraus/agent-os.git",
+        "[notes](https://github.com/nickolashkraus/agent-os/pull/3)",
+        "github.com/NickolasHKraus/Agent-OS/issues",
+        "api.github.com/repos/nickolashkraus/agent-os/issues/3",
+        "$HOME/nickolashkraus/agent-os/master/notes/x.md",
+        "(nickolashkraus/agent-os)",
+    ):
+        text = f"See {ref} for details.\n"
+        check(f"blocked: {ref}", len(reported(text)) == 1, f"got {reported(text)!r}")
+        check(f"allowed in-repo: {ref}", reported(text, external=False) == [])
+    for ref in (
+        "github.com/nickolashkraus/dotfiles",
+        "nickolashkraus/agent-os-archive",
+        "nickolashkraus/agent-osx#4",
+        "nickolashkraus/agent-os_v2",
+        "nickolashkraus/agent-os9",
+        "xnickolashkraus/agent-os",
+        "9nickolashkraus/agent-os",
+        "_nickolashkraus/agent-os",
+        "other-nickolashkraus/agent-os",
+        "github.com/other/agent-os",
+        "github.com/nickolashkraus/agent",
+        "github.com/nickolashkraus/agent-o",
+        "`nickolashkraus/agent-os#12`",
+    ):
+        text = f"See {ref} for details.\n"
+        check(f"not flagged: {ref}", reported(text) == [], f"got {reported(text)!r}")
+    for path in (
+        "~/nickolashkraus/agent-os/master/notes/x.md",
+        "/Users/x/nickolashkraus/agent-os/master/x.md",
+    ):
+        got = reported(f"See {path} for details.\n")
+        check(f"reported once: {path}", len(got) == 1, f"got {got!r}")
+    for text in (
+        "nickolashkraus/agent-os\n",
+        "nickolashkraus/agent-os",
+        "Moved to nickolashkraus/agent-os.\n",
+    ):
+        check(f"blocked at a line edge: {text!r}", len(reported(text)) == 1)
+    got = reported("See nickolashkraus/agent-os#1 and NICKOLASHKRAUS/AGENT-OS#2.\n")
+    check("two references on one line are two reports", len(got) == 2, f"got {got!r}")
+    url = "https://github.com/nickolashkraus/agent-os/blob/master/x.md"
+    got = reported(f"See {url} for details.\n")
+    check(
+        "the report names the path inside the repo",
+        "`nickolashkraus/agent-os/blob/master/x.md`" in "".join(got),
+        f"got {got!r}",
+    )
+    for name, tool, tool_input in [
+        ("PR body", "Bash", {"command": f"gh pr create --title T --body 'See {url}.'"}),
+        ("commit body", "Bash", {"command": f"git commit -m Fix -m 'See {url}.'"}),
+        ("Slack message", "mcp__x__y", {"message": f"See {url}."}),
+    ]:
+        violations = lo.collect_violations(tool, tool_input)
+        check(
+            f"blocked in a {name}",
+            any("local-only path" in v for v in violations),
+            f"got {violations!r}",
+        )
+
+
 def test_pr_body_copied_from_linear() -> None:
     section("lint_text: a PR body may not repeat its Linear issue")
     copied = "The checkout monitor pages on every client error, so on-call ignores it."
@@ -2481,6 +2553,7 @@ TESTS = [
     test_tool_attribution_footer,
     test_commit_trailer_and_autoclose,
     test_local_paths_in_external_content,
+    test_private_repo_references,
     test_pr_body_copied_from_linear,
     test_git_global_flags_before_commit,
     test_in_repo_path_prefixes,

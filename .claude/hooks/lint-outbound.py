@@ -290,7 +290,10 @@ def autofix_label_colons(text: str, existing: frozenset[str] = frozenset()) -> s
 REF_LINK_SHORTHAND_RE = re.compile(r"\[[^\]\n]+\]\[\]")
 COAUTHOR_RE = re.compile(r"^\s*Co-Authored-By:", re.IGNORECASE | re.MULTILINE)
 # Local-only paths that must not appear in external content
-# (PRs, Linear, Notion, Slack, Gmail) per rules/general.md.
+# (PRs, Linear, Notion, Slack, Gmail) per rules/general.md. The private
+# notes repo is also matched by its GitHub name: a URL or an
+# `owner/repo#12` reference puts the name after a `/`, where the bare
+# `agent-os` form does not match. GitHub names ignore case.
 LOCAL_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_/])(?:"
     r"agent-os(?:/[A-Za-z0-9_./-]*)?"
@@ -299,6 +302,8 @@ LOCAL_PATH_RE = re.compile(
     r"|~/dotfiles(?:/[A-Za-z0-9_./-]*)?"
     r"|/Users/[A-Za-z0-9_./-]+"
     r")"
+    r"|(?<![A-Za-z0-9_-])(?i:nickolashkraus/agent-os)(?![A-Za-z0-9_-])"
+    r"(?:/[A-Za-z0-9_./-]*)?"
 )
 # `Closes:` / `Fixes:` / `Resolves:` keywords are forbidden in PR
 # descriptions per rules/git.md. The Linear ref is rendered elsewhere
