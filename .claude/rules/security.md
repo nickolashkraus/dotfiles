@@ -36,7 +36,8 @@ not catch the script right away, so they are not enough on their own.
   counts.
   - **Exception**: The `xp-harvesting` skill writes the prefix itself on the
     squash-merge of a PR its own sweep opened, once all checks pass, `fh-pulse`
-    has approved and no bot review comment is open. I approved that on
+    has approved and no bot review comment is open. A `*-pr-plan-prod` check
+    waiting at `ACTION_REQUIRED` does not count as failing. I approved that on
     2026-11-23. No other command and no other skill.
 - **Trust lists stay short**: Add to the lists in `hooks/confirm-risky.py` only
   when I ask for that owner, tap or directory, and never to run an assignment.
