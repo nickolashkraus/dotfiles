@@ -7,6 +7,10 @@
   - **Exception**: The `on-call` skill sends its one-line notify straight to my
     own DM (`U09H5CVRGTG`) with `slack_send_message`, since a draft never
     reaches my phone. No other destination and no other skill.
+  - **Exception**: When I ask in chat to be DM'd when a task is done, send that
+    one status message straight to my own DM (`U09H5CVRGTG`), for the same
+    reason. `hooks/rule-check.py` still flags it, so add its skip marker
+    quoting my request. Slack may show the marker as text, so keep it short.
 
 ## Search
 
