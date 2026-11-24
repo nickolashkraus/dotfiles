@@ -764,14 +764,11 @@ TRUSTED_TAPS = frozenset(
         "conductorone/baton",
         "conductorone/cone",
         "databricks/tap",
-        "derailed/k9s",
         "felixkratz/formulae",
-        "hashicorp/tap",
         "homebrew/cask",
         "homebrew/core",
         "hudochenkov/sshpass",
         "koekeishiya/formulae",
-        "oven-sh/bun",
         "stripe/stripe-cli",
     }
 )
