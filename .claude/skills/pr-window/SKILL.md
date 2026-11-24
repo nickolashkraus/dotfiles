@@ -75,8 +75,12 @@ deterministic source.
 
   ```bash
   tmux list-clients -F '#{client_width} #{client_height} #{session_name}' \
-    | awk '$2 * 2 > $1 {print $3}' | sort -u
+    | while read -r w h s; do (( h * 2 > w )) && echo "${s}"; done | sort -u
   ```
+
+  No awk here: the harness replaces `$` followed by a digit in this file with
+  the skill's arguments, so awk's numbered fields arrived as words of the
+  arguments (`awk 'perfectly * 2 > to'`) on 2026-11-20.
 
   Exactly one name is the session. None means the vertical monitor has no
   client: fall back to `h` in the current pane's session and say so. More than
@@ -115,11 +119,13 @@ the name only has to be unique and recognizable at a glance, not descriptive.
 ## Step 4: Open the window with Vim on the diff
 
 With `v`, the panes stack top to bottom: `pr-body --check`, Vim on the pull
-request diff, then the Claude Code session, sized 15%, 60% and 25% like
-`tmux-layout v` (30, 122 and 51 rows on the 206-row monitor). With `h`, Vim is
-on the left, `pr-body --check` on the top right and Claude Code on the bottom
-right. Either way the window opens on the diff pane, which is split to make the
-other two.
+request diff, then the Claude Code session. With `h`, Vim is on the left,
+`pr-body --check` on the top right and Claude Code on the bottom right. Either
+way the window opens on the diff pane, which is split to make the other two,
+and Step 6 runs `tmux-layout` itself to size them, so the window matches it
+exactly (30, 122 and 51 rows in the vertical monitor's 205-row window; 237
+columns beside two 56-row panes on the wide one). Never size panes with `-l`:
+percentages round differently and came out a row off on 2026-11-20.
 
 If `tmux list-windows -t '<session>:' -F '#{window_index} #{window_name}'`
 already shows `<name>`, leave that window alone and report its target.
@@ -181,8 +187,8 @@ Split from the captured pane ID and send to the new one, never to a guessed
 pane index:
 
 ```bash
-# v: above the diff, 15% of the window
-BODY_PANE=$(tmux split-window -v -b -l 15% -d -P -F '#{pane_id}' \
+# v: above the diff
+BODY_PANE=$(tmux split-window -v -b -d -P -F '#{pane_id}' \
   -t "$DIFF_PANE" -c '<worktree>')
 # h: right of the diff
 BODY_PANE=$(tmux split-window -h -d -P -F '#{pane_id}' \
@@ -207,7 +213,9 @@ Three further details that matter:
   split axis, but it produces a vertical divider with the panes left and right,
   which is what a wide terminal wants. On the vertical monitor the width is
   short and the height is not, so `v` stacks with `-v`, and `-b` puts the body
-  above the diff instead of below it.
+  above the diff instead of below it. The order matters: `tmux-layout` fills
+  its cells in pane-index order, so the body has to be index 0 with `v` (top)
+  and index 1 with `h` (top right).
 - **`pr-body` fetches the live body.** It works when reopening a window days
   later, and it shows the body as it stands now rather than as it was first
   written. It opens the body in `$EDITOR`, and on exit runs the spelling and
@@ -216,22 +224,32 @@ Three further details that matter:
 
 ## Step 6: Split a third pane for Claude Code
 
-Split again and start Claude Code named after the window:
+Split again, apply the layout, and start Claude Code named after the window:
 
 ```bash
-# v: below the diff; 30% of the diff's 85% is 25% of the window
-CLAUDE_PANE=$(tmux split-window -v -l 30% -d -P -F '#{pane_id}' \
-  -t "$DIFF_PANE" -c '<worktree>')
-# h: under the body, leaving the diff at full height
+# v: below the diff
 CLAUDE_PANE=$(tmux split-window -v -d -P -F '#{pane_id}' \
+  -t "$DIFF_PANE" -c '<worktree>')
+# h: right of the body, leaving three columns
+CLAUDE_PANE=$(tmux split-window -h -d -P -F '#{pane_id}' \
   -t "$BODY_PANE" -c '<worktree>')
 
-tmux send-keys -t "$CLAUDE_PANE" "claude -n '<name>'" Enter
+tmux send-keys -t "$CLAUDE_PANE" \
+  "tmux-layout <v|h>; claude -n '<name>'" Enter
 ```
 
+- **`tmux-layout` runs in the new window's last pane**: It acts on the window
+  of the pane it runs in, so run from this session's Bash it would rearrange
+  this session's own window. The Claude pane is the last one created, so all
+  three panes exist when it runs, and it already leaves the diff (pane 1 with
+  `v`, pane 0 with `h`) active without switching the client to the window.
+- **`h` starts as three columns on purpose**: With three panes, `tmux-layout h`
+  toggles, and panes that share a top edge go to the left pane beside a split
+  right. Splitting the body with `-v` instead would make it toggle to three
+  columns.
 - **Which pane to split**: With `v`, split the diff, so Claude sits at the
-  bottom under it; `-l` takes a share of the pane being split, not of the
-  window. With `h`, split the body. `-d` keeps focus on the diff, as in Step 5.
+  bottom under it. With `h`, split the body. `-d` keeps focus on the diff, as
+  in Step 5.
 - **The session name is the window name** (`ppp#614`), so `/resume` and the
   session list match the tmux status bar. Quote it; `#` is a comment character
   in a shell with `interactive_comments` set.
