@@ -96,6 +96,12 @@ timestamps, affected resources, error messages, environment, who reported it.
 Spawn four subagents using the Agent tool. All four must launch in a single
 message (parallel, not sequential).
 
+**Peer sessions**: When the user asks for help from other sessions (e.g.
+"use the other bfcm-* agents"), give each peer a lens the four agents do not
+cover (on 2026-11-23: ownership and sign-offs, and release state) and a
+read-only brief file. Peers write to `{artifact_dir}/peers/<name>.md` and join
+the convergence and synthesis-review rounds like the subagents.
+
 For each agent (implementer, investigator, tracker, historian):
 
 1. Read the prompt template from
@@ -177,7 +183,9 @@ unverifiable claims as "from agent analysis, not independently verified."
 
 **User gate**: Present the final report to the user. Ask: "Approve the report,
 or do you want to adjust the findings or recommended actions?" Do not proceed
-until the user approves.
+until the user approves. If the user is away and asked for autonomous work,
+finish through verification, leave the artifacts uncommitted in the worktree,
+and ask at the gate; "work autonomously" is not approval to ship.
 
 ## Step 4: Ship
 
