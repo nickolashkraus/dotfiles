@@ -16,7 +16,7 @@
   status lines and prompts) are exempt and follow the GNU convention instead:
   `prog: message` (errors and prompts on stderr), lowercase unless the first
   word is a proper noun or an identifier, no trailing period, and no `ERROR:`
-  label. An error or a prompt carries no color; a status line may
+  label. A prompt carries no color; an error or a status line may
   (`pr-body: checking spelling and facts (Opus call)...`).
 - Bulleted/numbered list items use `**Element**: Description`. Never use ` - `
   or ` — ` as the lead-in separator.
