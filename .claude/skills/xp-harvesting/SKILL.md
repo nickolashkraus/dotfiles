@@ -192,23 +192,38 @@ for attempt in 1 2 3; do
       # latest decision review (any commit; comment-only and pending reviews
       # ignored, since a later COMMENTED review does not clear a change
       # request) requests changes; no unresolved review thread (outdated or
-      # not); and no PR-level comment from a review bot. If any of the three
-      # node lists has another page, judge nothing. Anything short stops and
-      # reports; it never merges, and the merge pins the head it judged with
-      # --match-head-commit. A review bot is an author whose GraphQL
-      # `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer), or
-      # whose login is fh-pulse or sre-terraform-review-bot; GraphQL serves
+      # not); and no PR-level bot comment outside the kinds below. If any of
+      # the three node lists has another page, judge nothing. Anything short
+      # stops and reports; it never merges, and the merge pins the head it
+      # judged with --match-head-commit. A review bot is an author whose
+      # GraphQL `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer),
+      # or whose login is fh-pulse or sre-terraform-review-bot; GraphQL serves
       # a Bot's login without the `[bot]` suffix REST adds, so match on
-      # `__typename`, not the suffix.
+      # `__typename`, not the suffix. The gate ignores five kinds of bot
+      # comment, each matched on its Bot author and the marker or heading it
+      # opens with: the `linear` linkback, the `datadog-official` coverage
+      # summary, the `github-advanced-security` code scanning setup notice,
+      # fh-pulse's `pulse:repo-setup` note and a `github-actions` coverage
+      # report. Every other bot comment stops the merge, fh-pulse's
+      # `pulse:dismissal` note and everything from `fh-atlantis` included.
       data=$(gh api graphql -F o=Function-Health -F n=<repo> -F p=$PR -f query='
         query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){
           reviews(last:100){pageInfo{hasPreviousPage} nodes{author{login __typename} state commit{oid}}}
           reviewThreads(first:100){pageInfo{hasNextPage} nodes{isResolved}}
-          comments(first:100){pageInfo{hasNextPage} nodes{author{login __typename}}}}}}' --jq '.data.repository.pullRequest')
-      printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
-      printf '%s' "$data" | jq -r '"PR-level comments: " + ([.comments.nodes[]|"\(.author.login)[\(.author.__typename)]"]|join(", "))'
-      verdict=$(printf '%s' "$data" | jq -r --arg h "$head" '
+          comments(first:100){pageInfo{hasNextPage} nodes{author{login __typename} body}}}}}' --jq '.data.repository.pullRequest')
+      gate_defs='
         def isbot: . != null and (.__typename=="Bot" or ((.login // "")|test("^(fh-pulse|sre-terraform-review-bot)$")) or ((.login // "")|test("\\[bot\\]$")));
+        def ignored: .author.login as $l | (.body // "") as $b
+          | if .author.__typename != "Bot" then null
+            elif $l=="linear" and ($b|test("\\A\\s*<!-- linear-linkback -->")) then "the Linear linkback"
+            elif $l=="datadog-official" and ($b|test("\\A\\s*🎯 Code Coverage \\(")) then "the Datadog coverage summary"
+            elif $l=="github-advanced-security" and ($b|test("\\A\\s*You are seeing this message because GitHub Code Scanning has recently been set up")) then "the code scanning setup notice"
+            elif $l=="fh-pulse" and ($b|test("\\A\\s*<!-- pulse:repo-setup -->")) then "the fh-pulse repo-setup note"
+            elif $l=="github-actions" and ($b|test("\\A# (☂️ Python Coverage|Coverage \\(line \\+ branch\\))[ \\t]*(\\r?\\n|\\z)")) then "a coverage report"
+            else null end;'
+      printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
+      printf '%s' "$data" | jq -r "$gate_defs"'.comments.nodes[]|"PR-level comment by \(.author.login // "a deleted account")[\(.author.__typename // "none")]: " + (if .author == null then "no author, stops the merge" elif (.author|isbot|not) then "not a bot, not judged" elif ignored then "ignored, \(ignored)" else "stops the merge" end)'
+      verdict=$(printf '%s' "$data" | jq -r --arg h "$head" "$gate_defs"'
         if (.reviews.pageInfo.hasPreviousPage or .reviewThreads.pageInfo.hasNextPage or .comments.pageInfo.hasNextPage)
         then "more than 100 reviews, threads or comments; run this PR down by hand"
         elif ([.reviews.nodes[].author, .comments.nodes[].author]|any(. == null))
@@ -217,11 +232,11 @@ for attempt in 1 2 3; do
           ([.reviews.nodes[]|select((.author.login=="fh-pulse" or .author.login=="fh-pulse[bot]") and .author.__typename=="Bot" and .commit.oid==$h)|.state]) as $pulse
           | ([.reviews.nodes[]|select(.state=="APPROVED" or .state=="CHANGES_REQUESTED" or .state=="DISMISSED")]|group_by(.author.login)|map(last)|map(select(.state=="CHANGES_REQUESTED"))) as $cr
           | [.reviewThreads.nodes[]|select(.isResolved|not)] as $threads
-          | [.comments.nodes[]|select(.author|isbot)] as $botc
+          | [.comments.nodes[]|select((.author|isbot) and (ignored == null))] as $botc
           | if ($pulse|last) != "APPROVED" then "no fh-pulse approval found on the current head"
             elif ($cr|length) > 0 then "a reviewer has a standing change request: \($cr|map(.author.login)|join(", "))"
             elif ($threads|length) > 0 then "unresolved review threads: \($threads|length)"
-            elif ($botc|length) > 0 then "PR-level comments from a review bot: \($botc|length)"
+            elif ($botc|length) > 0 then "PR-level bot comments the gate does not ignore: \($botc|length) (\($botc|map(.author.login)|unique|join(", ")))"
             else "merge" end
         end')
       [ -z "$verdict" ] && verdict="could not read the reviews"
@@ -259,18 +274,16 @@ What the loop encodes:
   check is not an approval. The gate requires an fh-pulse review in state
   `APPROVED` whose commit is the current head, no reviewer (bot or human) whose
   latest decision review on any commit requests changes, no unresolved review
-  thread, and no PR-level comment from a review bot; anything short stops the
-  loop and reports, and never merges.
-  The gate's shape (the fh-pulse login, the review commit, the bot logins) was
-  written from GitHub's documented review API and has not yet been run against
-  a live Function Health PR, because the org refuses this machine's classic
-  token. Until it has, a stop with "no fh-pulse approval found" on a PR Pulse
-  did approve means the login or shape is wrong, not that the PR is unapproved:
-  read the printed `login=state` line and fix the gate, do not merge by hand.
-  A stop on "PR-level comments from a review bot" can be a status bot (the
-  Linear linkback, a deploy or coverage bot) rather than a reviewer; the
-  printed PR-comment authors with their typename show which, and the fix is an
-  exempt list that Nickolas confirms from that line, not a merge by hand.
+  thread, and no PR-level bot comment outside the five kinds it ignores (the
+  Linear linkback, the Datadog coverage summary, the code scanning setup
+  notice, fh-pulse's repo-setup note and a GitHub Actions coverage report);
+  anything short stops the loop and reports, and never merges. On 2026-11-24 it
+  ran read-only against 28 merged PRs fh-pulse approved and one open one: the
+  approval is login `fh-pulse` with `__typename` `Bot` on the head commit, 26
+  came out "merge", and the three stops were real (`fh-atlantis` plan output,
+  unresolved threads). A stop on a bot comment prints each comment's author and
+  why it stopped. A new kind of status comment is ignored only on Nickolas's
+  word, matched on its author and opening line; never merge past it by hand.
 - **Approved with a should-fix**: Pulse can approve and still leave an inline
   should-fix comment, so the loop checks review threads rather than trusting
   the approval. Fix it with an amended commit and resolve the thread
