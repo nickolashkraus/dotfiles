@@ -49,7 +49,10 @@ Do NOT rewrite for style, tone, or voice. Only fix clear errors.
 If no issues: say "No issues found." and stop.
 
 If issues found: list each issue and its fix in a short table, then return the
-corrected text.
+corrected text. Every issue goes in the table, including ones left unfixed
+because fixing them would mean rewriting (a missing word, a repeated idea):
+give those the fix "Left as is" plus the suggestion. Never mention an issue
+only in prose after the table.
 
 - If the input came from the clipboard, pipe the corrected text back with
   `pbcopy` and confirm the clipboard has been updated.
