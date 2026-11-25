@@ -199,11 +199,12 @@ for attempt in 1 2 3; do
       # GraphQL `__typename` is `Bot` (a GitHub App: CodeRabbit, Cursor, Seer),
       # or whose login is fh-pulse or sre-terraform-review-bot; GraphQL serves
       # a Bot's login without the `[bot]` suffix REST adds, so match on
-      # `__typename`, not the suffix. The gate ignores five kinds of bot
+      # `__typename`, not the suffix. The gate ignores six kinds of bot
       # comment, each matched on its Bot author and the marker or heading it
       # opens with: the `linear` linkback, the `datadog-official` coverage
       # summary, the `github-advanced-security` code scanning setup notice,
-      # fh-pulse's `pulse:repo-setup` note and a `github-actions` coverage
+      # fh-pulse's `pulse:repo-setup` note, the `incident-io-code` note that
+      # a PR was attached to an incident and a `github-actions` coverage
       # report. Every other bot comment stops the merge, fh-pulse's
       # `pulse:dismissal` note and everything from `fh-atlantis` included.
       data=$(gh api graphql -F o=Function-Health -F n=<repo> -F p=$PR -f query='
@@ -219,6 +220,7 @@ for attempt in 1 2 3; do
             elif $l=="datadog-official" and ($b|test("\\A\\s*🎯 Code Coverage \\(")) then "the Datadog coverage summary"
             elif $l=="github-advanced-security" and ($b|test("\\A\\s*You are seeing this message because GitHub Code Scanning has recently been set up")) then "the code scanning setup notice"
             elif $l=="fh-pulse" and ($b|test("\\A\\s*<!-- pulse:repo-setup -->")) then "the fh-pulse repo-setup note"
+            elif $l=="incident-io-code" and ($b|test("\\A\\s*This PR was attached to \\[INC-[0-9]+ [^\\]]*\\]\\(https://app\\.incident\\.io/")) then "the incident.io attach note"
             elif $l=="github-actions" and ($b|test("\\A# (☂️ Python Coverage|Coverage \\(line \\+ branch\\))[ \\t]*(\\r?\\n|\\z)")) then "a coverage report"
             else null end;'
       printf '%s' "$data" | jq -r '[.reviews.nodes[]|"\(.author.login)[\(.author.__typename)]=\(.state)"]|join(", ")'
@@ -274,16 +276,17 @@ What the loop encodes:
   check is not an approval. The gate requires an fh-pulse review in state
   `APPROVED` whose commit is the current head, no reviewer (bot or human) whose
   latest decision review on any commit requests changes, no unresolved review
-  thread, and no PR-level bot comment outside the five kinds it ignores (the
+  thread, and no PR-level bot comment outside the six kinds it ignores (the
   Linear linkback, the Datadog coverage summary, the code scanning setup
-  notice, fh-pulse's repo-setup note and a GitHub Actions coverage report);
-  anything short stops the loop and reports, and never merges. On 2026-11-24 it
-  ran read-only against 28 merged PRs fh-pulse approved and one open one: the
-  approval is login `fh-pulse` with `__typename` `Bot` on the head commit, 26
-  came out "merge", and the three stops were real (`fh-atlantis` plan output,
-  unresolved threads). A stop on a bot comment prints each comment's author and
-  why it stopped. A new kind of status comment is ignored only on Nickolas's
-  word, matched on its author and opening line; never merge past it by hand.
+  notice, fh-pulse's repo-setup note, the incident.io attach note and a GitHub
+  Actions coverage report); anything short stops the loop and reports, and
+  never merges. On 2026-11-24 it ran read-only against 28 merged PRs fh-pulse
+  approved and one open one: the approval is login `fh-pulse` with `__typename`
+  `Bot` on the head commit, 26 came out "merge", and the three stops were real
+  (`fh-atlantis` plan output, unresolved threads). A stop on a bot comment
+  prints each comment's author and why it stopped. A new kind of status comment
+  is ignored only on Nickolas's word, matched on its author and opening line;
+  never merge past it by hand.
 - **Approved with a should-fix**: Pulse can approve and still leave an inline
   should-fix comment, so the loop checks review threads rather than trusting
   the approval. Fix it with an amended commit and resolve the thread
