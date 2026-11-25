@@ -630,7 +630,6 @@ echo -e "${white}###############################################################
 echo -e "${white}Installing and upgrading npm packages...${reset}" >&2
 echo -e "${white}####################################################################${reset}" >&2
 check_command_exists "npm" || exit 1
-run npm install -g @google/gemini-cli
 run npm install -g @openai/codex
 run npm install -g cspell
 run npm install -g eslint
